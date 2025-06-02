@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Sistema de Gestión Agrícola - Cultivos</title>
+		<link rel="shortcut icon" href="../imgs/logoSena.svg" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/pages/listar.css" />
+		<link rel="stylesheet" href="../css/components/navbar.css" />
+		<link rel="stylesheet" href="../css/components/modal-list.css" />
+		<link
+			rel="stylesheet"
+			href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,1,0"
+		/>
+		<script type="module" src="../js/pages/componentLoader.js"></script>
+		<script type="module" src="../js/data/cropsData.js"></script>
+		<script type="module" src="../js/config/cropsConfig.js"></script>
+		<script type="module" src="../js/pages/Crops.js"></script>
+	</head>
+	<body>
+		<nav class="nav-render"></nav>
+		<main>
+			<header>
+				<h1 class="header__title">Gestión de Cultivos</h1>
+				<div class="header__buttons">
+					<button class="button button--filter">
+						<span class="material-symbols-outlined button__icon"
+							>filter_alt</span
+						>
+						Filtros
+					</button>
+					<button class="button button--secondary button--create">
+						<a href="crear-cultivo.html" class="button__link">
+							<span class="material-symbols-outlined button__icon"
+								>add_circle</span
+							>
+							Crear cultivo
+						</a>
+					</button>
+				</div>
+			</header>
+			<div class="filters hidden">
+				<div class="filters__header">
+					<div class="filters__title-container">
+						<h2 class="filters__title">Filtros</h2>
+						<p class="filters__subtitle">
+							Filtre las opciones por diferentes criterios
+						</p>
+					</div>
+					<span class="material-symbols-outlined filters__close">close</span>
+				</div>
+				<div class="filters__content">
+					<input
+						type="text"
+						class="filters__search"
+						placeholder="Buscar por nombre o ID"
+					/>
+					<!-- Puedes agregar más filtros aquí -->
+					<button class="button button--clear">Limpiar filtros</button>
+				</div>
+			</div>
+			<div class="actions-bar">
+				<div class="actions-bar__selection">
+					<input type="checkbox" class="actions-bar__checkbox" />
+					<p class="actions-bar__count">
+						<span class="actions-bar__count--selected">0</span> de
+						<span class="actions-bar__count--total">0</span> Seleccionados
+					</p>
+				</div>
+				<button class="button button--enable">
+					<span class="material-symbols-outlined button__icon"
+						>power_settings_new</span
+					>
+					Habilitar
+				</button>
+				<button class="button button--disable">
+					<span class="material-symbols-outlined button__icon"
+						>power_settings_new</span
+					>
+					Deshabilitar
+				</button>
+				<button class="button button--report">
+					<span class="material-symbols-outlined button__icon">download</span>
+					Generar Reporte
+				</button>
+			</div>
+			<!-- Modal de Reporte -->
+			<div class="modal" id="reportModal">
+				<div class="modal__content">
+					<div class="modal__header modal__header--confirm">
+						<h2 class="modal__title">Generar Reporte</h2>
+						<span class="modal__close" id="closeReportModal">
+							<span class="material-symbols-outlined">close</span>
+						</span>
+					</div>
+					<div class="modal__body">
+						<form id="reportForm" class="form">
+							<div class="form-field">
+								<label class="form-field__label">Formato</label>
+								<select class="form-field__select" id="reportFormat">
+									<option value="excel">Excel (.xlsx)</option>
+									<option value="pdf">PDF</option>
+									<option value="csv">CSV</option>
+								</select>
+							</div>
+							<div class="form-field">
+								<label class="form-field__label">Incluir</label>
+								<div class="form-field__checkbox-group">
+									<label class="checkbox">
+										<input type="checkbox" checked id="includeInactive" />
+										Producciones inactivas
+									</label>
+									<label class="checkbox">
+										<input type="checkbox" checked id="includeDetails" />
+										Detalles completos
+									</label>
+									<label class="checkbox">
+										<input type="checkbox" id="includeSensors" />
+										Datos de sensores
+									</label>
+									<label class="checkbox">
+										<input type="checkbox" id="includeSupplies" />
+										Uso de insumos
+									</label>
+								</div>
+							</div>
+							<div class="form-field">
+								<p id="confirmMessage" class="modal__confirm-message">
+									¿Está seguro que desea generar el reporte con estas
+									configuraciones?
+								</p>
+							</div>
+						</form>
+					</div>
+					<div class="modal__footer modal__footer--confirm">
+						<button class="button button--secondary" id="cancelReportBtn">
+							Cancelar
+						</button>
+						<button class="button button--primary" id="generateReportBtn">
+							Generar
+						</button>
+					</div>
+				</div>
+			</div>
+			<!-- Modal de Visualización de Cultivo -->
+			<div class="modal" id="viewCropModal">
+				<div class="modal__content">
+					<div class="modal__header">
+						<h2 class="modal__title">Detalles del Cultivo</h2>
+						<span class="modal__close" id="closeViewCropModal">
+							<span class="material-symbols-outlined">close</span>
+						</span>
+					</div>
+					<div class="modal__body">
+						<div class="modal__image-container">
+							<img id="modalCropImage" class="modal__image--default" src="../imgs/default-cultivo.jpg" alt="Imagen del cultivo" />
+						</div>
+						<table class="modal__table">
+							<tbody>
+								<tr><th>ID</th><td id="modalCropId"></td></tr>
+								<tr><th>Nombre</th><td id="modalCropName"></td></tr>
+								<tr><th>Tipo</th><td id="modalCropType"></td></tr>
+								<tr><th>Tamaño</th><td id="modalCropArea"></td></tr>
+								<tr><th>Ubicación</th><td id="modalCropLocation"></td></tr>
+								<tr><th>Estado</th><td id="modalCropStatus"></td></tr>
+								<tr><th>Descripción</th><td id="modalCropDescription"></td></tr>
+								<tr><th>Fecha de creación</th><td id="modalCropCreated"></td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="modal__footer">
+						<button class="button button--secondary" id="closeViewCropBtn">Cerrar</button>
+					</div>
+				</div>
+			</div>
+			<div class="table-container">
+				<table class="table">
+					<thead>
+						<tr>
+							<th class="table__cell table__cell--header table__cell--checkbox">
+								<input type="checkbox" class="table__checkbox-header" />
+							</th>
+							<th class="table__cell table__cell--header">ID</th>
+							<th class="table__cell table__cell--header">Nombre</th>
+							<th class="table__cell table__cell--header">Tipo</th>
+							<th class="table__cell table__cell--header">Tamaño</th>
+							<th class="table__cell table__cell--header">Ubicación</th>
+							<th class="table__cell table__cell--header">Estado</th>
+							<th class="table__cell table__cell--header table__cell--actions">
+								Acciones
+							</th>
+						</tr>
+					</thead>
+					<tbody class="table__body">
+						<!-- Se llena dinámicamente -->
+					</tbody>
+				</table>
+				<div class="pagination">
+					<div class="pagination__info">
+						Mostrando <span class="pagination__current-page">1</span> a
+						<span class="pagination__items-per-page">10</span> de
+						<span class="pagination__total-items">2</span> resultados
+					</div>
+					<div class="pagination__controls">
+						<button
+							class="pagination__button pagination__button--prev"
+							disabled
+						>
+							<span class="material-symbols-outlined">navigate_before</span>
+						</button>
+						<button class="pagination__button pagination__button--active">
+							1
+						</button>
+						<button class="pagination__button pagination__button--next">
+							<span class="material-symbols-outlined">navigate_next</span>
+						</button>
+					</div>
+				</div>
+			</div>
+		</main>
+	</body>
+</html>

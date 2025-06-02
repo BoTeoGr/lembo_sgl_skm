@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100;400;700" rel="stylesheet" />
+	<title>Actualización de contraseña</title>
+	<link rel="shortcut icon" href="../imgs/logoSena.svg" type="image/x-icon" />
+	<link rel="stylesheet" href="../css/pages/log.css" />
+</head>
+
+<body>
+	<main class="layout__main main main--update-password">
+		<section class="main__section update update--password">
+			<header class="update__header header">
+				<img src="../imgs/sgal.jpeg" alt="Logo SGAL" class="header__logo" />
+				<h2 class="header__title">Actualización de contraseña</h2>
+			</header>
+
+			<form class="update__form form form--password" action="#" method="post">
+				<div class="form__group">
+					<input
+						type="password"
+						id="password"
+						class="form__input"
+						placeholder="Nueva contraseña"
+						minlength="8"
+						maxlength="16"
+					/>
+
+					<input
+						type="password"
+						id="password2"
+						class="form__input"
+						placeholder="Confirmar contraseña"
+						minlength="8"
+						maxlength="16"
+					/>
+				</div>
+
+				<div class="form__actions">
+					<button class="form__button" type="submit">Actualizar</button>
+				</div>
+			</form>
+		</section>
+	</main>
+
+	<script src="../js/validations/passwordUpdateValidator.js"></script>
+</body>
+</html>

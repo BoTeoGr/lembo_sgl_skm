@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100;400;700"
+			rel="stylesheet"
+		/>
+		<title>Recuperar Contraseña</title>
+		<link rel="shortcut icon" href="../imgs/logoSena.svg" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/pages/log.css" />
+	</head>
+
+	<body>
+		<main class="main-code">
+			<section class="login-code">
+				<header class="login-code__header">
+					<h2 class="login-code__title">Ingresa el código de 6 dígitos</h2>
+				</header>
+				<form class="login-code__form" id="form-recovery-code">
+					<div class="login-code__container">
+						<input
+							type="text"
+							class="login-code__input"
+							maxlength="1"
+							oninput="moveToNext(this, 0)"
+						/>
+						<input
+							type="text"
+							class="login-code__input"
+							maxlength="1"
+							oninput="moveToNext(this, 1)"
+						/>
+						<input
+							type="text"
+							class="login-code__input"
+							maxlength="1"
+							oninput="moveToNext(this, 2)"
+						/>
+						<input
+							type="text"
+							class="login-code__input"
+							maxlength="1"
+							oninput="moveToNext(this, 3)"
+						/>
+						<input
+							type="text"
+							class="login-code__input"
+							maxlength="1"
+							oninput="moveToNext(this, 4)"
+						/>
+						<input
+							type="text"
+							class="login-code__input"
+							maxlength="1"
+							oninput="moveToNext(this, 5)"
+						/>
+					</div>
+					<div class="login-code__actions">
+						<button type="submit" class="login-code__button">Enviar</button>
+					</div>
+					<div id="alert-container" class="login-code__alert-container"></div>
+				</form>
+			</section>
+		</main>
+
+		<script src="../js/validations/recoveryCodeValidator.js"></script>
+	</body>
+</html>

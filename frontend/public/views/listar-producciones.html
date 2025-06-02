@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Sistema de Gestión Agrícola</title>
+	<link rel="stylesheet"
+		href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+	<link rel="stylesheet" href="../css/pages/listar-produccion.css" />
+	<script type="module" src="../js/pages/componentLoader.js"></script>
+	<link rel="stylesheet" href="../css/components/navbar.css" />
+	<script src="../js/pages/Productions.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+	<nav class="nav-render"></nav>
+	<div class="dashboard">
+
+		<!-- Main Content -->
+		<div class="dashboard__content">
+			<!-- Main Area -->
+			<main class="main">
+				<!-- Navigation Buttons -->
+				<div class="nav-buttons">
+					<button class="button button--primary" id="toggleCardsBtn">
+						<span class="button__text">Mostrar Widgets con Informacion Adicional</span>
+						<span class="material-symbols-outlined button__icon">
+							arrow_drop_down
+							</span>
+					</button>
+				</div>
+
+				<!-- Cards Container -->
+				<div id="cardsContainer" class="cards-container" style="display: none">
+					<!-- Dashboard Summary Cards -->
+					<div class="summary">
+						<!-- Stats Overview -->
+						<div class="stats-overview">
+							<div class="stat-card">
+								<div class="stat-card__header">
+									<h3 class="stat-card__title">Total Producciones</h3>
+									<span class="stat-card__icon">📊</span>
+								</div>
+								<div class="stat-card__content">
+									<div class="stat-card__value">8</div>
+									<div class="stat-card__details">
+										<span class="stat-card__label">5 Activas</span>
+										<span class="stat-card__label">3 Completadas</span>
+									</div>
+								</div>
+							</div>
+
+							<div class="stat-card">
+								<div class="stat-card__header">
+									<h3 class="stat-card__title">Inversión Total</h3>
+									<span class="stat-card__icon">💰</span>
+								</div>
+								<div class="stat-card__content">
+									<div class="stat-card__value">$41.100.000</div>
+									<div class="stat-card__trend stat-card__trend--positive">
+										<span class="stat-card__trend-icon">↗</span>
+										<span class="stat-card__trend-value">12.5%</span>
+										<span class="stat-card__trend-label">desde el mes pasado</span>
+									</div>
+								</div>
+							</div>
+
+							<div class="stat-card">
+								<div class="stat-card__header">
+									<h3 class="stat-card__title">Meta de Ganancias</h3>
+									<span class="stat-card__icon">🎯</span>
+								</div>
+								<div class="stat-card__content">
+									<div class="stat-card__value">$53.430.000</div>
+									<div class="stat-card__trend stat-card__trend--positive">
+										<span class="stat-card__trend-icon">↗</span>
+										<span class="stat-card__trend-value">30%</span>
+										<span class="stat-card__trend-label">sobre la inversión total</span>
+									</div>
+								</div>
+							</div>
+
+							<div class="stat-card">
+								<div class="stat-card__header">
+									<h3 class="stat-card__title">Próximas Cosechas</h3>
+									<span class="stat-card__icon">🌾</span>
+								</div>
+								<div class="stat-card__content">
+									<div class="stat-card__value">3</div>
+									<div class="stat-card__details">
+										<span class="stat-card__label stat-card__label--highlight">Próxima en 15
+											días</span>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- Investment Distribution -->
+						<div class="card investment-distribution">
+							<div class="card__header">
+								<h2 class="card__title">Inversión por Cultivo</h2>
+								<span class="badge badge--green">Distribución actual</span>
+							</div>
+							<div class="card__content">
+								<div class="investment-chart">
+									<canvas id="investmentPieChart"></canvas>
+								</div>
+								<div class="investment-legend">
+									<div class="legend-item">
+										<span class="legend-item__color" style="background-color: #3b82f6"></span>
+										<span class="legend-item__label">Maíz: 11%</span>
+									</div>
+									<div class="legend-item">
+										<span class="legend-item__color" style="background-color: #22c55e"></span>
+										<span class="legend-item__label">Frijol: 8%</span>
+									</div>
+									<div class="legend-item">
+										<span class="legend-item__color" style="background-color: #f59e0b"></span>
+										<span class="legend-item__label">Tomate: 19%</span>
+									</div>
+									<div class="legend-item">
+										<span class="legend-item__color" style="background-color: #ef4444"></span>
+										<span class="legend-item__label">Papa: 12%</span>
+									</div>
+									<div class="legend-item">
+										<span class="legend-item__color" style="background-color: #8b5cf6"></span>
+										<span class="legend-item__label">Trigo: 15%</span>
+									</div>
+									<div class="legend-item">
+										<span class="legend-item__color" style="background-color: #94a3b8"></span>
+										<span class="legend-item__label">Otros: 35%</span>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- Investment Trend -->
+						<div class="card investment-trend">
+							<div class="card__header">
+								<h2 class="card__title">Tendencia de Inversión</h2>
+								<span class="badge badge--green">Últimos 6 meses</span>
+							</div>
+							<div class="card__content">
+								<div class="trend-chart">
+									<canvas id="investmentTrendChart"></canvas>
+								</div>
+								<div class="trend-summary">
+									<p class="trend-summary__text">
+										Evolución de la inversión en los últimos 6 meses
+									</p>
+								</div>
+							</div>
+						</div>
+
+						<!-- Production Status Card -->
+						<div class="card production-status-card">
+							<div class="card__header">
+								<h2 class="card__title">Estado de Producciones</h2>
+								<span class="badge badge--green">Actualizado hoy</span>
+							</div>
+							<div class="card__content">
+								<div class="production-status">
+									<div class="production-status__main">
+										<div class="stat__value">12</div>
+										<div class="stat__label">Producciones activas</div>
+										<div class="stat__trend stat__trend--positive">
+											<span class="stat__trend-icon">↗</span>
+											<span class="stat__trend-value">+2</span>
+											<span class="stat__trend-label">desde el mes pasado</span>
+										</div>
+									</div>
+									<div class="production-status__details">
+										<div class="status-item">
+											<div class="status-item__value">8</div>
+											<div class="status-item__label">En proceso</div>
+										</div>
+										<div class="status-item">
+											<div class="status-item__value">4</div>
+											<div class="status-item__label">Por iniciar</div>
+										</div>
+										<div class="status-item">
+											<div class="status-item__value">15</div>
+											<div class="status-item__label">Completadas 2024</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- Humidity Card -->
+						<div class="card humidity-card">
+							<div class="card__header">
+								<h2 class="card__title">Humedad Promedio</h2>
+								<span class="badge badge--warning">Alerta</span>
+							</div>
+							<div class="card__content">
+								<div class="sensor">
+									<div class="sensor__current">
+										<div class="sensor__value">68%</div>
+										<div class="sensor__label">Humedad actual</div>
+										<div class="sensor__timestamp">
+											Última actualización: hace 5 min
+										</div>
+									</div>
+									<div class="progress">
+										<div class="progress__bar progress__bar--humidity" style="width: 68%"></div>
+									</div>
+									<div class="sensor__summary">
+										<div>Min: 60%</div>
+										<div>Promedio: 65%</div>
+										<div>Max: 70%</div>
+									</div>
+								</div>
+								<div class="sensor__alerts">
+									<div class="alert alert--warning">
+										<span class="alert__icon">⚠️</span>
+										<div class="alert__content">
+											<div class="alert__title">Nivel superior al óptimo</div>
+											<div class="alert__message">
+												Se recomienda ajustar el riego en sector 3
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="chart">
+									<canvas id="humidityChart" class="chart__canvas"></canvas>
+								</div>
+							</div>
+						</div>
+
+						<!-- Temperature Card -->
+						<div class="card temperature-card">
+							<div class="card__header">
+								<h2 class="card__title">Temperatura Promedio</h2>
+								<span class="badge badge--green">Normal</span>
+							</div>
+							<div class="card__content">
+								<div class="sensor">
+									<div class="sensor__current">
+										<div class="sensor__value">24°C</div>
+										<div class="sensor__label">Temperatura actual</div>
+										<div class="sensor__timestamp">
+											Última actualización: hace 2 min
+										</div>
+									</div>
+									<div class="progress">
+										<div class="progress__bar progress__bar--temperature" style="width: 60%"></div>
+									</div>
+									<div class="sensor__summary">
+										<div>Min: 20°C</div>
+										<div>Promedio: 23°C</div>
+										<div>Max: 26°C</div>
+									</div>
+								</div>
+								<div class="sensor__stats">
+									<div class="stat-details__item">
+										<div class="stat-details__label">Variación diaria</div>
+										<div class="stat-details__value">±2.5°C</div>
+									</div>
+									<div class="stat-details__item">
+										<div class="stat-details__label">Tendencia semanal</div>
+										<div class="stat-details__value trend-up">↗ +1.2°C</div>
+									</div>
+								</div>
+								<div class="chart">
+									<canvas id="temperatureChart" class="chart__canvas"></canvas>
+								</div>
+							</div>
+						</div>
+
+						<!-- Activity Card -->
+						<div class="card activity-card">
+							<div class="card__header">
+								<h2 class="card__title">Actividad Reciente</h2>
+								<span class="badge badge--green">12 nuevas</span>
+							</div>
+							<div class="card__content">
+								<ul class="activity">
+									<li class="activity__item">
+										<div class="activity__icon">💧</div>
+										<div class="activity__main">
+											<div class="activity__header">
+												<div class="activity__time">Hoy 10:30</div>
+												<div class="status status--active">✓ Completado</div>
+											</div>
+											<div class="activity__content">
+												<div class="activity__title">Riego programado</div>
+												<div class="activity__description">
+													Maíz Temporada 2023
+												</div>
+												<div class="activity__user">Por: Juan Pérez</div>
+											</div>
+										</div>
+									</li>
+									<li class="activity__item">
+										<div class="activity__icon">🌱</div>
+										<div class="activity__main">
+											<div class="activity__header">
+												<div class="activity__time">Ayer 15:45</div>
+												<div class="status status--active">✓ Verificado</div>
+											</div>
+											<div class="activity__content">
+												<div class="activity__title">
+													Fertilización completada
+												</div>
+												<div class="activity__description">
+													Tomate Invernadero
+												</div>
+												<div class="activity__user">Por: María Rodríguez</div>
+											</div>
+										</div>
+									</li>
+									<li class="activity__item">
+										<div class="activity__icon">🌡️</div>
+										<div class="activity__main">
+											<div class="activity__header">
+												<div class="activity__time">22/06 09:15</div>
+												<div class="status status--warning">
+													⚠️ Requiere atención
+												</div>
+											</div>
+											<div class="activity__content">
+												<div class="activity__title">
+													Alerta de temperatura
+												</div>
+												<div class="activity__description">
+													Invernadero #2
+												</div>
+												<div class="activity__user">Por: Sistema</div>
+											</div>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Tabs Container -->
+				<div class="tabs-container">
+					<div class="tabs-header">
+						<button class="tab-button active" data-tab="producciones">
+							Producciones
+						</button>
+						<button class="tab-button" data-tab="cultivos">Cultivos</button>
+						<button class="tab-button" data-tab="sensores">Sensores</button>
+						<button class="tab-button" data-tab="insumos">Insumos</button>
+						<button class="tab-button" data-tab="responsables">
+							Responsables
+						</button>
+					</div>
+
+					<!-- Tab Content -->
+					<div class="tab-content" id="producciones" style="display: block">
+						<header>
+							<h1 class="header__title">Gestión de Producciones</h1>
+							<div class="header__buttons">
+								<button class="button button--filter">
+									<span class="material-symbols-outlined button__icon">filter_alt</span>
+									Filtros
+								</button>
+								<button class="button button--secondary button--create">
+									<a href="crear-produccion.html" class="button__link">
+										<span class="material-symbols-outlined button__icon">add_circle</span>
+										Crear produccion
+									</a>
+								</button>
+							</div>
+						</header>
+
+						<div class="filters hidden">
+							<div class="filters__header">
+								<div class="filters__title-container">
+									<h2 class="filters__title">Filtros</h2>
+									<p class="filters__subtitle">
+										Filtre las opciones por diferentes criterios
+									</p>
+								</div>
+								<span class="material-symbols-outlined filters__close">close</span>
+							</div>
+							<div class="filters__content">
+								<input type="text" class="filters__search" placeholder="Buscar por nombre o ID" />
+								<select class="filters__select" placeholder="Estado">
+									<option value="">Todos</option>
+									<option value="Activo">Activo</option>
+									<option value="Inactivo">Inactivo</option>
+								</select>
+								<select class="filters__select" placeholder="Ciclo">
+									<option value="">Todos</option>
+									<option value="Primavera-Verano">Primavera - Verano</option>
+									<option value="Otoño-Invierno">Otoño - Invierno</option>
+								</select>
+								<button class="button button--clear">Limpiar filtros</button>
+							</div>
+						</div>
+
+						<div class="actions-bar">
+							<div class="actions-bar__selection">
+								<input type="checkbox" class="actions-bar__checkbox" />
+								<p class="actions-bar__count">
+									<span class="actions-bar__count--selected">5</span> de
+									<span class="actions-bar__count--total">10</span>
+									Seleccionados
+								</p>
+							</div>
+							<button class="button button--enable">
+								<span class="material-symbols-outlined button__icon">power_settings_new</span>
+								Habilitar
+							</button>
+							<button class="button button--disable">
+								<span class="material-symbols-outlined button__icon">power_settings_new</span>
+								Deshabilitar
+							</button>
+							<button class="button button--report">
+								<span class="material-symbols-outlined button__icon">download</span>
+								Generar Reporte
+							</button>
+						</div>
+
+						<div class="table-container">
+							<table class="table">
+								<thead class="table__header">
+									<tr>
+										<th class="table__cell table__cell--header table__cell--checkbox">
+											<input type="checkbox" class="table__checkbox-header table" />
+										</th>
+										<th class="table__cell table__cell--header">Identificador</th>
+										<th class="table__cell table__cell--header">Nombre</th>
+										<th class="table__cell table__cell--header">
+											Responsable
+										</th>
+										<th class="table__cell table__cell--header">Cultivo</th>
+										<th class="table__cell table__cell--header">Inversión</th>
+										<th class="table__cell table__cell--header">Progreso</th>
+										<th class="table__cell table__cell--header">Estado</th>
+										<th class="table__cell table__cell--actions table__cell--header">
+											Acciones
+										</th>
+									</tr>
+								</thead>
+								<tbody class="table__body">
+									<!-- Los datos se cargarán dinámicamente desde la base de datos -->
+								</tbody>
+							</table>
+							
+							<!-- Modal Detalles de Producción (Nuevo) -->
+							<div id="modalVisualizarCultivo" class="modal">
+								<div class="modal__content">
+									<div class="modal__header">
+										<h2 class="modal__title">Detalles De La Producción</h2>
+										<button class="modal__close" id="closeModalVisualizarCultivo">
+											<span class="material-symbols-outlined">close</span>
+										</button>
+									</div>
+									<div class="modal__body">
+										<div class="cultivo-details">
+											<div class="cultivo-header">
+												<div class="cultivo-title">
+													<h3 id="cultivoNombre"></h3>
+													<span id="cultivoEstado" class="badge badge--status">
+														<span class="material-symbols-outlined"></span>
+													</span>
+												</div>
+												<div class="cultivo-id">
+													ID: <span id="cultivoId"></span>
+												</div>
+											</div>
+
+											<div class="cultivo-progress">
+												<div class="progress-header">
+													<h4>Progreso del Ciclo</h4>
+													<span id="cultivoProgreso" class="progress-percentage"></span>
+												</div>
+												<div class="progress progress--large">
+													<div class="progress__bar" style="width: 0%"></div>
+												</div>
+												<div class="progress-dates">
+													<span>Inicio: <span id="cultivoFechaInicio"></span></span>
+													<span>Fin estimado: <span id="cultivoFechaFin"></span></span>
+												</div>
+											</div>
+
+											<div class="cultivo-grid">
+												<!-- Información básica -->
+												<div class="cultivo-section">
+													<div class="section-header">
+														<h4>Información Básica</h4>
+													</div>
+													<div class="info-content">
+														<div class="info-item">
+															<span class="info-label">Tipo:</span>
+															<span id="cultivoTipo" class="info-value"></span>
+														</div>
+														<div class="info-item">
+															<span class="info-label">Ubicación:</span>
+															<span id="cultivoUbicacion" class="info-value"></span>
+														</div>
+														<div class="info-item">
+															<span class="info-label">Cultivo:</span>
+															<span id="nombreCultivo" class="info-value"></span>
+														</div>
+														<div class="info-item">
+															<span class="info-label">Ciclo:</span>
+															<span id="nombreCiclo" class="info-value"></span>
+														</div>
+														<div class="info-item">
+															<span class="info-label">Descripción:</span>
+															<span id="cultivoDescripcion" class="info-value"></span>
+														</div>
+													</div>
+												</div>
+
+												<!-- Responsable -->
+												<div class="cultivo-section">
+													<div class="section-header">
+														<h4>Responsable</h4>
+													</div>
+													<div class="responsable-content">
+														<div class="responsable-main">
+															<div class="responsable-avatar">
+																<span class="material-symbols-outlined">person</span>
+															</div>
+															<div class="responsable-info">
+																<span id="cultivoResponsable" class="responsable-name"></span>
+															</div>
+														</div>
+													</div>
+												</div>
+
+												<!-- Inversión -->
+												<div class="cultivo-section">
+													<div class="section-header">
+														<h4>Inversión y Rendimiento</h4>
+													</div>
+													<div class="inversion-content">
+														<div class="inversion-stats-grid">
+															<div class="inversion-stat-card">
+																<div class="stat-icon">
+																	<span class="material-symbols-outlined">paid</span>
+																</div>
+																<div class="stat-info">
+																	<span class="stat-label">Inversión Total</span>
+																	<span id="cultivoInversion" class="stat-value"></span>
+																</div>
+															</div>
+															<div class="inversion-stat-card">
+																<div class="stat-icon">
+																	<span class="material-symbols-outlined">trending_up</span>
+																</div>
+																<div class="stat-info">
+																	<span class="stat-label">Meta de Ganancia</span>
+																	<span id="cultivoMetaGanancia" class="stat-value"></span>
+																</div>
+															</div>
+															<div class="inversion-stat-card">
+																<div class="stat-icon">
+																	<span class="material-symbols-outlined">calculate</span>
+																</div>
+																<div class="stat-info">
+																	<span class="stat-label">ROI Esperado</span>
+																	<span id="cultivoROI" class="stat-value"></span>
+																</div>
+															</div>
+														</div>
+													</div>
+												</div>
+
+												<!-- Insumos -->
+												<div class="cultivo-section">
+													<div class="section-header">
+														<h4>Insumos Utilizados</h4>
+													</div>
+													<div class="insumos-content">
+														<ul id="listaInsumos" class="insumos-list"></ul>
+													</div>
+												</div>
+
+												<!-- Sensores -->
+												<div class="cultivo-section">
+													<div class="section-header">
+														<h4>Sensores Asignados</h4>
+													</div>
+													<div class="sensores-content">
+														<ul id="listaSensores" class="sensores-list"></ul>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<!-- Modal de Reporte -->
+							<div id="reportModal" class="modal">
+								<div class="modal__content">
+									<div class="modal__header">
+										<h2 class="modal__title">Generar Reporte de Producciones</h2>
+										<button class="modal__close" id="closeReportModal">
+											<span class="material-symbols-outlined">close</span>
+										</button>
+									</div>
+									<div class="modal__body">
+										<form id="reportForm" class="form">
+											<div class="form__group">
+												<label class="form__label">
+													<input type="checkbox" id="includeInactive" class="form__checkbox">
+													Incluir producciones inactivas
+												</label>
+											</div>
+											<div class="form__group">
+												<label class="form__label">
+													<input type="checkbox" id="includeDetails" class="form__checkbox" checked>
+													Incluir detalles completos
+												</label>
+											</div>
+											<div class="form__actions form__actions--report">
+												<button type="button" class="button button--secondary" id="cancelReportBtn">Cancelar</button>
+												<button type="submit" class="button button--primary" id="generateReportBtn">Generar</button>
+											</div>
+										</form>
+									</div>
+								</div>
+							</div>
+							<div class="pagination">
+								<div class="pagination__info">
+									Página <span class="pagination__current-page">1</span> de
+									<span class="pagination__total-pages">1</span> | Mostrando
+									<span class="pagination__items-per-page">10</span> de
+									<span class="pagination__total-items">10</span> producciones
+								</div>
+								<div class="pagination__controls">
+									<button class="pagination__button pagination__button--prev" disabled>
+										<span class="material-symbols-outlined">chevron_left</span>
+									</button>
+									<button class="pagination__button pagination__button--active">1</button>
+									<button class="pagination__button">2</button>
+									<button class="pagination__button">3</button>
+									<button class="pagination__button pagination__button--next">
+										<span class="material-symbols-outlined">chevron_right</span>
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="tab-content" id="cultivos">
+						<div class="content-header">
+							<h2>Cultivos</h2>
+						</div>
+						<div class="list-group">
+							<!-- Los datos se cargarán dinámicamente -->
+						</div>
+					</div>
+					<div class="tab-content" id="sensores">
+						<div class="content-header">
+							<h2>Sensores</h2>
+						</div>
+						<div class="list-group">
+							<!-- Los datos se cargarán dinámicamente -->
+						</div>
+					</div>
+
+					<div class="tab-content" id="insumos">
+						<div class="content-header">
+							<h2>Insumos</h2>
+						</div>
+						<div class="list-group">
+							<!-- Los datos se cargarán dinámicamente -->
+						</div>
+					</div>
+
+					<div class="tab-content" id="responsables">
+						<div class="content-header">
+							<h2>Responsables</h2>
+						</div>
+						<div class="list-group">
+							<!-- Los datos se cargarán dinámicamente -->
+						</div>
+					</div>
+				</div>
+			</main>
+		</div>
+	</div>
+</body>
+
+</html>
