@@ -1391,7 +1391,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Función para cargar sensores desde la API
   async function cargarSensores() {
 	try {
-	  const response = await fetch("http://localhost:5000/sensor");
+	  const response = await fetch("http://localhost:5000/sensores");
 	  const sensores = await response.json();
   
 	  if (!response.ok) {

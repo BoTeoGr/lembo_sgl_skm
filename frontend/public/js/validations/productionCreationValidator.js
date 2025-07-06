@@ -39,14 +39,18 @@ const productionData = {
   meta_ganancia: 0,
 }
 
-// Variables para el modal de creación de usuario
-const createUserBtn = document.getElementById("createUserBtn")
-const createUserModal = document.getElementById("createUserModal")
-const closeCreateUserModal = document.getElementById("closeCreateUserModal")
-const createUserForm = document.getElementById("createUserForm")
+// Variables globales
+// Array para almacenar los insumos seleccionados con sus cantidades
+let selectedSupplies = [];
+// Set para almacenar los sensores seleccionados
+let selectedSensors = new Set();
 
-// Objeto para almacenar datos del usuario en el modal
-const modalUserData = {
+// Variables para el modal de creación de usuario
+let createUserModal = document.getElementById("createUserModal");
+let closeCreateUserModal = document.getElementById("closeCreateUserModal");
+let createUserBtn = document.getElementById("createUserBtn");
+let createUserForm = document.getElementById("createUserForm");
+let modalUserData = {
   userTypeId: "",
   userName: "",
   userId: "",
@@ -54,12 +58,8 @@ const modalUserData = {
   userEmail: "",
   userConfirmEmail: "",
   userRol: "",
-  estado: "habilitado",
-}
-
-// Variables para el modal de creación de sensor
-const createSensorBtn = document.getElementById("createSensorBtn")
-const createSensorModal = document.getElementById("createSensorModal")
+  estado: ""
+};
 const closeCreateSensorModal = document.getElementById("closeCreateSensorModal")
 const createSensorForm = document.getElementById("createSensorForm")
 
@@ -133,7 +133,7 @@ const modalCropCycleData = {
 let allSuppliesGlobal = []
 
 // Inicializar el Set para almacenar los sensores seleccionados
-const selectedSensors = new Set()
+// Ya está declarado como variable global
 
 // Inicialización del formulario
 document.addEventListener("DOMContentLoaded", async () => {
@@ -579,12 +579,12 @@ function validateForm() {
     return isValid
   })
 
-  // Verificar máximo de sensores
-  const hasValidSensors = selectedSensors.size <= 3
-  if (!hasValidSensors) {
-    console.log("Demasiados sensores seleccionados")
-    showToast("Error", "No se pueden seleccionar más de 3 sensores", "error")
+  // Verificar máximo de sensores (solo advertencia)
+  if (selectedSensors.size > 3) {
+    console.log("Advertencia: Se han seleccionado más de 3 sensores")
+    showToast("Advertencia", "Se han seleccionado más de 3 sensores", "warning")
   }
+  const hasValidSensors = true
 
   // Validar fechas
   const datesValid = validateDates()
@@ -620,25 +620,64 @@ function validateForm() {
 }
 
 // Funciones para manejar la selección de sensores e insumos
-// Después de la función addSelectedSupply(), agregar esta nueva función para calcular la inversión total
+// Función para agregar un sensor seleccionado
+function addSelectedSensor() {
+    const sensorSelect = document.getElementById("sensor");
+    const selectedSensor = sensorSelect.options[sensorSelect.selectedIndex];
+
+    if (!selectedSensor.value) {
+        showToast("Error", "Por favor seleccione un sensor", "error");
+        return;
+    }
+
+    if (selectedSensors.has(selectedSensor.value)) {
+        showToast("Error", "Este sensor ya ha sido agregado", "error");
+        return;
+    }
+
+    if (selectedSensors.size >= 3) {
+        showToast("Error", "No se pueden agregar más de 3 sensores", "error");
+        return;
+    }
+
+    selectedSensors.add(selectedSensor.value);
+
+    const selectedSensorsDiv = document.getElementById("selectedSensors");
+    const sensorCard = document.createElement("div");
+    sensorCard.className = "item-card";
+    sensorCard.dataset.sensorId = selectedSensor.value;
+    sensorCard.innerHTML = `
+        <button type="button" class="remove-item" onclick="removeSelectedItem(this, 'sensor')">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="item-info">
+            <span class="item-name">${selectedSensor.text}</span>
+        </div>
+    `;
+    
+    selectedSensorsDiv.appendChild(sensorCard);
+    updateCreateButtonState();
+}
 
 // Función para calcular la inversión total basada en los insumos seleccionados
 function calculateTotalInvestment() {
   const totalInvestmentField = document.getElementById("totalInvestment")
   const estimatedProfitField = document.getElementById("estimatedProfit")
 
-  // Obtener los insumos seleccionados
-  const selectedSuppliesFull = productionData.insumos_ids
-    .map((id) => {
-      return allSuppliesGlobal.find((s) => String(s.id) === String(id))
-    })
-    .filter(Boolean) // Filtrar valores nulos o undefined
+  // Obtener los insumos seleccionados con sus cantidades específicas
+  const selectedSuppliesFull = selectedSupplies.map(supply => {
+    const supplyData = allSuppliesGlobal.find(s => String(s.id) === String(supply.id));
+    return {
+      ...supplyData,
+      cantidad_usar: supply.cantidad_usar
+    };
+  }).filter(Boolean);
 
   // Calcular el total de inversión
   let totalInvestment = 0
   selectedSuppliesFull.forEach((supply) => {
-    if (supply && supply.valor_unitario && supply.cantidad) {
-      totalInvestment += Number.parseFloat(supply.valor_unitario) 
+    if (supply && supply.valor_unitario && supply.cantidad_usar) {
+      totalInvestment += Number.parseFloat(supply.valor_unitario) * Number.parseFloat(supply.cantidad_usar)
     }
   })
 
@@ -655,154 +694,277 @@ function calculateTotalInvestment() {
   validateInvestmentAndProfit()
 }
 
-// Modificar la función addSelectedSupply para llamar a calculateTotalInvestment
+// Variable temporal para almacenar el insumo seleccionado
+let tempSelectedSupply = null;
+
+// Función para mostrar el formulario de cantidad a usar
+function showSupplyUsageForm(supplyId) {
+  const supply = selectedSupplies.find(s => s.id === supplyId)
+  if (!supply) return
+
+  const supplyUsageForm = document.getElementById("supplyUsageForm")
+  if (supplyUsageForm) {
+    supplyUsageForm.style.display = "block"
+    supplyUsageForm.innerHTML = `
+      <div class="form-group">
+        <label for="supplyUsageAmount">Cantidad a usar (${supply.nombre}):</label>
+        <input type="number" class="form-control" id="supplyUsageAmount" min="0" step="0.01" value="${supply.cantidad_usar || 0}">
+        <small class="text-muted">Stock disponible: ${supply.cantidad}</small>
+      </div>
+      <button type="button" class="btn btn-primary" onclick="handleSupplyUsage(${supplyId})">Confirmar cantidad</button>
+    `
+  }
+}
+
+// Función para manejar la cantidad a usar del insumo
+function handleSupplyUsage(supplyId) {
+  const supplyUsageAmount = document.getElementById("supplyUsageAmount").value
+  if (!supplyUsageAmount || parseFloat(supplyUsageAmount) <= 0) {
+    showToast("Error", "Por favor, ingrese una cantidad válida.", "error")
+    return
+  }
+
+  const cantidadDecimal = parseFloat(supplyUsageAmount).toFixed(2)
+
+  const supply = selectedSupplies.find(s => s.id === supplyId)
+  if (!supply) {
+    showToast("Error", "Insumo no encontrado", "error")
+    return
+  }
+
+  if (parseFloat(cantidadDecimal) > supply.cantidad) {
+    showToast("Error", "La cantidad excede el stock disponible.", "error")
+    return
+  }
+
+  const supplyIndex = selectedSupplies.findIndex(s => s.id === supplyId)
+  if (supplyIndex !== -1) {
+    const cantidadUsar = parseFloat(cantidadDecimal);
+    selectedSupplies[supplyIndex] = {
+      ...selectedSupplies[supplyIndex],
+      cantidad_usar: cantidadUsar,
+      cantidad_usada: cantidadDecimal // Guardar la cantidad usada
+    }
+    console.log(`Actualizando insumo ${supplyId} con cantidad: ${cantidadUsar}`)
+  }
+
+  const supplyCard = document.querySelector(`[data-supply-id="${supplyId}"]`)
+  if (supplyCard) {
+    const quantitySpan = supplyCard.querySelector(".item-details:last-child")
+    if (quantitySpan) {
+      quantitySpan.textContent = `Cantidad: ${cantidadDecimal}`
+    }
+    const registerButton = supplyCard.querySelector(".btn-success")
+    if (registerButton) {
+      registerButton.style.display = "inline-block"
+    }
+  }
+
+  const supplyUsageForm = document.getElementById("supplyUsageForm")
+  if (supplyUsageForm) {
+    supplyUsageForm.style.display = "none"
+  }
+  document.getElementById("supplyUsageAmount").value = ""
+
+  calculateTotalInvestment()
+}
+
+// Función para registrar el uso del insumo
+function registerSupplyUsage() {
+  console.log('Iniciando registro de uso');
+  console.log('tempSelectedSupply:', tempSelectedSupply);
+  
+  const supply = tempSelectedSupply;
+  if (!supply) {
+    showToast("Error", "No se ha seleccionado ningún insumo", "error");
+    return;
+  }
+
+  const quantityInput = document.getElementById("supplyUsageQuantity");
+  const quantity = parseFloat(quantityInput.value);
+
+  console.log('Cantidad ingresada:', quantity);
+  console.log('Cantidad disponible:', supply.cantidad);
+
+  if (isNaN(quantity) || quantity <= 0) {
+    showToast("Error", "Por favor ingrese una cantidad válida", "error");
+    return;
+  }
+
+  if (quantity > supply.cantidad) {
+    showToast("Error", "La cantidad excede el stock disponible", "error");
+    return;
+  }
+
+  // Actualizar el objeto usando la referencia compartida
+  tempSelectedSupply.cantidad_usar = quantity;
+  tempSelectedSupply.cantidad_usada = quantity;
+
+  // Actualizar la UI de la tarjeta del insumo
+  const supplyCard = document.querySelector(`[data-supply-id="${supply.id}"]`);
+  if (supplyCard) {
+    const cantidadElement = supplyCard.querySelector(".item-details:last-child");
+    if (cantidadElement) {
+      cantidadElement.textContent = `Cantidad: ${quantity}`;
+    }
+  }
+
+  // Limpiar el campo de cantidad para el siguiente insumo
+  quantityInput.value = '';
+
+  // Recalcular la inversión total
+  calculateTotalInvestment();
+
+  // Mostrar mensaje de éxito
+  showToast("Éxito", "Uso de insumo registrado correctamente", "success");
+}
+
+// Modificar la función addSelectedSupply para incluir la cantidad a usar
 function addSelectedSupply() {
-  const supplySelect = document.getElementById("supply")
-  const selectedSupply = supplySelect.options[supplySelect.selectedIndex]
+  // Verificar si selectedSupplies está inicializado
+  if (!Array.isArray(selectedSupplies)) {
+    selectedSupplies = [];
+  }
+
+  const supplySelect = document.getElementById("supply");
+  const selectedSupply = supplySelect.options[supplySelect.selectedIndex];
 
   if (!selectedSupply.value) {
-    showToast("Error", "Por favor seleccione un insumo", "error")
-    return
+    showToast("Error", "Por favor seleccione un insumo", "error");
+    return;
   }
 
-  // Verificar que el insumo seleccionado tenga valor_unitario y cantidad
-  const supplyData = allSuppliesGlobal.find((s) => String(s.id) === String(selectedSupply.value))
+  const supplyData = allSuppliesGlobal.find((s) => String(s.id) === String(selectedSupply.value));
   if (!supplyData || !supplyData.valor_unitario || !supplyData.cantidad) {
-    showToast("Error", "Este insumo no tiene valor unitario o cantidad definidos", "error")
-    return
+    showToast("Error", "Este insumo no tiene valor unitario o cantidad definidos", "error");
+    return;
   }
 
-  // Verificar si el insumo ya está en la lista
-  if (productionData.insumos_ids.includes(selectedSupply.value)) {
-    showToast("Error", "Este insumo ya ha sido agregado", "error")
-    return
+  if (selectedSupplies.some(s => s.id === selectedSupply.value)) {
+    showToast("Error", "Este insumo ya ha sido agregado", "error");
+    return;
   }
 
-  // Verificar que el insumo tenga cantidad disponible
   if (supplyData.cantidad <= 0) {
-    showToast("Error", "Este insumo no tiene unidades disponibles", "error")
-    return
+    showToast("Error", "Este insumo no tiene unidades disponibles", "error");
+    return;
   }
 
-  // Agregar el nuevo insumo a la lista
-  productionData.insumos_ids.push(selectedSupply.value)
+  // Crear el objeto del insumo con cantidad inicial de 0
+  const supplyToAdd = {
+    ...supplyData,
+    cantidad_usar: 0
+  };
 
-  const selectedSupplies = document.getElementById("selectedSupplies")
-  const supplyCard = document.createElement("div")
-  supplyCard.className = "item-card"
-  supplyCard.dataset.supplyId = selectedSupply.value
+  // Usar la misma referencia para tempSelectedSupply
+  tempSelectedSupply = supplyToAdd;
+
+  selectedSupplies.push(supplyToAdd);
+
+  productionData.insumos_ids.push(supplyToAdd.id);
+
+  // Mostrar el formulario de registro de uso
+  const supplyUsageForm = document.getElementById("supplyUsageForm");
+  if (supplyUsageForm) {
+    supplyUsageForm.style.display = "block";
+    
+    // Actualizar la información del insumo en el formulario
+    document.getElementById("supplyName").textContent = supplyToAdd.nombre;
+    document.getElementById("availableQuantity").textContent = supplyToAdd.cantidad;
+    document.getElementById("unitValue").textContent = `$${supplyToAdd.valor_unitario}`;
+  }
+
+  const selectedSuppliesDiv = document.getElementById("selectedSupplies");
+  const supplyCard = document.createElement("div");
+  supplyCard.className = "item-card";
+  supplyCard.dataset.supplyId = supplyToAdd.id;
   supplyCard.innerHTML = `
       <button type="button" class="remove-item" onclick="removeSelectedItem(this, 'supply')">
           <i class="fas fa-times"></i>
       </button>
       <div class="item-info">
-          <span class="item-name">${selectedSupply.text}</span>
-          <span class="item-details">Valor: $${supplyData.valor_unitario}</span>
+          <span class="item-name">${supplyToAdd.nombre}</span>
+          <span class="item-details">Valor: $${supplyToAdd.valor_unitario}</span>
+          <span class="item-details">Cantidad: Pendiente...</span>
       </div>
-  `
+  `;
 
-  selectedSupplies.appendChild(supplyCard)
+  selectedSuppliesDiv.appendChild(supplyCard)
 
-  // Calcular la inversión total después de agregar un insumo
+  // Recalcular la inversión total (sin considerar la cantidad aún)
   calculateTotalInvestment()
 }
 
-// Update the createProduction function to include the new fields
 async function createProduction(e) {
   e.preventDefault();
-  console.log("Ejecutando createProduction");
 
-  if (!validateForm()) {
-    console.log("Formulario no válido, no se puede crear la producción");
+  // Validar que se hayan seleccionado insumos
+  if (selectedSupplies.length === 0) {
+    showToast("Error", "Debe seleccionar al menos un insumo", "error");
     return;
   }
 
+  // Validar que se hayan registrado cantidades para todos los insumos
+  const suppliesWithoutQuantity = selectedSupplies.filter(s => !s.cantidad_usar || isNaN(s.cantidad_usar) || s.cantidad_usar <= 0);
+  if (suppliesWithoutQuantity.length > 0) {
+    showToast("Error", "Debe registrar una cantidad válida para todos los insumos", "error");
+    console.log("Insumos sin cantidad:", suppliesWithoutQuantity);
+    return;
+  }
+
+  // Crear el objeto de datos de la producción
+  const productionData = {
+    nombre: document.getElementById("productionName").value,
+    tipo: document.getElementById("productionType").value,
+    imagen: "produccion-default.jpg",
+    ubicacion: document.getElementById("location").value,
+    descripcion: document.getElementById("description").value,
+    usuario_id: document.getElementById("responsible").value,
+    cantidad: 1,
+    cultivo_id: document.getElementById("crop").value,
+    ciclo_id: document.getElementById("cropCycle").value,
+    insumos_ids: selectedSupplies.map(s => ({
+      id: s.id,
+      cantidad_usar: s.cantidad_usar
+    })),
+    sensores_ids: Array.from(selectedSensors).map(id => parseInt(id)),
+    fecha_de_inicio: document.getElementById("startDate")?.value || null,
+    fecha_fin: document.getElementById("endDate")?.value || null,
+    inversion: parseFloat(document.getElementById("totalInvestment").value),
+    meta_ganancia: parseFloat(document.getElementById("estimatedProfit").value)
+  };
+
   try {
-    console.log("Preparando datos para enviar al servidor");
-
-    // Obtener los valores de los campos de fecha
-    const startDate = document.getElementById("startDate").value;
-    const endDate = document.getElementById("endDate").value;
-    
-    // Obtener el ID del responsable (usuario)
-    const responsibleId = parseInt(document.getElementById("responsible").value) || 0;
-
-    // Preparar los datos de la producción según la estructura esperada por el backend
-    const productionWithImage = {
-      nombre: document.getElementById("productionName").value.trim(),
-      tipo: document.getElementById("productionType").value,
-      imagen: "produccion-default.jpg", // Usar imagen por defecto
-      ubicacion: document.getElementById("location").value,
-      descripcion: document.getElementById("description").value,
-      estado: "habilitado",
-      cultivo_id: parseInt(document.getElementById("crop").value) || 0,
-      ciclo_id: parseInt(document.getElementById("cropCycle").value) || 0,
-      usuario_id: responsibleId, // Usar el ID del responsable como usuario_id
-      insumos_ids: (productionData.insumos_ids || []).join(","),
-      sensores_ids: Array.from(selectedSensors).join(","),
-      fecha_de_inicio: startDate,
-      fecha_fin: endDate,
-      inversion: parseFloat(document.getElementById("totalInvestment").value) || 0,
-      meta_ganancia: parseFloat(document.getElementById("estimatedProfit").value) || 0,
-      cantidad: 1, // Valor por defecto para la cantidad
-    };
-
-    // Log de datos a enviar
-    console.log("Datos a enviar:", productionWithImage);
-
-    // Mostrar indicador de carga
-    const loadingIndicator = document.getElementById("loadingIndicator");
-    if (loadingIndicator) {
-      loadingIndicator.classList.remove("hidden");
-    }
-
-    // Enviar la producción al servidor
-    console.log("Enviando datos al servidor:", `${API_URL}/producciones`);
+    // Enviar la producción al backend
     const response = await fetch(`${API_URL}/producciones`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(productionWithImage),
+      body: JSON.stringify(productionData),
     });
 
-    console.log("Respuesta del servidor:", response);
+    if (!response.ok) {
+      throw new Error("Error al crear la producción");
+    }
 
+    const data = await response.json();
+    if (data.produccion_id) {
+      // Mostrar mensaje de éxito
+      showToast("Éxito", "Producción creada y uso de insumos registrado correctamente", "success");
+      
+      // Redirigir a la lista de producciones
+      window.location.href = 'listar-producciones.html';
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    showToast("Error", "Error al crear la producción: " + error.message, "error");
+    showToast("Error", error.message || "No se pudo crear la producción", "error");
+  } finally {
     // Ocultar indicador de carga
     if (loadingIndicator) {
-      loadingIndicator.classList.add("hidden");
+      loadingIndicator.style.display = "none";
     }
-
-    if (!response.ok) {
-      const responseData = await response.json();
-      console.log("Datos de respuesta de error:", responseData);
-
-      let errorMessage;
-      if (typeof responseData === "string") {
-        errorMessage = responseData;
-      } else if (responseData && typeof responseData === "object") {
-        errorMessage = responseData.error || responseData.message || JSON.stringify(responseData);
-      } else {
-        errorMessage = "Error desconocido al crear la producción";
-      }
-
-      throw new Error(errorMessage);
-    }
-
-    const responseData = await response.json();
-    console.log("Datos de respuesta exitosa:", responseData);
-
-    showToast(
-      "Éxito",
-      `Producción creada correctamente con identificador: ${responseData.id || responseData.produccion_id}`,
-      "success",
-    );
-    setTimeout(() => {
-      window.location.href = "listar-producciones.html";
-    }, 2000);
-  } catch (error) {
-    console.error("Error detallado al crear la producción:", error);
-    showToast("Error", error.message || "No se pudo crear la producción", "error");
   }
 }
 
@@ -882,6 +1044,18 @@ function setupProfitSuggestionButton() {
       }
     })
   }
+}
+
+// Event listener para el botón Registrar Uso
+const addSupplyUsageBtn = document.getElementById('addSupplyUsage');
+if (addSupplyUsageBtn) {
+    addSupplyUsageBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('Botón Registrar Uso clickeado');
+        console.log('tempSelectedSupply:', tempSelectedSupply);
+        console.log('Valor ingresado:', document.getElementById('supplyUsageQuantity').value);
+        registerSupplyUsage();
+    });
 }
 
 // Event listeners para el modal
@@ -1741,42 +1915,14 @@ createCropCycleForm.addEventListener("submit", async (e) => {
   }
 })
 
-// Función para agregar un sensor seleccionado
-function addSelectedSensor() {
-  const sensorSelect = document.getElementById("sensor")
-  const selectedSensor = sensorSelect.options[sensorSelect.selectedIndex]
 
-  if (!selectedSensor.value) {
-    showToast("Error", "Por favor seleccione un sensor", "error")
-    return
-  }
 
-  if (selectedSensors.has(selectedSensor.value)) {
-    showToast("Error", "Este sensor ya ha sido agregado", "error")
-    return
-  }
-
-  if (selectedSensors.size >= 3) {
-    showToast("Error", "No se pueden agregar más de 3 sensores", "error")
-    return
-  }
-
-  selectedSensors.add(selectedSensor.value)
-
-  const selectedSensorsDiv = document.getElementById("selectedSensors")
-  const sensorCard = document.createElement("div")
-  sensorCard.className = "item-card"
-  sensorCard.dataset.sensorId = selectedSensor.value
-  sensorCard.innerHTML = `
-      <button type="button" class="remove-item" onclick="removeSelectedItem(this, 'sensor')">
-          <i class="fas fa-times"></i>
-      </button>
-      <div class="item-info">
-          <span class="item-name">${selectedSensor.text}</span>
-      </div>
-  `
-  selectedSensorsDiv.appendChild(sensorCard)
-  updateCreateButtonState()
+function updateCreateButtonState() {
+    const isValid = validateForm()
+    const createBtn = document.getElementById("createBtn")
+    if (createBtn) {
+        createBtn.disabled = !isValid
+    }
 }
 
 function validarNombreProduccion(nombre) {
@@ -1787,14 +1933,6 @@ function validarNombreProduccion(nombre) {
     return { valido: false, mensaje: "El nombre de la producción debe tener al menos 3 caracteres." }
   }
   return { valido: true, mensaje: "" }
-}
-
-function updateCreateButtonState() {
-  const isValid = validateForm()
-  const createBtn = document.getElementById("createBtn")
-  if (createBtn) {
-    createBtn.disabled = !isValid
-  }
 }
 
 // Asegurarse de que los modales se abran correctamente

@@ -167,6 +167,23 @@ INSERT INTO `producciones` VALUES (1,'Producción de Tomates 2025','Orgánica','
 UNLOCK TABLES;
 
 --
+-- Table structure for table `uso_insumo`
+
+DROP TABLE IF EXISTS `uso_insumo`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `uso_insumo` (
+  `id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `produccion_id` int NOT NULL,
+  `insumo_id` int NOT NULL,
+  `cantidad_utilizada` decimal(10,2) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `fk_produccion_id` (`produccion_id`),
+  KEY `fk_insumo_id` (`insumo_id`),
+  CONSTRAINT `fk_produccion_id` FOREIGN KEY (`produccion_id`) REFERENCES `producciones` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_insumo_id` FOREIGN KEY (`insumo_id`) REFERENCES `insumos` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 -- Table structure for table `sensores`
 --
 

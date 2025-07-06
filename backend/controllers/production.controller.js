@@ -84,7 +84,7 @@ export function crearProduccion(req, res) {
               ) VALUES (?, ?, ?, ?, ?, ?, ?, 'habilitado', ?, ?, ?, ?, ?, ?, ?, ?)
               `,
               [nombre, tipo, imagen, ubicacion, descripcion, usuario_id, cantidad, 
-               cultivo_id, ciclo_id, insumos_ids, sensores_ids, fecha_de_inicio, 
+               cultivo_id, ciclo_id, JSON.stringify(insumos_ids), JSON.stringify(sensores_ids), fecha_de_inicio, 
                fecha_fin, inversion, meta_ganancia],
               (prodErr, prodResults) => {
                   if (prodErr) {
@@ -99,45 +99,68 @@ export function crearProduccion(req, res) {
 
                   const produccionId = prodResults.insertId;
 
-                  // Update insumos (same logic as before)
+                  // Update insumos con sus cantidades específicas
                   const updateInsumos = () => {
-                      const insumoIdsArray = insumos_ids.split(",").map(Number);
-                      const updates = insumoIdsArray.map(() => "cantidad = cantidad - 1");
-                      const query = `UPDATE insumos SET ${updates.join(", ")} WHERE id IN (?)`;
+                      // Convertir el array de objetos insumos_ids a un array de IDs
+                      const insumoIds = insumos_ids.map(insumo => insumo.id);
+                      
+                      // Crear un objeto para mapear ID de insumo a su cantidad
+                      const insumoQuantities = insumos_ids.reduce((acc, insumo) => {
+                          acc[insumo.id] = insumo.cantidad_usar;
+                          return acc;
+                      }, {});
 
-                      db.query(query, [insumoIdsArray], (insumoErr, insumoResults) => {
-                          if (insumoErr) {
+                      // Actualizar cada insumo con su cantidad específica
+                      const updatePromises = insumoIds.map(insumoId => {
+                          return new Promise((resolve, reject) => {
+                              const cantidadUsar = insumoQuantities[insumoId];
+                              db.query(
+                                  'UPDATE insumos SET cantidad = cantidad - ? WHERE id = ?',
+                                  [cantidadUsar, insumoId],
+                                  (err, results) => {
+                                      if (err) {
+                                          reject(err);
+                                      } else {
+                                          resolve(results);
+                                      }
+                                  }
+                              );
+                          });
+                      });
+
+                      // Ejecutar todas las actualizaciones
+                      Promise.all(updatePromises)
+                          .then(() => {
+                              // Commit transaction
+                              db.commit(commitErr => {
+                                  if (commitErr) {
+                                      return db.rollback(rollbackErr => {
+                                          if (rollbackErr) {
+                                              console.error("Error al hacer rollback:", rollbackErr);
+                                          }
+                                          console.error("Error al hacer commit:", commitErr);
+                                          return res.status(500).json({ error: "Error al finalizar la transacción." });
+                                      });
+                                  }
+
+                                  return res.status(201).json({ 
+                                      message: "Producción creada e insumos actualizados con éxito.",
+                                      produccion_id: produccionId 
+                                  });
+                              });
+                          })
+                          .catch(err => {
                               return db.rollback(rollbackErr => {
                                   if (rollbackErr) {
                                       console.error("Error al hacer rollback:", rollbackErr);
                                   }
-                                  console.error("Error al actualizar insumos:", insumoErr);
+                                  console.error("Error al actualizar insumos:", err);
                                   return res.status(500).json({ error: "Error al actualizar insumos." });
                               });
-                          }
-
-                          // Commit transaction
-                          db.commit(commitErr => {
-                              if (commitErr) {
-                                  return db.rollback(rollbackErr => {
-                                      if (rollbackErr) {
-                                          console.error("Error al hacer rollback:", rollbackErr);
-                                      }
-                                      console.error("Error al hacer commit:", commitErr);
-                                      return res.status(500).json({ error: "Error al finalizar la transacción." });
-                                  });
-                              }
-
-                              return res.status(201).json({ 
-                                  message: "Producción creada e insumos actualizados con éxito.",
-                                  produccion_id: produccionId 
-                              });
                           });
-                      });
                   };
 
                   updateInsumos();
-
               }
           );
       });

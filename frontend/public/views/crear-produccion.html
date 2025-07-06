@@ -91,6 +91,58 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="form__section">
+                    <h3 class="form__section-title"><i class="fas fa-box-open"></i> Insumos (Máximo 1 por tipo)</h3>
+                    <div class="form__row">
+                        <div class="form__group">
+                            <div class="supply-selection">
+                                <select id="supply" class="form__select">
+                                    <option value="">Seleccionar insumo</option>
+                                </select>
+                                <div class="button-group">
+                                    <button type="button" id="addSupply" class="button--add">
+                                        <i class="fas fa-plus"></i> Agregar a la lista
+                                    </button>
+                                    <button type="button" id="createSupplyBtn" class="button--create">
+                                        <i class="fas fa-plus-circle"></i> Nuevo Insumo
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="selectedSupplies" class="selected-items"></div>
+                            <div id="supplyUsageForm" class="form__section">
+                                <h3 class="form__section-title"><i class="fas fa-clipboard-list"></i> Registro de Uso de Insumo</h3>
+                                <div class="form__row">
+                                    <div class="form__group">
+                                        <h4>Información del Insumo</h4>
+                                        <div class="supply-info">
+                                            <p><strong>Nombre:</strong> <span id="supplyName"></span></p>
+                                            <p><strong>Cantidad Disponible:</strong> <span id="availableQuantity"></span></p>
+                                            <p><strong>Valor Unitario:</strong> <span id="unitValue"></span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form__row">
+                                    <div class="form__group">
+                                        <label for="supplyUsageQuantity" class="form__label"><i class="fas fa-weight"></i> Cantidad a usar</label>
+                                        <input type="number" id="supplyUsageQuantity" name="supplyUsageQuantity" class="form__input" min="0" step="0.01" required>
+                                        <small class="form__helper-text">Ingrese la cantidad que desea usar del insumo seleccionado</small>
+                                    </div>
+                                </div>
+                                <div class="form__button-container">
+                                    <button type="button" id="addSupplyUsage" class="button button--submit">
+                                        <i class="fas fa-save"></i> Registrar Uso
+                                    </button>
+                                    <button type="button" id="hideSupplyUsageForm" class="button button--cancel">
+                                        <i class="fas fa-times"></i> Ocultar Formulario
+                                    </button>
+                                </div>
+                            </div>
+                            <small class="form__helper-text">Seleccione al menos un insumo para la producción. Solo se permite un insumo de cada tipo.</small>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="form__section">
                     <h3 class="form__section-title"><i class="fas fa-microchip"></i> Sensores (Máximo 3)</h3>
                     <div class="form__row">
@@ -111,29 +163,7 @@
                             <div id="selectedSensors" class="selected-items"></div>
                         </div>
                     </div>
-                </div>
-                <div class="form__section">
-                    <h3 class="form__section-title"><i class="fas fa-box-open"></i> Insumos (Máximo 1 por tipo)</h3>
-                    <div class="form__row">
-                        <div class="form__group">
-                            <div class="supply-selection">
-                                <select id="supply" class="form__select">
-                                    <option value="">Seleccionar insumo</option>
-                                </select>
-                                <div class="button-group">
-                                    <button type="button" id="addSupply" class="button--add">
-                                        <i class="fas fa-plus"></i> Seleccionar insumo
-                                    </button>
-                                    <button type="button" id="createSupplyBtn" class="button--create">
-                                        <i class="fas fa-plus-circle"></i> Nuevo Insumo
-                                    </button>
-                                </div>
-                            </div>
-                            <div id="selectedSupplies" class="selected-items"></div>
-                            <small class="form__helper-text">Seleccione al menos un insumo para la producción. Solo se permite un insumo de cada tipo.</small>
-                        </div>
-                    </div>
-                </div>
+                </div>                   
                 
                 <div class="form__section">
                     <h3 class="form__section-title"><i class="fas fa-calendar-alt"></i> Fechas de Producción</h3>
@@ -583,8 +613,11 @@
 
     <!-- Scripts -->
     <script src="../js/validations/productionCreationValidator.js" type="module"></script>
-    
-    <style>
+    <script src="../js/validations/supplyUsageValidator.js" type="module"></script>
+</body>
+</html>
+
+<style>
     .loading-indicator {
         margin-top: 10px;
         color: #2196F3;
