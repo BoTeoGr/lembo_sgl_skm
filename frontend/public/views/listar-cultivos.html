@@ -152,21 +152,40 @@
 						</span>
 					</div>
 					<div class="modal__body">
-						<div class="modal__image-container">
-							<img id="modalCropImage" class="modal__image--default" src="../imgs/default-cultivo.jpg" alt="Imagen del cultivo" />
+						<div class="modal-info-container">
+							<div class="info-row">
+								<span class="info-label">ID:</span>
+								<span class="info-value" id="modalCropId"></span>
+							</div>
+							<div class="info-row">
+								<span class="info-label">Nombre:</span>
+								<span class="info-value" id="modalCropName"></span>
+							</div>
+							<div class="info-row">
+								<span class="info-label">Tipo:</span>
+								<span class="info-value" id="modalCropType"></span>
+							</div>
+							<div class="info-row">
+								<span class="info-label">Tamaño:</span>
+								<span class="info-value" id="modalCropArea"></span>
+							</div>
+							<div class="info-row">
+								<span class="info-label">Ubicación:</span>
+								<span class="info-value" id="modalCropLocation"></span>
+							</div>
+							<div class="info-row">
+								<span class="info-label">Estado:</span>
+								<span class="info-value" id="modalCropStatus"></span>
+							</div>
+							<div class="info-row">
+								<span class="info-label">Descripción:</span>
+								<span class="info-value" id="modalCropDescription"></span>
+							</div>
+							<div class="info-row">
+								<span class="info-label">Fecha de creación:</span>
+								<span class="info-value" id="modalCropCreated"></span>
+							</div>
 						</div>
-						<table class="modal__table">
-							<tbody>
-								<tr><th>ID</th><td id="modalCropId"></td></tr>
-								<tr><th>Nombre</th><td id="modalCropName"></td></tr>
-								<tr><th>Tipo</th><td id="modalCropType"></td></tr>
-								<tr><th>Tamaño</th><td id="modalCropArea"></td></tr>
-								<tr><th>Ubicación</th><td id="modalCropLocation"></td></tr>
-								<tr><th>Estado</th><td id="modalCropStatus"></td></tr>
-								<tr><th>Descripción</th><td id="modalCropDescription"></td></tr>
-								<tr><th>Fecha de creación</th><td id="modalCropCreated"></td></tr>
-							</tbody>
-						</table>
 					</div>
 					<div class="modal__footer">
 						<button class="button button--secondary" id="closeViewCropBtn">Cerrar</button>

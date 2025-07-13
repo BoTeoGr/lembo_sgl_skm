@@ -220,21 +220,40 @@
 						</span>
 					</div>
 					<div class="modal__body">
-						<div class="modal__image-container">
-							<img id="modalUsuarioImagen" class="modal__image--default" src="../imgs/default-user.jpg" alt="Imagen del usuario" />
+						<div class="modal-info-container">
+							<div class="info-row">
+								<span class="info-label">ID:</span>
+								<span class="info-value" id="modalUsuarioId"></span>
+							</div>
+							<div class="info-row">
+								<span class="info-label">Nombre:</span>
+								<span class="info-value" id="modalUsuarioNombre"></span>
+							</div>
+							<div class="info-row">
+								<span class="info-label">Correo:</span>
+								<span class="info-value" id="modalUsuarioCorreo"></span>
+							</div>
+							<div class="info-row">
+								<span class="info-label">Tipo de documento:</span>
+								<span class="info-value" id="modalUsuarioTipoDoc"></span>
+							</div>
+							<div class="info-row">
+								<span class="info-label">Número de documento:</span>
+								<span class="info-value" id="modalUsuarioNumDoc"></span>
+							</div>
+							<div class="info-row">
+								<span class="info-label">Teléfono:</span>
+								<span class="info-value" id="modalUsuarioTelefono"></span>
+							</div>
+							<div class="info-row">
+								<span class="info-label">Rol:</span>
+								<span class="info-value" id="modalUsuarioRol"></span>
+							</div>
+							<div class="info-row">
+								<span class="info-label">Estado:</span>
+								<span class="info-value" id="modalUsuarioEstado"></span>
+							</div>
 						</div>
-						<table class="modal__table">
-							<tbody>
-								<tr><th>ID</th><td id="modalUsuarioId"></td></tr>
-								<tr><th>Nombre</th><td id="modalUsuarioNombre"></td></tr>
-								<tr><th>Correo</th><td id="modalUsuarioCorreo"></td></tr>
-								<tr><th>Tipo de documento</th><td id="modalUsuarioTipoDoc"></td></tr>
-								<tr><th>Número de documento</th><td id="modalUsuarioNumDoc"></td></tr>
-								<tr><th>Teléfono</th><td id="modalUsuarioTelefono"></td></tr>
-								<tr><th>Rol</th><td id="modalUsuarioRol"></td></tr>
-								<tr><th>Estado</th><td id="modalUsuarioEstado"></td></tr>
-							</tbody>
-						</table>
 					</div>
 					<div class="modal__footer">
 						<button class="button button--secondary" id="closeViewUsuarioBtn">Cerrar</button>

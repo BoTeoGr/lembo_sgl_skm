@@ -1150,166 +1150,197 @@ header {
   }
 }
 
-/* Estilos para Modales */
+/* Modal Overlay */
 .modal {
-    display: none;
     position: fixed;
-    z-index: 1000;
-    left: 0;
     top: 0;
-    width: 100vw;
-    height: 100vh;
-    overflow: auto;
-    background: rgba(0,0,0,0.3);
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
     align-items: center;
     justify-content: center;
-}
-.modal--active {
-    display: flex !important;
-}
-.modal__content {
-    background: #fff;
-    border-radius: 8px;
-    padding: 2rem;
-    min-width: 320px;
-    max-width: 95vw;
-    max-height: 95vh;
-    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
-    margin: auto;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(4px);
 }
 
+.modal.active,
+.modal--active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Modal Content */
+.modal__content {
+    background: var(--white);
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow: hidden;
+    transform: translateY(20px) scale(0.95);
+    transition: all 0.3s ease;
+}
+
+.modal.active .modal__content,
+.modal--active .modal__content {
+    transform: translateY(0) scale(1);
+}
+
+/* Modal Header */
 .modal__header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 20px;
-    border-bottom: 1px solid var(--gray-40);
-    position: sticky;
-    top: 0;
-    background-color: var(--white);
-    z-index: 10;
-    border-radius: 8px 8px 0 0;
-}
-
-.modal__header-top {
-    display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--gray-20);
+    background: linear-gradient(135deg, var(--green-50) 0%, var(--white) 100%);
 }
 
 .modal__title {
     margin: 0;
     font-size: 1.5rem;
-    color: var(--gray-100);
     font-weight: 600;
-}
-
-.modal__subtitle {
-    margin: 5px 0 0;
-    font-size: 0.9rem;
-    color: var(--gray-80);
+    color: var(--secondary-green);
+    letter-spacing: -0.02em;
 }
 
 .modal__close {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--gray-60);
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    transition: background-color 0.2s, color 0.2s;
+    background: var(--white);
+    border: 1px solid var(--gray-20);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--gray-80);
 }
 
 .modal__close:hover {
-    background-color: var(--gray-20);
-    color: var(--gray-100);
+    background: var(--green-50);
+    border-color: var(--green-200);
+    color: var(--secondary-green);
+    transform: scale(1.05);
 }
 
-.modal__tabs {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-    border-bottom: 1px solid var(--gray-40);
+.modal__close .material-symbols-outlined {
+    font-size: 20px;
 }
 
-.modal__tab {
-    background: none;
-    border: none;
-    padding: 10px 15px;
-    font-size: 0.9rem;
-    color: var(--gray-60);
-    cursor: pointer;
-    position: relative;
-    transition: color 0.2s;
-}
-
-.modal__tab:hover {
-    color: var(--green-900);
-}
-
-.modal__tab--active {
-    color: var(--green-900);
-    font-weight: 500;
-}
-
-.modal__tab--active::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background-color: var(--green-900);
-    animation: tabIndicator 0.3s ease;
-}
-
-@keyframes tabIndicator {
-    from { transform: scaleX(0); }
-    to { transform: scaleX(1); }
-}
-
+/* Modal Body */
 .modal__body {
-    padding: 20px;
+    padding: 32px;
+    max-height: 60vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--green-200) var(--gray-20);
 }
 
-.modal__panel {
-    display: none;
-    opacity: 0;
-    transform: translateY(10px);
-    transition: opacity 0.3s, transform 0.3s;
+.modal__body::-webkit-scrollbar {
+    width: 6px;
 }
 
-.modal__panel--active {
-    display: block;
-    opacity: 1;
-    transform: translateY(0);
+.modal__body::-webkit-scrollbar-track {
+    background: var(--gray-20);
+    border-radius: 3px;
 }
 
+.modal__body::-webkit-scrollbar-thumb {
+    background: var(--green-200);
+    border-radius: 3px;
+}
+
+.modal__body::-webkit-scrollbar-thumb:hover {
+    background: var(--green-300);
+}
+
+/* Image Container */
+.modal__image-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 32px;
+}
+
+.modal__image--default {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 3px solid var(--green-100);
+    box-shadow: 0 8px 24px rgba(147, 208, 116, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.modal__image--default:hover {
+    transform: scale(1.02);
+}
+
+/* Table Styles */
+.modal__table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--white);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.modal__table th,
+.modal__table td {
+    padding: 16px 20px;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-20);
+}
+
+.modal__table th {
+    background: var(--green-50);
+    font-weight: 600;
+    color: var(--secondary-green);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    width: 35%;
+}
+
+.modal__table td {
+    color: var(--gray-100);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.modal__table tr:last-child th,
+.modal__table tr:last-child td {
+    border-bottom: none;
+}
+
+.modal__table tr:hover {
+    background: var(--green-50);
+}
+
+/* Modal Footer */
 .modal__footer {
-    padding: 15px 20px;
+    padding: 24px 32px;
+    border-top: 1px solid var(--gray-20);
+    background: var(--gray-20);
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
-    border-top: 1px solid var(--gray-40);
+    gap: 12px;
 }
 
-.modal__footer--confirm {
-    justify-content: center;
-}
 
-.modal__confirm-message {
-    text-align: center;
-    font-size: 1.1rem;
-    color: var(--gray-100);
-    margin: 30px 0;
-    line-height: 1.5;
-    padding: 0 20px;
-}
+
+
+
+
 
 /* Estilos mejorados para la pestaña General */
 .modal-grid {
@@ -2298,7 +2329,7 @@ header {
     font-size: 24px !important;
 }
 
-/* Estilos mejorados para modal de reporte */
+/* Report Modal Specific Styles */
 .modal--report .modal__content {
     border-radius: 12px;
     background: linear-gradient(to bottom, var(--white), var(--gray-20));
@@ -2404,14 +2435,6 @@ header {
 
 .checkbox__input:focus {
     box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.15);
-}
-
-.modal__footer {
-    border-top: 1px solid var(--gray-40);
-    padding: 20px;
-    display: flex;
-    justify-content: flex-end;
-    gap: 15px;
 }
 
 .button--cancel-report {
@@ -2709,3 +2732,59 @@ header {
         font-size: 1.5rem;
     }
 }
+
+/* Modal Info Container - Estructura Simple */
+.modal-info-container {
+    padding: 20px;
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.info-row {
+    display: flex;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--gray-20);
+    gap: 16px;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: 600;
+    color: var(--secondary-green);
+    min-width: 140px;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-value {
+    color: var(--gray-100);
+    font-size: 1rem;
+    line-height: 1.5;
+    flex: 1;
+    word-break: break-word;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    .info-row {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .info-label {
+        min-width: auto;
+        font-size: 0.85rem;
+    }
+    
+    .info-value {
+        font-size: 0.95rem;
+    }
+}
+
+

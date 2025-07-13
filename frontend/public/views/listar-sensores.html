@@ -343,21 +343,40 @@
 						</span>
 					</div>
 					<div class="modal__body">
-						<div class="modal__image-container">
-							<img id="modalSensorImagen" class="modal__image--default" src="../imgs/default-sensor.jpg" alt="Imagen del sensor" />
+						<div class="modal-info-container">
+							<div class="info-row">
+								<span class="info-label">ID:</span>
+								<span class="info-value" id="modalSensorId"></span>
+							</div>
+							<div class="info-row">
+								<span class="info-label">Nombre:</span>
+								<span class="info-value" id="modalSensorNombre"></span>
+							</div>
+							<div class="info-row">
+								<span class="info-label">Tipo:</span>
+								<span class="info-value" id="modalSensorTipo"></span>
+							</div>
+							<div class="info-row">
+								<span class="info-label">Descripción:</span>
+								<span class="info-value" id="modalSensorDescripcion"></span>
+							</div>
+							<div class="info-row">
+								<span class="info-label">Unidad de medida:</span>
+								<span class="info-value" id="modalSensorUnidadMedida"></span>
+							</div>
+							<div class="info-row">
+								<span class="info-label">Tiempo de escaneo:</span>
+								<span class="info-value" id="modalSensorTiempoEscaneo"></span>
+							</div>
+							<div class="info-row">
+								<span class="info-label">Fecha de creación:</span>
+								<span class="info-value" id="modalSensorFechaCreacion"></span>
+							</div>
+							<div class="info-row">
+								<span class="info-label">Estado:</span>
+								<span class="info-value" id="modalSensorEstado"></span>
+							</div>
 						</div>
-						<table class="modal__table">
-							<tbody>
-								<tr><th>ID</th><td id="modalSensorId"></td></tr>
-								<tr><th>Nombre</th><td id="modalSensorNombre"></td></tr>
-								<tr><th>Tipo</th><td id="modalSensorTipo"></td></tr>
-								<tr><th>Descripción</th><td id="modalSensorDescripcion"></td></tr>
-								<tr><th>Unidad de medida</th><td id="modalSensorUnidadMedida"></td></tr>
-								<tr><th>Tiempo de escaneo</th><td id="modalSensorTiempoEscaneo"></td></tr>
-								<tr><th>Fecha de creación</th><td id="modalSensorFechaCreacion"></td></tr>
-								<tr><th>Estado</th><td id="modalSensorEstado"></td></tr>
-							</tbody>
-						</table>
 					</div>
 					<div class="modal__footer">
 						<button class="button button--secondary" id="closeViewSensorBtn">Cerrar</button>

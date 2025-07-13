@@ -376,13 +376,6 @@ class Crops {
     }
 
     showCropModal(crop) {
-        // Imagen por defecto o la del cultivo si existe
-        const imageElem = document.getElementById('modalCropImage');
-        if (crop.image || crop.imagen) {
-            imageElem.src = crop.image || crop.imagen;
-        } else {
-            imageElem.src = '../imgs/default-cultivo.jpg';
-        }
         // Rellena el modal con los datos del cultivo
         document.getElementById('modalCropId').textContent = crop.id || '';
         document.getElementById('modalCropName').textContent = crop.name || '';

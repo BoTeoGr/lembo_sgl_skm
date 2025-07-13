@@ -263,19 +263,32 @@
 						</span>
 					</div>
 					<div class="modal__body">
-						<div class="modal__image-container">
-							<img id="modalInsumoImagen" class="modal__image--default" src="../imgs/default-insumo.jpg" alt="Imagen del insumo" />
+						<div class="modal-info-container">
+							<div class="info-row">
+								<span class="info-label">ID:</span>
+								<span class="info-value" id="modalInsumoId"></span>
+							</div>
+							<div class="info-row">
+								<span class="info-label">Nombre:</span>
+								<span class="info-value" id="modalInsumoNombre"></span>
+							</div>
+							<div class="info-row">
+								<span class="info-label">Tipo:</span>
+								<span class="info-value" id="modalInsumoTipo"></span>
+							</div>
+							<div class="info-row">
+								<span class="info-label">Cantidad:</span>
+								<span class="info-value" id="modalInsumoCantidad"></span>
+							</div>
+							<div class="info-row">
+								<span class="info-label">Estado:</span>
+								<span class="info-value" id="modalInsumoEstado"></span>
+							</div>
+							<div class="info-row">
+								<span class="info-label">Descripción:</span>
+								<span class="info-value" id="modalInsumoDescripcion"></span>
+							</div>
 						</div>
-						<table class="modal__table">
-							<tbody>
-								<tr><th>ID</th><td id="modalInsumoId"></td></tr>
-								<tr><th>Nombre</th><td id="modalInsumoNombre"></td></tr>
-								<tr><th>Tipo</th><td id="modalInsumoTipo"></td></tr>
-								<tr><th>Cantidad</th><td id="modalInsumoCantidad"></td></tr>
-								<tr><th>Estado</th><td id="modalInsumoEstado"></td></tr>
-								<tr><th>Descripción</th><td id="modalInsumoDescripcion"></td></tr>
-							</tbody>
-						</table>
 					</div>
 					<div class="modal__footer">
 						<button class="button button--secondary" id="closeViewInsumoBtn">Cerrar</button>
