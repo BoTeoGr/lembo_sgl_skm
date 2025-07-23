@@ -148,7 +148,6 @@ export function actualizarInsumo(req, res) {
     });
 }
 
-
 // Obtener un insumo por su ID
 export function obtenerInsumoPorId(req, res) {
     const { id } = req.params;
@@ -156,14 +155,90 @@ export function obtenerInsumoPorId(req, res) {
     const query = 'SELECT * FROM insumos WHERE id = ?';
     db.query(query, [id], (err, results) => {
         if (err) {
-            console.error("Error al obtener el insumo:", err);
-            return res.status(500).json({ error: 'Error interno del servidor' });
+            return res.status(500).json({ error: 'Error al obtener el insumo' });
         }
-
         if (results.length === 0) {
             return res.status(404).json({ error: 'Insumo no encontrado' });
         }
-
         res.json(results[0]);
+    });
+}
+
+// Obtener resumen de insumos por tipo para el dashboard
+export function obtenerResumenInsumos(req, res) {
+    const query = `
+        SELECT 
+            tipo,
+            COUNT(*) as cantidad,
+            SUM(cantidad) as total_cantidad,
+            SUM(valor_total) as valor_total,
+            ROUND((COUNT(*) * 100.0) / (SELECT COUNT(*) FROM insumos WHERE estado = 'habilitado'), 2) as porcentaje
+        FROM insumos
+        WHERE estado = 'habilitado'
+        GROUP BY tipo
+        ORDER BY cantidad DESC;
+    `;
+
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al obtener el resumen de insumos:', err);
+            return res.status(500).json({ error: 'Error al obtener el resumen de insumos' });
+        }
+        
+        // Mapear los tipos de insumos a los mostrados en la tarjeta
+        const tiposMapeados = {
+            'Químico': ['Químico', 'Herbicida', 'Insecticida', 'Fertilizante'],
+            'Semilla': ['Semilla', 'Semillas'],
+            'Equipo': ['Equipo', 'Riego'],
+            'Orgánico': ['Orgánico', 'Abono']
+        };
+
+        const resumen = {};
+        
+        // Inicializar los tipos con valores en 0
+        Object.keys(tiposMapeados).forEach(tipo => {
+            resumen[tipo] = {
+                cantidad: 0,
+                porcentaje: 0,
+                valor_total: 0
+            };
+        });
+
+        // Procesar resultados de la consulta
+        results.forEach(row => {
+            // Encontrar el tipo mapeado
+            const tipoEncontrado = Object.entries(tiposMapeados).find(([_, tipos]) => 
+                tipos.some(t => row.tipo.toLowerCase().includes(t.toLowerCase()))
+            );
+
+            const tipo = tipoEncontrado ? tipoEncontrado[0] : 'Otros';
+            
+            if (resumen[tipo]) {
+                resumen[tipo].cantidad += row.cantidad;
+                resumen[tipo].valor_total += parseFloat(row.valor_total);
+            } else {
+                resumen[tipo] = {
+                    cantidad: row.cantidad,
+                    valor_total: parseFloat(row.valor_total),
+                    porcentaje: 0
+                };
+            }
+        });
+
+        // Calcular porcentajes basados en la cantidad total de insumos
+        const totalInsumos = results.reduce((sum, row) => sum + row.cantidad, 0);
+        
+        // Convertir a array y calcular porcentajes
+        const resumenArray = Object.entries(resumen).map(([tipo, datos]) => ({
+            tipo,
+            cantidad: datos.cantidad,
+            valor_total: datos.valor_total,
+            porcentaje: totalInsumos > 0 ? Math.round((datos.cantidad / totalInsumos) * 100) : 0
+        }));
+
+        // Ordenar por cantidad descendente
+        resumenArray.sort((a, b) => b.cantidad - a.cantidad);
+
+        res.json(resumenArray);
     });
 }

@@ -21,6 +21,7 @@
 		<link rel="stylesheet" href="../css/components/footer.css" />
 		<link rel="stylesheet" href="../css/components/navbar.css" />
 		<script type="module" src="../js/pages/componentLoader.js"></script>
+		<script src="../js/pages/suppliesWidget.js"></script>
 	</head>
 
 	<body>
@@ -33,15 +34,15 @@
 				<div class="card card--weather card-animated">
 					<div class="card__header">
 						<h2 class="card__title">Clima Actual</h2>
-						<div class="card__subtitle">Dosquebradas, Risaralda</div>
+						<div class="card__subtitle">Pereira, Risaralda</div>
 					</div>
 					<div class="card__content">
 						<div class="weather">
 							<div class="weather__info">
 								<i class="fas fa-cloud weather__icon"></i>
 								<div class="weather__details">
-									<div class="weather__condition">Nublado</div>
-									<div class="weather__description">Parcialmente nublado</div>
+									<div class="weather__condition">Parcialmente nublado</div>
+									<div class="weather__city">Pereira, Risaralda</div>
 								</div>
 							</div>
 							<div class="weather__temp">32°</div>
@@ -59,15 +60,15 @@
 					</div>
 					<div class="card__footer">
 						<div class="weather__stats">
-							<div class="weather__stat">
+							<div class="weather__stat" title="Velocidad del viento">
 								<i class="fas fa-wind"></i>
 								<span>16 km/h</span>
 							</div>
-							<div class="weather__stat">
+							<div class="weather__stat" title="Humedad relativa">
 								<i class="fas fa-tint"></i>
 								<span>83%</span>
 							</div>
-							<div class="weather__stat">
+							<div class="weather__stat" title="Sensación térmica">
 								<i class="fas fa-thermometer-half"></i>
 								<span>6/10</span>
 							</div>
@@ -365,7 +366,6 @@
 			</div>
 		</main>
 
-		<!-- Modal para agregar tarea (simplificado) -->
 		<div class="modal" id="addTaskModal">
 			<div class="modal__content">
 				<div class="modal__header">
@@ -411,5 +411,6 @@
 
 		<footer class="footer"></footer>
 		<script src="../js/validations/homeValidator.js"></script>
+		<script src="../js/pages/weatherWidget.js"></script>
 	</body>
 </html>
