@@ -170,19 +170,50 @@ export function actualizarEstadoUsuario(req, res) {
 // Actualizar usuario por id
 export function actualizarUsuario(req, res) {
     const { id } = req.params;
-    const { nombre, correo, rol, estado } = req.body;
-    if (!nombre || !correo || !rol || !estado) {
-        return res.status(400).json({ error: 'Todos los campos son obligatorios.' });
+    const { nombre, correo, rol, estado, password } = req.body;
+
+    if (!id || !nombre || !correo || !rol || !estado) {
+        return res.status(400).json({ error: 'Todos los campos son requeridos' });
     }
-    const query = `UPDATE usuarios SET nombre = ?, correo = ?, rol = ?, estado = ? WHERE id = ?`;
-    db.query(query, [nombre, correo, rol, estado, id], (err, result) => {
-        if (err) {
-            console.error('Error al actualizar usuario:', err);
-            return res.status(500).json({ error: 'Error al actualizar usuario.' });
-        }
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'Usuario no encontrado.' });
-        }
-        res.status(200).json({ message: 'Usuario actualizado correctamente.' });
-    });
+
+    // Construir la consulta dinámicamente basada en los campos proporcionados
+    let query = 'UPDATE usuarios SET nombre = ?, correo = ?, rol = ?, estado = ?';
+    let values = [nombre, correo, rol, estado];
+
+    // Si se proporciona una nueva contraseña, agregarla a la actualización
+    if (password) {
+        bcrypt.hash(password, 10, (err, hashedPassword) => {
+            if (err) {
+                console.error('Error al hashear contraseña:', err);
+                return res.status(500).json({ error: 'Error al procesar la contraseña' });
+            }
+
+            query += ', password = ?';
+            values.push(hashedPassword);
+            
+            // Agregar el ID al final
+            query += ' WHERE id = ?';
+            values.push(id);
+
+            db.query(query, values, (err, result) => {
+                if (err) {
+                    console.error('Error al actualizar usuario:', err);
+                    return res.status(500).json({ error: 'Error al actualizar usuario' });
+                }
+                res.status(200).json({ message: 'Usuario actualizado correctamente' });
+            });
+        });
+    } else {
+        // Si no se proporciona contraseña, solo actualizar los otros campos
+        query += ' WHERE id = ?';
+        values.push(id);
+
+        db.query(query, values, (err, result) => {
+            if (err) {
+                console.error('Error al actualizar usuario:', err);
+                return res.status(500).json({ error: 'Error al actualizar usuario' });
+            }
+            res.status(200).json({ message: 'Usuario actualizado correctamente' });
+        });
+    }
 }
