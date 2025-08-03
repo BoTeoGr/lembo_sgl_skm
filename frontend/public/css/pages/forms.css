@@ -442,6 +442,27 @@ body {
 	/* margin-top: 2rem; */
 }
 
+.form__group--password {
+	position: relative;
+}
+
+/* Boton para mostrar/ocultar contraseña (formulario de registro de usuario) */
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(0%);
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.toggle-password:hover {
+    color: #333;
+}
+
 .button--submit {
 	background-color: var(--green-800);
 	color: var(--white);

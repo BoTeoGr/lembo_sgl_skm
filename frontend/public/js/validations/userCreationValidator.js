@@ -283,3 +283,16 @@ function showToast(title, message, type = 'success') {
         }
     }, 30);
 }
+
+
+// FUncion para mostrar u ocultar la contraseña
+const togglePasswordBtn = document.querySelector('.toggle-password');
+const passwordInput = document.getElementById('password');
+
+togglePasswordBtn.addEventListener('click', function() {
+    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    passwordInput.setAttribute('type', type);
+    // Cambiar el icono (ocultar/mostrar contraseña)
+    this.querySelector('i').classList.toggle('fa-eye');
+    this.querySelector('i').classList.toggle('fa-eye-slash');
+});
