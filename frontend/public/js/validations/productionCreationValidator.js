@@ -664,14 +664,21 @@ function calculateTotalInvestment() {
   const totalInvestmentField = document.getElementById("totalInvestment")
   const estimatedProfitField = document.getElementById("estimatedProfit")
 
+  // Verificar que existan insumos seleccionados
+  if (!selectedSupplies || selectedSupplies.length === 0) {
+    totalInvestmentField.value = "0.00"
+    estimatedProfitField.value = ""
+    return
+  }
+
   // Obtener los insumos seleccionados con sus cantidades específicas
   const selectedSuppliesFull = selectedSupplies.map(supply => {
     const supplyData = allSuppliesGlobal.find(s => String(s.id) === String(supply.id));
     return {
       ...supplyData,
-      cantidad_usar: supply.cantidad_usar
+      cantidad_usar: supply.cantidad_usar || 0
     };
-  }).filter(Boolean);
+  }).filter(supply => supply && supply.valor_unitario && supply.cantidad_usar)
 
   // Calcular el total de inversión
   let totalInvestment = 0
@@ -796,9 +803,32 @@ function registerSupplyUsage() {
     return;
   }
 
-  // Actualizar el objeto usando la referencia compartida
-  tempSelectedSupply.cantidad_usar = quantity;
-  tempSelectedSupply.cantidad_usada = quantity;
+  // Encontrar y actualizar el objeto en la lista de insumos seleccionados
+  const supplyIndex = selectedSupplies.findIndex(s => s.id === supply.id);
+  if (supplyIndex !== -1) {
+    // Actualizar el objeto en selectedSupplies
+    selectedSupplies[supplyIndex] = {
+      ...selectedSupplies[supplyIndex],
+      cantidad_usar: quantity,
+      cantidad_usada: quantity
+    };
+
+    // Actualizar o agregar en productionData.insumos_ids
+    const productionIndex = productionData.insumos_ids.findIndex(s => s.id === supply.id);
+    if (productionIndex !== -1) {
+      // Si ya existe, actualizar
+      productionData.insumos_ids[productionIndex] = {
+        id: supply.id,
+        cantidad_usar: quantity
+      };
+    } else {
+      // Si no existe, agregar
+      productionData.insumos_ids.push({
+        id: supply.id,
+        cantidad_usar: quantity
+      });
+    }
+  }
 
   // Actualizar la UI de la tarjeta del insumo
   const supplyCard = document.querySelector(`[data-supply-id="${supply.id}"]`);
@@ -827,51 +857,52 @@ function addSelectedSupply() {
   }
 
   const supplySelect = document.getElementById("supply");
-  const selectedSupply = supplySelect.options[supplySelect.selectedIndex];
+  const supplyId = supplySelect.value;
 
-  if (!selectedSupply.value) {
-    showToast("Error", "Por favor seleccione un insumo", "error");
+  // Verificar si el insumo ya está en la lista
+  const existingSupply = selectedSupplies.find(s => String(s.id) === String(supplyId));
+  if (existingSupply) {
+    showToast("Error", "Este insumo ya está agregado", "error");
     return;
   }
 
-  const supplyData = allSuppliesGlobal.find((s) => String(s.id) === String(selectedSupply.value));
-  if (!supplyData || !supplyData.valor_unitario || !supplyData.cantidad) {
+  // Buscar el insumo en la lista global
+  const supply = allSuppliesGlobal.find(s => String(s.id) === String(supplyId));
+  if (!supply || !supply.valor_unitario || !supply.cantidad) {
     showToast("Error", "Este insumo no tiene valor unitario o cantidad definidos", "error");
     return;
   }
 
-  if (selectedSupplies.some(s => s.id === selectedSupply.value)) {
-    showToast("Error", "Este insumo ya ha sido agregado", "error");
-    return;
-  }
-
-  if (supplyData.cantidad <= 0) {
-    showToast("Error", "Este insumo no tiene unidades disponibles", "error");
-    return;
-  }
-
-  // Crear el objeto del insumo con cantidad inicial de 0
+  // Crear el objeto del insumo
   const supplyToAdd = {
-    ...supplyData,
+    ...supply,
     cantidad_usar: 0
   };
 
   // Usar la misma referencia para tempSelectedSupply
   tempSelectedSupply = supplyToAdd;
 
+  // Agregar el insumo a la lista de insumos seleccionados
   selectedSupplies.push(supplyToAdd);
-
   productionData.insumos_ids.push(supplyToAdd.id);
 
   // Mostrar el formulario de registro de uso
   const supplyUsageForm = document.getElementById("supplyUsageForm");
-  if (supplyUsageForm) {
+  const supplyInfo = document.querySelector('.supply-info');
+  const supplyUsageQuantity = document.querySelector('#supplyUsageQuantity');
+  
+  if (supplyUsageForm && supplyInfo && supplyUsageQuantity) {
     supplyUsageForm.style.display = "block";
+    supplyInfo.style.display = "block";
+    supplyUsageQuantity.style.display = "block";
+    
+    // Resetear el valor de la cantidad
+    supplyUsageQuantity.value = '';
     
     // Actualizar la información del insumo en el formulario
-    document.getElementById("supplyName").textContent = supplyToAdd.nombre;
-    document.getElementById("availableQuantity").textContent = supplyToAdd.cantidad;
-    document.getElementById("unitValue").textContent = `$${supplyToAdd.valor_unitario}`;
+    document.getElementById("supplyName").textContent = supply.nombre;
+    document.getElementById("availableQuantity").textContent = supply.cantidad;
+    document.getElementById("unitValue").textContent = `$${supply.valor_unitario}`;
   }
 
   const selectedSuppliesDiv = document.getElementById("selectedSupplies");
@@ -898,17 +929,12 @@ function addSelectedSupply() {
 async function createProduction(e) {
   e.preventDefault();
 
-  // Validar que se hayan seleccionado insumos
-  if (selectedSupplies.length === 0) {
-    showToast("Error", "Debe seleccionar al menos un insumo", "error");
-    return;
-  }
+  // Filtrar los insumos válidos (con cantidad_usar > 0)
+  const validSupplies = selectedSupplies.filter(s => s.id && s.cantidad_usar && !isNaN(s.cantidad_usar) && s.cantidad_usar > 0);
 
-  // Validar que se hayan registrado cantidades para todos los insumos
-  const suppliesWithoutQuantity = selectedSupplies.filter(s => !s.cantidad_usar || isNaN(s.cantidad_usar) || s.cantidad_usar <= 0);
-  if (suppliesWithoutQuantity.length > 0) {
-    showToast("Error", "Debe registrar una cantidad válida para todos los insumos", "error");
-    console.log("Insumos sin cantidad:", suppliesWithoutQuantity);
+  // Validar que hay al menos un insumo válido
+  if (validSupplies.length === 0) {
+    showToast("Error", "Debe agregar al menos un insumo con cantidad válida", "error");
     return;
   }
 
@@ -923,7 +949,7 @@ async function createProduction(e) {
     cantidad: 1,
     cultivo_id: document.getElementById("crop").value,
     ciclo_id: document.getElementById("cropCycle").value,
-    insumos_ids: selectedSupplies.map(s => ({
+    insumos_ids: validSupplies.map(s => ({
       id: s.id,
       cantidad_usar: s.cantidad_usar
     })),
@@ -1012,13 +1038,42 @@ window.removeSelectedItem = (button, type) => {
   } else if (type === "supply") {
     const card = button.closest(".item-card")
     const supplyId = card.dataset.supplyId
+    
+    // Limpiar la referencia temporal
+    if (tempSelectedSupply && tempSelectedSupply.id === supplyId) {
+      tempSelectedSupply = null;
+    }
 
-    // Eliminar el insumo específico del array de insumos seleccionados
-    productionData.insumos_ids = productionData.insumos_ids.filter((id) => id !== supplyId)
-    card.remove()
-
-    // Recalcular la inversión total después de eliminar un insumo
-    calculateTotalInvestment()
+    // Eliminar el insumo de todas las listas
+    // Primero de productionData
+    if (productionData && productionData.insumos_ids) {
+      productionData.insumos_ids = productionData.insumos_ids.filter(s => s.id !== supplyId);
+    }
+    
+    // Luego de selectedSupplies
+    selectedSupplies = selectedSupplies.filter(s => s.id !== supplyId);
+    
+    // Actualizar la UI
+    card.remove();
+    updateCreateButtonState();
+    
+    // Ocultar el formulario de uso de insumo
+    const supplyUsageForm = document.getElementById("supplyUsageForm");
+    const supplyInfo = document.querySelector('.supply-info');
+    const supplyUsageQuantity = document.querySelector('#supplyUsageQuantity');
+    
+    if (supplyUsageForm && supplyInfo && supplyUsageQuantity) {
+      supplyUsageForm.style.display = "none";
+      supplyInfo.style.display = "none";
+      supplyUsageQuantity.style.display = "none";
+      supplyUsageQuantity.value = "";
+    }
+    
+    // Recalcular la inversión inmediatamente
+    calculateTotalInvestment();
+    
+    // Mostrar mensaje de éxito
+    showToast("Éxito", "Insumo removido correctamente", "success");
   }
 }
 
@@ -1045,6 +1100,22 @@ function setupProfitSuggestionButton() {
     })
   }
 }
+
+// // Función para ocultar el formulario de uso de insumo
+function hideSupplyUsageForm() {
+    const supplyInfo = document.querySelector('.supply-info');
+    const supplyUsageQuantity = document.querySelector('#supplyUsageQuantity');
+    const supplyUsageForm = document.getElementById('supplyUsageForm');
+    
+    supplyInfo.style.display = 'none';
+    supplyUsageQuantity.style.display = 'none';
+    supplyUsageForm.style.display = 'none';
+}
+
+// Event listener para el botón Ocultar Formulario
+document.getElementById('hideSupplyUsageForm').addEventListener('click', (e) => {
+    hideSupplyUsageForm();
+});
 
 // Event listener para el botón Registrar Uso
 const addSupplyUsageBtn = document.getElementById('addSupplyUsage');
