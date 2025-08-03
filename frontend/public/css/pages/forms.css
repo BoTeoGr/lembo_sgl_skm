@@ -262,7 +262,7 @@ body {
 .form.form--height,
 .form--login {
 	width: 60rem;
-	height: 60rem;
+	height: auto;
 	background-color: var(--white);
 	display: flex;
 	flex-direction: column;

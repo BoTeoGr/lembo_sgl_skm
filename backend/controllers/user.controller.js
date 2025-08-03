@@ -1,4 +1,5 @@
 import db from './../db/config.db.js'
+import bcrypt from 'bcryptjs';
 
 // Función para obtener usuarios con paginación
 export function VerUsuarios(req, res) {
@@ -60,8 +61,8 @@ export function VerUsuarios(req, res) {
 
 export function crearUsuario(req, res){
     try{
-        const { userTypeId, userName, userId, userTel, userEmail, userRol, estado} = req.body;
-        console.log(req.body)
+        const { userTypeId, userName, userId, userTel, userEmail, userRol, estado, password } = req.body;
+        console.log(req.body);
 
         // Validar que el estado sea válido
         if (estado !== "habilitado" && estado !== "deshabilitado") {
@@ -73,23 +74,30 @@ export function crearUsuario(req, res){
             return res.status(400).json({ error: "No se puede crear un usuario con el estado 'deshabilitado'" });
         }
 
-        db.query(`INSERT INTO usuarios (tipo_documento, numero_documento, nombre, telefono, correo, rol, estado, fecha_creacion)  
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [userTypeId, userId, userName, userTel, userEmail, userRol, estado, new Date()],
-            (err, results) => {
-                if (err) {
-                    console.error('Error al insertar usuario:', err.message);
-                    return res.status(500).json({ error: 'Error desconocido al crear el usuario' });
-                }
-                res.status(201).json({ message: 'Usuario creado correctamente', userId: results.insertId });
+        // Hashear la contraseña
+        bcrypt.hash(password, 10, (err, hashedPassword) => {
+            if (err) {
+                console.error('Error al hashear la contraseña:', err);
+                return res.status(500).json({ error: 'Error al procesar la contraseña' });
             }
 
-        )
+            db.query(`INSERT INTO usuarios (tipo_documento, numero_documento, nombre, telefono, correo, rol, estado, fecha_creacion, password)  
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [userTypeId, userId, userName, userTel, userEmail, userRol, estado, new Date(), hashedPassword],
+                (err, results) => {
+                    if (err) {
+                        console.error('Error al insertar usuario:', err.message);
+                        return res.status(500).json({ error: 'Error desconocido al crear el usuario' });
+                    }
+                    res.status(201).json({ message: 'Usuario creado correctamente', userId: results.insertId });
+                }
+            );
+        });
 
         console.log('Usuario creado correctamente');
     }catch(err){
-        console.error(err)
-        res.status(500).json({error: 'error desconocido'})
+        console.error(err);
+        res.status(500).json({error: 'error desconocido'});
     }
 }
 

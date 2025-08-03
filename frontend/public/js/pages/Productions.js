@@ -1209,6 +1209,8 @@ document.addEventListener("DOMContentLoaded", () => {
 	  const listaInsumos = document.getElementById("listaInsumos");
 	  if (listaInsumos) {
 		listaInsumos.innerHTML = "";
+		
+		// Mostrar insumos seleccionados
 		if (produccion.insumos && produccion.insumos.length > 0) {
 		  produccion.insumos.forEach(insumo => {
 			const listItem = document.createElement("li");
@@ -1232,6 +1234,47 @@ document.addEventListener("DOMContentLoaded", () => {
 		  listaInsumos.appendChild(listItem);
 		}
 	  }
+
+	  // Obtener y mostrar los insumos utilizados
+	  const insumosUtilizadosContainer = document.createElement('div')
+	  insumosUtilizadosContainer.className = 'card-section'
+	  insumosUtilizadosContainer.innerHTML = `
+		<h3 class='card-section-title'>Insumos Utilizados</h3>
+		<div class='insumos-list'></div>
+	  `
+	  modal.querySelector('.modal-content').appendChild(insumosUtilizadosContainer)
+
+	  // Obtener los insumos utilizados para esta producción
+	  fetch(`http://localhost:5000/uso_insumo?produccion_id=${id}`)
+		.then(response => response.json())
+		.then(data => {
+		  const insumosList = insumosUtilizadosContainer.querySelector('.insumos-list')
+		  if (data.usos && data.usos.length > 0) {
+			data.usos.forEach(uso => {
+			  // Obtener el nombre del insumo
+			  fetch(`http://localhost:5000/insumos/${uso.insumo_id}`)
+				.then(response => response.json())
+				.then(insumoData => {
+				  const insumoItem = document.createElement('div')
+				  insumoItem.className = 'insumo-utilizado-item'
+				  insumoItem.innerHTML = `
+					<div class='insumo-info'>
+					  <span class='insumo-name'>${insumoData.insumo.nombre}</span>
+					  <span class='insumo-amount'>Cantidad: ${uso.cantidad_utilizada}</span>
+					  <span class='insumo-date'>Fecha: ${new Date(uso.fecha_registro).toLocaleDateString()}</span>
+					</div>
+				  `
+				  insumosList.appendChild(insumoItem)
+				})
+			})
+		  } else {
+			insumosList.innerHTML = '<p>No se han registrado insumos utilizados para esta producción</p>'
+		  }
+		})
+		.catch(error => {
+		  console.error('Error al cargar los insumos utilizados:', error)
+		  insumosUtilizadosContainer.querySelector('.insumos-list').innerHTML = '<p>Error al cargar los insumos utilizados</p>'
+		})
   
 	  // Actualizar lista de sensores
 	  const listaSensores = document.getElementById("listaSensores");
@@ -1391,7 +1434,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Función para cargar sensores desde la API
   async function cargarSensores() {
 	try {
-	  const response = await fetch("http://localhost:5000/sensores");
+	  const response = await fetch("http://localhost:5000/sensor");
 	  const sensores = await response.json();
   
 	  if (!response.ok) {

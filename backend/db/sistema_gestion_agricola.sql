@@ -227,17 +227,18 @@ DROP TABLE IF EXISTS `usuarios`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `usuarios` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `tipo_documento` enum('ti','cc','ppt','ce','pep') NOT NULL,
+  `tipo_documento` varchar(50) NOT NULL,
   `numero_documento` varchar(20) NOT NULL,
   `nombre` varchar(100) NOT NULL,
-  `telefono` varchar(15) NOT NULL,
+  `telefono` varchar(20) NOT NULL,
   `correo` varchar(100) NOT NULL,
-  `rol` enum('superadmin','admin','apoyo','visitante') NOT NULL,
+  `rol` varchar(50) NOT NULL,
   `estado` enum('habilitado','deshabilitado') NOT NULL DEFAULT 'habilitado',
   `fecha_creacion` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `password` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `numero_documento` (`numero_documento`),
-  UNIQUE KEY `correo` (`correo`)
+  UNIQUE KEY `correo` (`correo`),
+  UNIQUE KEY `numero_documento` (`numero_documento`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

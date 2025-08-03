@@ -58,6 +58,7 @@ const userData = {
 	userConfirmEmail: "",
 	userRol: "",
 	estado: "habilitado", // Valor predeterminado para el estado
+	password: ""
 };
 
 const userForm = document.querySelector(".form__container");
@@ -70,6 +71,7 @@ const userTel = document.querySelector(".form__input--user-tel");
 const userEmail = document.querySelector(".form__input--user-email");
 const userConfirmEmail = document.querySelector(".form__input--user-confirm-email");
 const userRol = document.querySelector(".form__select--user-rol");
+const userPassword = document.querySelector(".form__input--user-password");
 const estadoRadios = document.querySelectorAll(
 	'input[name="estado-habilitado"]'
 );
@@ -83,6 +85,7 @@ userTel.addEventListener("input", readText);
 userEmail.addEventListener("input", readText);
 userConfirmEmail.addEventListener("input", readText);
 userRol.addEventListener("change", readText);
+userPassword.addEventListener("input", readText);
 
 // Capturar el estado seleccionado en tiempo real
 estadoRadios.forEach((radio) => {
@@ -103,6 +106,8 @@ userForm.addEventListener("submit", function (e) {
 		userEmail,
 		userConfirmEmail,
 		userRol,
+		estado,
+		password
 	} = userData;
 	if (
 		userTypeId === "" ||
@@ -111,13 +116,14 @@ userForm.addEventListener("submit", function (e) {
 		userTel === "" ||
 		userEmail === "" ||
 		userConfirmEmail === "" ||
+		password === "" ||
 		userRol === "" 
 	) {
 		showToast("Campos requeridos", "Todos los campos son obligatorios", "error");
 		return;
 	}
 	// Validación de los campos
-    if (!validateSensorData()) {
+    if (!validateUserData()) {
         return;
     }
 	showToast("Enviando datos", "Tus datos están siendo enviados", "info");
@@ -133,7 +139,8 @@ function validateUserData() {
 		{ field: "userEmail", label: "Correo electrónico" },
 		{ field: "userConfirmEmail", label: "Confirmación de correo" },
 		{ field: "userRol", label: "Rol" },
-		{ field: "estado", label: "Estado" }, // Agregamos el estado a las validaciones
+		{ field: "password", label: "Contraseña" },
+		{ field: "estado", label: "Estado" },
 	];
 
 	for (const field of requiredFields) {
@@ -146,6 +153,12 @@ function validateUserData() {
 	// Validar que los correos coincidan
 	if (userData.userEmail !== userData.userConfirmEmail) {
 		showToast("Error", "Los correos electrónicos no coinciden", "error");
+		return false;
+	}
+
+	// Validar longitud de la contraseña
+	if (userData.password.length < 8 || userData.password.length > 18) {
+		showToast("Error", "La contraseña debe tener entre 8 y 18 caracteres", "error");
 		return false;
 	}
 
@@ -216,6 +229,8 @@ function readText(e) {
         userData.userEmail = e.target.value;
     } else if (e.target.classList.contains("form__input--user-confirm-email")) {
         userData.userConfirmEmail = e.target.value;
+    } else if (e.target.classList.contains("form__input--user-password")) {
+        userData.password = e.target.value;
     } else if (e.target.classList.contains("form__select--user-rol")) {
         userData.userRol = e.target.value;
     }
