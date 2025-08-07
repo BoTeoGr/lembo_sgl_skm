@@ -1,5 +1,5 @@
 import express from 'express'
-import {crearUsuario, VerUsuarios, actualizarEstadoUsuario, actualizarUsuario, obtenerUsuarioPorId} from '../controllers/user.controller.js'
+import {loginUsuario, crearUsuario, VerUsuarios, actualizarEstadoUsuario, actualizarUsuario, obtenerUsuarioPorId} from '../controllers/user.controller.js'
 import {VerSensores, crearSensor, actualizarEstadoSensor, actualizarSensor, obtenerSensorPorId} from '../controllers/sensor.controller.js'
 import {crearInsumo,VerInsumos,actualizarEstadoInsumo, actualizarInsumo, obtenerInsumoPorId, obtenerResumenInsumos} from '../controllers/insumo.controller.js'
 import {crearCultivo,VerCultivos,actualizarEstadoCultivo, actualizarCultivo, obtenerCultivoPorId} from '../controllers/cultivo.controller.js'
@@ -7,6 +7,9 @@ import {VerCiclosCultivo, crearCicloCultivo, actualizarEstadoCicloCultivo, obten
 import {actualizarProduccion,crearProduccion,eliminarProduccion,obtenerProduccionPorId,verProducciones,actualizarEstadoProduccion, obtenerProduccionesPorInsumo, obtenerProduccionesPorCultivo, obtenerProduccionesPorUsuario, obtenerProduccionesPorSensor, actualizarEstadosProduccionHabilitado, deshabilitarProducciones} from '../controllers/production.controller.js'
 
 const router = express.Router()
+
+// Ruta para iniciar sesion
+router.post('/login', loginUsuario);
 
 // Rutas para usuarios
 router.get('/usuarios', VerUsuarios)

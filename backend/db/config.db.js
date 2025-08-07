@@ -5,7 +5,7 @@ const db = mysql.createConnection({
     user: 'root',
     password: 'root',
     database: 'sistema_gestion_agricola',
-    // port: 3307
+    port: 3307
 });
 
 export default db;

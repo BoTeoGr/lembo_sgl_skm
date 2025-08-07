@@ -123,9 +123,9 @@ userForm.addEventListener("submit", function (e) {
 		return;
 	}
 	// Validación de los campos
-    if (!validateUserData()) {
-        return;
-    }
+	if (!validateUserData()) {
+		return;
+	}
 	showToast("Enviando datos", "Tus datos están siendo enviados", "info");
 });
 
@@ -170,10 +170,10 @@ function validateUserData() {
 	}
 
 	// Validar que el estado no sea "Deshabilitado"
-    if (userData.estadoRadios === "deshabilitado") {
-        showToast("Error", "Cambia el estado para crear el usuario", "error");
-        return false;
-    }
+	if (userData.estadoRadios === "deshabilitado") {
+		showToast("Error", "Cambia el estado para crear el usuario", "error");
+		return false;
+	}
 
 	return true;
 }
@@ -197,12 +197,14 @@ submitButton.addEventListener("click", async () => {
 		});
 		const data = await response.json();
 
-		if (response.ok) {
+		if (response.status === 409) {
+			showToast("Error", "El usuario ya existe con ese correo electrónico", "error");
+		} else if (response.ok) {
 			showToast("Usuario creado", "El usuario ha sido creado correctamente", "success");
 			// Redirigir a listar-usuarios.html
-            setTimeout(() => {
-                window.location.href = "listar-usuarios.html";
-            }, 2000); // Espera 2 segundos para mostrar el toast antes de redirigir
+			setTimeout(() => {
+				window.location.href = "listar-usuarios.html";
+			}, 2000); // Espera 2 segundos para mostrar el toast antes de redirigir
 		} else {
 			showToast("Error", data.error || "Error al crear el usuario", "error");
 		}
@@ -218,70 +220,70 @@ submitButton.addEventListener("click", async () => {
 
 function readText(e) {
 	if (e.target.classList.contains("form__select--user-type-id")) {
-        userData.userTypeId = e.target.value;
-    } else if (e.target.classList.contains("form__input--user-name")) {
-        userData.userName = e.target.value;
-    } else if (e.target.classList.contains("form__input--user-id")) {
-        userData.userId = e.target.value;
-    } else if (e.target.classList.contains("form__input--user-tel")) {
-        userData.userTel = e.target.value;
-    } else if (e.target.classList.contains("form__input--user-email")) {
-        userData.userEmail = e.target.value;
-    } else if (e.target.classList.contains("form__input--user-confirm-email")) {
-        userData.userConfirmEmail = e.target.value;
-    } else if (e.target.classList.contains("form__input--user-password")) {
-        userData.password = e.target.value;
-    } else if (e.target.classList.contains("form__select--user-rol")) {
-        userData.userRol = e.target.value;
-    }
+		userData.userTypeId = e.target.value;
+	} else if (e.target.classList.contains("form__input--user-name")) {
+		userData.userName = e.target.value;
+	} else if (e.target.classList.contains("form__input--user-id")) {
+		userData.userId = e.target.value;
+	} else if (e.target.classList.contains("form__input--user-tel")) {
+		userData.userTel = e.target.value;
+	} else if (e.target.classList.contains("form__input--user-email")) {
+		userData.userEmail = e.target.value;
+	} else if (e.target.classList.contains("form__input--user-confirm-email")) {
+		userData.userConfirmEmail = e.target.value;
+	} else if (e.target.classList.contains("form__input--user-password")) {
+		userData.password = e.target.value;
+	} else if (e.target.classList.contains("form__select--user-rol")) {
+		userData.userRol = e.target.value;
+	}
 	console.log(userData); // Ver los valores almacenados en userData para asegurarte de que se actualicen correctamente
 }
 
 // Función general para mostrar toasts
 function showToast(title, message, type = 'success') {
-    const toast = document.getElementById('toast');
-    const toastTitle = document.getElementById('toastTitle');
-    const toastDescription = document.getElementById('toastDescription');
-    const toastIcon = document.getElementById('toastIcon');
-    const toastProgress = document.querySelector('.toast-progress');
+	const toast = document.getElementById('toast');
+	const toastTitle = document.getElementById('toastTitle');
+	const toastDescription = document.getElementById('toastDescription');
+	const toastIcon = document.getElementById('toastIcon');
+	const toastProgress = document.querySelector('.toast-progress');
 
-    // Establecer el contenido del toast
-    toastTitle.textContent = title;
-    toastDescription.textContent = message;
-    
-    // Establecer el icono según el tipo
-    switch(type) {
-        case 'success':
-            toastIcon.className = 'fas fa-check-circle';
-            break;
-        case 'error':
-            toastIcon.className = 'fas fa-exclamation-circle';
-            break;
-        case 'warning':
-            toastIcon.className = 'fas fa-exclamation-triangle';
-            break;
-        case 'info':
-            toastIcon.className = 'fas fa-info-circle';
-            break;
-    }
+	// Establecer el contenido del toast
+	toastTitle.textContent = title;
+	toastDescription.textContent = message;
+	
+	// Establecer el icono según el tipo
+	switch(type) {
+		case 'success':
+			toastIcon.className = 'fas fa-check-circle';
+			break;
+		case 'error':
+			toastIcon.className = 'fas fa-exclamation-circle';
+			break;
+		case 'warning':
+			toastIcon.className = 'fas fa-exclamation-triangle';
+			break;
+		case 'info':
+			toastIcon.className = 'fas fa-info-circle';
+			break;
+	}
 
-    // Mostrar el toast
-    toast.classList.remove('hidden');
-    
-    // Animación de la barra de progreso
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-        progress += 2;
-        toastProgress.style.width = `${progress}%`;
-        if (progress >= 100) {
-            clearInterval(progressInterval);
-            // Ocultar el toast después de 5 segundos
-            setTimeout(() => {
-                toast.classList.add('hidden');
-                toastProgress.style.width = '0%';
-            }, 3400);
-        }
-    }, 30);
+	// Mostrar el toast
+	toast.classList.remove('hidden');
+	
+	// Animación de la barra de progreso
+	let progress = 0;
+	const progressInterval = setInterval(() => {
+		progress += 2;
+		toastProgress.style.width = `${progress}%`;
+		if (progress >= 100) {
+			clearInterval(progressInterval);
+			// Ocultar el toast después de 5 segundos
+			setTimeout(() => {
+				toast.classList.add('hidden');
+				toastProgress.style.width = '0%';
+			}, 3400);
+		}
+	}, 30);
 }
 
 
@@ -290,9 +292,9 @@ const togglePasswordBtn = document.querySelector('.toggle-password');
 const passwordInput = document.getElementById('password');
 
 togglePasswordBtn.addEventListener('click', function() {
-    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-    passwordInput.setAttribute('type', type);
-    // Cambiar el icono (ocultar/mostrar contraseña)
-    this.querySelector('i').classList.toggle('fa-eye');
-    this.querySelector('i').classList.toggle('fa-eye-slash');
+	const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+	passwordInput.setAttribute('type', type);
+	// Cambiar el icono (ocultar/mostrar contraseña)
+	this.querySelector('i').classList.toggle('fa-eye');
+	this.querySelector('i').classList.toggle('fa-eye-slash');
 });

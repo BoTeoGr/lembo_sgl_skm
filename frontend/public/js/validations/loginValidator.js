@@ -13,8 +13,10 @@ form.addEventListener("input", readText);
 email.addEventListener("input", readText);
 password.addEventListener("input", readText);
 
+import { loginUser } from '../services/loginService.js';
+
 //Evento submit
-form.addEventListener("submit", function (e) {
+form.addEventListener("submit", async function (e) {
 	e.preventDefault();
 	const { email, password } = userLogin;
 
@@ -28,11 +30,24 @@ form.addEventListener("submit", function (e) {
 		return;
 	}
 
-	showAlert("Tus datos han sido enviados satisfactoriamente");
-
-	setTimeout(() => {
-		window.location.href = "home.html"; // Asegúrate de que la ruta sea correcta
-	}, 1000);
+	try {
+		const data = await loginUser(email, password);
+		showAlert("Inicio de sesión exitoso");
+		// Redirigir según el rol
+		setTimeout(() => {
+			if (data.usuario.rol === 'superadmin') {
+				window.location.href = 'home.html';
+			} else if (data.usuario.rol === 'admin') {
+				window.location.href = 'home.html';
+			} else if (data.usuario.rol === 'apoyo') {
+				window.location.href = 'listar-sensores.html';
+			} else {
+				window.location.href = 'visitante.html';
+			}
+		}, 1000);
+	} catch (error) {
+		showAlert(error.message, true);
+	}
 });
 
 // Esta funcion valida que sea un correo y que cumpla con el formato de uno
@@ -60,9 +75,9 @@ function showAlert(message, error = null) {
 //Callback o funcion
 function readText(e) {
 	if (e.target.classList.contains("form__input--email")) {
-        userLogin.email = e.target.value.trim(); // Actualizar el valor del correo
-    } else if (e.target.classList.contains("form__input--password")) {
-        userLogin.password = e.target.value.trim(); // Actualizar el valor de la contraseña
-    }
+		userLogin.email = e.target.value.trim(); // Actualizar el valor del correo
+	} else if (e.target.classList.contains("form__input--password")) {
+		userLogin.password = e.target.value.trim(); // Actualizar el valor de la contraseña
+	}
 	console.log(userLogin);
 }

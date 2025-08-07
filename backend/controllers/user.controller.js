@@ -1,3 +1,35 @@
+import jwt from 'jsonwebtoken';
+// Login de usuario con JWT
+export function loginUsuario(req, res) {
+    const { userEmail, password } = req.body;
+    if (!userEmail || !password) {
+        return res.status(400).json({ error: 'Correo y contraseña son requeridos' });
+    }
+    // Buscar usuario por correo
+    db.query('SELECT * FROM usuarios WHERE correo = ?', [userEmail], (err, results) => {
+        if (err) {
+            console.error('Error al buscar usuario:', err);
+            return res.status(500).json({ error: 'Error interno del servidor' });
+        }
+        if (results.length === 0) {
+            return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+        }
+        const usuario = results[0];
+        // Verificar contraseña
+        bcrypt.compare(password, usuario.password, (err, isMatch) => {
+            if (err) {
+                console.error('Error al comparar contraseña:', err);
+                return res.status(500).json({ error: 'Error interno del servidor' });
+            }
+            if (!isMatch) {
+                return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+            }
+            // Generar JWT
+            const token = jwt.sign({ id: usuario.id, correo: usuario.correo, rol: usuario.rol }, 'tu_clave_secreta', { expiresIn: '2h' });
+            res.status(200).json({ token, usuario: { id: usuario.id, nombre: usuario.nombre, correo: usuario.correo, rol: usuario.rol } });
+        });
+    });
+}
 import db from './../db/config.db.js'
 import bcrypt from 'bcryptjs';
 
@@ -74,27 +106,35 @@ export function crearUsuario(req, res){
             return res.status(400).json({ error: "No se puede crear un usuario con el estado 'deshabilitado'" });
         }
 
-        // Hashear la contraseña
-        bcrypt.hash(password, 10, (err, hashedPassword) => {
+        // Validar que el correo no exista
+        db.query('SELECT id FROM usuarios WHERE correo = ?', [userEmail], (err, results) => {
             if (err) {
-                console.error('Error al hashear la contraseña:', err);
-                return res.status(500).json({ error: 'Error al procesar la contraseña' });
+                console.error('Error al buscar correo:', err);
+                return res.status(500).json({ error: 'Error al validar el correo' });
             }
-
-            db.query(`INSERT INTO usuarios (tipo_documento, numero_documento, nombre, telefono, correo, rol, estado, fecha_creacion, password)  
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [userTypeId, userId, userName, userTel, userEmail, userRol, estado, new Date(), hashedPassword],
-                (err, results) => {
-                    if (err) {
-                        console.error('Error al insertar usuario:', err.message);
-                        return res.status(500).json({ error: 'Error desconocido al crear el usuario' });
-                    }
-                    res.status(201).json({ message: 'Usuario creado correctamente', userId: results.insertId });
+            if (results.length > 0) {
+                return res.status(409).json({ error: 'El usuario ya existe con ese correo electrónico' });
+            }
+            // Hashear la contraseña
+            bcrypt.hash(password, 10, (err, hashedPassword) => {
+                if (err) {
+                    console.error('Error al hashear la contraseña:', err);
+                    return res.status(500).json({ error: 'Error al procesar la contraseña' });
                 }
-            );
+                db.query(`INSERT INTO usuarios (tipo_documento, numero_documento, nombre, telefono, correo, rol, estado, fecha_creacion, password)  
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [userTypeId, userId, userName, userTel, userEmail, userRol, estado, new Date(), hashedPassword],
+                    (err, results) => {
+                        if (err) {
+                            console.error('Error al insertar usuario:', err.message);
+                            return res.status(500).json({ error: 'Error desconocido al crear el usuario' });
+                        }
+                        res.status(201).json({ message: 'Usuario creado correctamente', userId: results.insertId });
+                    }
+                );
+            });
         });
-
-        console.log('Usuario creado correctamente');
+        console.log('Intento de creación de usuario');
     }catch(err){
         console.error(err);
         res.status(500).json({error: 'error desconocido'});
