@@ -1038,40 +1038,48 @@ window.removeSelectedItem = (button, type) => {
   } else if (type === "supply") {
     const card = button.closest(".item-card")
     const supplyId = card.dataset.supplyId
-    
+
     // Limpiar la referencia temporal
     if (tempSelectedSupply && tempSelectedSupply.id === supplyId) {
       tempSelectedSupply = null;
     }
 
-    // Eliminar el insumo de todas las listas
-    // Primero de productionData
-    if (productionData && productionData.insumos_ids) {
-      productionData.insumos_ids = productionData.insumos_ids.filter(s => s.id !== supplyId);
+    // Eliminar el insumo de selectedSupplies
+    selectedSupplies = selectedSupplies.filter(s => String(s.id) !== String(supplyId));
+
+    // Eliminar el insumo de productionData.insumos_ids
+    if (productionData && Array.isArray(productionData.insumos_ids)) {
+      productionData.insumos_ids = productionData.insumos_ids.filter(s => String(s.id) !== String(supplyId));
     }
-    
-    // Luego de selectedSupplies
-    selectedSupplies = selectedSupplies.filter(s => s.id !== supplyId);
-    
+
+    // Si tienes una estructura para registrar el uso/cantidad, elimínala aquí
+    if (typeof supplyUsageData === 'object' && supplyUsageData !== null) {
+      delete supplyUsageData[supplyId];
+    }
+
+    // Recalcular la inversión inmediatamente
+    calculateTotalInvestment();
+    // Si tienes función para meta, recalcular meta de ganancia
+    if (typeof updateMetaGanancia === 'function') {
+      updateMetaGanancia();
+    }
+
     // Actualizar la UI
     card.remove();
     updateCreateButtonState();
-    
+
     // Ocultar el formulario de uso de insumo
     const supplyUsageForm = document.getElementById("supplyUsageForm");
     const supplyInfo = document.querySelector('.supply-info');
     const supplyUsageQuantity = document.querySelector('#supplyUsageQuantity');
-    
+
     if (supplyUsageForm && supplyInfo && supplyUsageQuantity) {
       supplyUsageForm.style.display = "none";
       supplyInfo.style.display = "none";
       supplyUsageQuantity.style.display = "none";
       supplyUsageQuantity.value = "";
     }
-    
-    // Recalcular la inversión inmediatamente
-    calculateTotalInvestment();
-    
+
     // Mostrar mensaje de éxito
     showToast("Éxito", "Insumo removido correctamente", "success");
   }
