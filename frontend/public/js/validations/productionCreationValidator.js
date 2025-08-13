@@ -246,27 +246,34 @@ async function initializeForm() {
     fillSelect("cropCycle", cycles, "Seleccionar ciclo", NAME_FIELDS.cycle, ID_FIELDS.cycle)
     fillSelect("sensor", sensors, "Seleccionar sensor", NAME_FIELDS.sensor, ID_FIELDS.sensor)
 
-    // Guardar todos los insumos en la variable global
-    allSuppliesGlobal = supplies
-    updateAvailableSuppliesSelect()
+  // Filtrar insumos con cantidad mayor a 0
+  const suppliesWithStock = supplies.filter(s => Number(s.cantidad) > 0);
+  // Guardar todos los insumos en la variable global
+  allSuppliesGlobal = suppliesWithStock;
+  updateAvailableSuppliesSelect();
 
-    // Mostrar todos los usuarios sin filtrar por rol
-    fillSelect("responsible", users, "Seleccionar responsable", NAME_FIELDS.user, ID_FIELDS.user)
+  // Filtrar usuarios con rol 'admin' y mostrar solo esos en el selector de responsables
+  const adminUsers = users.filter(u => u.rol && u.rol.toLowerCase() === 'admin');
+  fillSelect("responsible", adminUsers, "Seleccionar responsable", NAME_FIELDS.user, ID_FIELDS.user)
 
     // Inicializar fechas con valores predeterminados
     const startDate = document.getElementById("startDate")
     const endDate = document.getElementById("endDate")
 
-    if (startDate && !startDate.value) {
-      const today = new Date()
-      startDate.value = today.toISOString().split("T")[0]
+    // Establecer la fecha actual del sistema como valor por defecto para la fecha de inicio
+    if (startDate) {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      startDate.value = `${yyyy}-${mm}-${dd}`;
     }
 
     if (endDate && !endDate.value) {
-      const today = new Date()
-      const threeMonthsLater = new Date(today)
-      threeMonthsLater.setMonth(today.getMonth() + 3)
-      endDate.value = threeMonthsLater.toISOString().split("T")[0]
+      const today = new Date();
+      const threeMonthsLater = new Date(today);
+      threeMonthsLater.setMonth(today.getMonth() + 3);
+      endDate.value = threeMonthsLater.toISOString().split("T")[0];
     }
 
     // Hacer que el campo de inversión sea de solo lectura

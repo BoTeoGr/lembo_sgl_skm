@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,6 +12,7 @@
     <link rel="stylesheet" href="../css/pages/crear-produccion.mod.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
+
 <body>
     <header class="header" data-title="Crear Producción"></header>
     <main class="main-content">
@@ -22,7 +24,8 @@
             <form class="form__container" id="productionForm" method="post">
                 <div class="form__row">
                     <div class="form__group">
-                        <label for="productionName" class="form__label"><i class="fas fa-tag"></i> Nombre de la producción</label>
+                        <label for="productionName" class="form__label"><i class="fas fa-tag"></i> Nombre de la
+                            producción</label>
                         <input type="text" id="productionName" name="productionName" class="form__input" required>
                         <small class="form__helper-text">Mínimo 3 caracteres</small>
                     </div>
@@ -48,18 +51,12 @@
                         </select>
                     </div>
                 </div>
-                <div class="form__row">
-                    <div class="form__group">
-                        <label for="location" class="form__label"><i class="fas fa-map-marker-alt"></i> Ubicación</label>
-                        <input type="text" id="location" name="location" class="form__input" required>
-                    </div>
-                    <div class="form__group">
-                        <label for="image" class="form__label"><i class="fas fa-image"></i> Imagen</label>
-                        <div class="form__image-input">
-                            <input type="file" id="image" name="image" class="form__file" accept="image/*" required />
-                        </div>
-                    </div>
+
+                <div class="form__group form__group--full-width">
+                    <label for="location" class="form__label"><i class="fas fa-map-marker-alt"></i> Ubicación</label>
+                    <input type="text" id="location" name="location" class="form__input" required>
                 </div>
+
                 <div class="form__group form__group--full-width">
                     <label for="description" class="form__label"><i class="fas fa-align-left"></i> Descripción</label>
                     <textarea id="description" name="description" class="form__textarea" rows="3" required></textarea>
@@ -77,7 +74,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="form__row"> 
+                <div class="form__row">
                     <div class="form__group">
                         <label for="cropCycle" class="form__label"><i class="fas fa-sync"></i> Ciclo</label>
                         <div class="form__select-container">
@@ -123,22 +120,27 @@
                             </div>
                             <div id="selectedSupplies" class="selected-items"></div>
                             <div id="supplyUsageForm" class="form__section">
-                                <h3 class="form__section-title"><i class="fas fa-clipboard-list"></i> Registro de Uso de Insumo</h3>
+                                <h3 class="form__section-title"><i class="fas fa-clipboard-list"></i> Registro de Uso de
+                                    Insumo</h3>
                                 <div class="form__row">
                                     <div class="form__group">
                                         <h4>Información del Insumo</h4>
                                         <div class="supply-info">
                                             <p><strong>Nombre:</strong> <span id="supplyName"></span></p>
-                                            <p><strong>Cantidad Disponible:</strong> <span id="availableQuantity"></span></p>
+                                            <p><strong>Cantidad Disponible:</strong> <span
+                                                    id="availableQuantity"></span></p>
                                             <p><strong>Valor Unitario:</strong> <span id="unitValue"></span></p>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="form__row">
                                     <div class="form__group">
-                                        <label for="supplyUsageQuantity" class="form__label"><i class="fas fa-weight"></i> Cantidad a usar</label>
-                                        <input type="number" id="supplyUsageQuantity" name="supplyUsageQuantity" class="form__input" min="0" step="0.01" required>
-                                        <small class="form__helper-text">Ingrese la cantidad que desea usar del insumo seleccionado</small>
+                                        <label for="supplyUsageQuantity" class="form__label"><i
+                                                class="fas fa-weight"></i> Cantidad a usar</label>
+                                        <input type="number" id="supplyUsageQuantity" name="supplyUsageQuantity"
+                                            class="form__input" min="0" step="0.01" required>
+                                        <small class="form__helper-text">Ingrese la cantidad que desea usar del insumo
+                                            seleccionado</small>
                                     </div>
                                 </div>
                                 <div class="form__button-container">
@@ -150,11 +152,12 @@
                                     </button>
                                 </div>
                             </div>
-                            <small class="form__helper-text">Seleccione al menos un insumo para la producción. Solo se permite un insumo de cada tipo.</small>
+                            <small class="form__helper-text">Seleccione al menos un insumo para la producción. Solo se
+                                permite un insumo de cada tipo.</small>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="form__section">
                     <h3 class="form__section-title"><i class="fas fa-microchip"></i> Sensores (Máximo 3)</h3>
                     <div class="form__row">
@@ -175,20 +178,24 @@
                             <div id="selectedSensors" class="selected-items"></div>
                         </div>
                     </div>
-                </div>                   
-                
+                </div>
+
                 <div class="form__section">
                     <h3 class="form__section-title"><i class="fas fa-calendar-alt"></i> Fechas de Producción</h3>
                     <div class="form__row">
                         <div class="form__group">
-                            <label for="startDate" class="form__label"><i class="fas fa-calendar-plus"></i> Fecha de Inicio</label>
+                            <label for="startDate" class="form__label"><i class="fas fa-calendar-plus"></i> Fecha de
+                                Inicio</label>
                             <input type="date" id="startDate" name="startDate" class="form__input" required>
-                            <small id="startDateHelperText" class="form__helper-text">Fecha en que inicia o inició la producción</small>
+                            <small id="startDateHelperText" class="form__helper-text">Fecha en que inicia o inició la
+                                producción</small>
                         </div>
                         <div class="form__group">
-                            <label for="endDate" class="form__label"><i class="fas fa-calendar-check"></i> Fecha de Fin</label>
+                            <label for="endDate" class="form__label"><i class="fas fa-calendar-check"></i> Fecha de
+                                Fin</label>
                             <input type="date" id="endDate" name="endDate" class="form__input" required>
-                            <small id="endDateHelperText" class="form__helper-text">Fecha estimada de finalización (posterior a la fecha de inicio)</small>
+                            <small id="endDateHelperText" class="form__helper-text">Fecha estimada de finalización
+                                (posterior a la fecha de inicio)</small>
                         </div>
                     </div>
                 </div>
@@ -197,19 +204,21 @@
                     <h3 class="form__section-title"><i class="fas fa-chart-line"></i> Inversión y Meta</h3>
                     <div class="form__row">
                         <div class="form__group">
-                            <label for="totalInvestment" class="form__label"><i class="fas fa-dollar-sign"></i> Inversión Total</label>
-                            <input type="number" id="totalInvestment" name="totalInvestment" class="form__input" step="0.01" min="0" readonly required>
-                            <small id="investmentHelperText" class="form__helper-text">Calculado automáticamente en base a los insumos seleccionados</small>
+                            <label for="totalInvestment" class="form__label"><i class="fas fa-dollar-sign"></i>
+                                Inversión Total</label>
+                            <input type="number" id="totalInvestment" name="totalInvestment" class="form__input"
+                                step="0.01" min="0" readonly required>
+                            <small id="investmentHelperText" class="form__helper-text">Calculado automáticamente en base
+                                a los insumos seleccionados</small>
                         </div>
                         <div class="form__group">
-                            <label for="estimatedProfit" class="form__label"><i class="fas fa-chart-line"></i> Meta de Ganancias</label>
+                            <label for="estimatedProfit" class="form__label"><i class="fas fa-chart-line"></i> Meta de
+                                Ganancias</label>
                             <div class="form__input-with-button">
-                                <input type="number" id="estimatedProfit" name="estimatedProfit" class="form__input" step="0.01" min="0" required>
-                                <button type="button" id="suggestProfitBtn" class="button button--small">
-                                    <i class="fas fa-magic"></i> Sugerir
-                                </button>
+                                <input type="number" id="estimatedProfit" name="estimatedProfit" class="form__input"
+                                    step="0.01" min="0" required readonly>
                             </div>
-                            <small id="profitHelperText" class="form__helper-text">La meta de ganancias debe ser mayor o igual a la inversión</small>
+                            <small id="profitHelperText" class="form__helper-text">La meta de ganancias se toma de acuerdo al 30%</small>
                         </div>
                     </div>
                 </div>
@@ -263,29 +272,35 @@
                         </div>
                         <div class="form__group">
                             <label for="modal-nombre" class="form__label">Nombre completo</label>
-                            <input type="text" id="modal-nombre" class="form__input form__input--user-name" placeholder="Ingrese el nombre completo" required />
+                            <input type="text" id="modal-nombre" class="form__input form__input--user-name"
+                                placeholder="Ingrese el nombre completo" required />
                         </div>
                     </div>
 
                     <div class="form__row">
                         <div class="form__group">
                             <label for="modal-numero-documento" class="form__label">Número de documento</label>
-                            <input type="text" id="modal-numero-documento" class="form__input form__input--user-id" placeholder="Ingrese el número de documento" required />
+                            <input type="text" id="modal-numero-documento" class="form__input form__input--user-id"
+                                placeholder="Ingrese el número de documento" required />
                         </div>
                         <div class="form__group">
                             <label for="modal-telefono" class="form__label">Número de Teléfono</label>
-                            <input type="text" id="modal-telefono" class="form__input form__input--user-tel" placeholder="Ingrese el número de Teléfono" required />
+                            <input type="text" id="modal-telefono" class="form__input form__input--user-tel"
+                                placeholder="Ingrese el número de Teléfono" required />
                         </div>
                     </div>
 
                     <div class="form__group">
                         <label for="modal-correo" class="form__label">Correo electrónico</label>
-                        <input type="email" id="modal-correo" class="form__input form__input--user-email" placeholder="Ingrese el correo electrónico" required />
+                        <input type="email" id="modal-correo" class="form__input form__input--user-email"
+                            placeholder="Ingrese el correo electrónico" required />
                     </div>
 
                     <div class="form__group">
                         <label for="modal-confirmar-correo" class="form__label">Confirmar correo</label>
-                        <input type="email" id="modal-confirmar-correo" class="form__input form__input--user-confirm-email" placeholder="Ingrese nuevamente el Correo electrónico" required />
+                        <input type="email" id="modal-confirmar-correo"
+                            class="form__input form__input--user-confirm-email"
+                            placeholder="Ingrese nuevamente el Correo electrónico" required />
                     </div>
 
                     <div class="form__group">
@@ -347,7 +362,8 @@
                         </div>
                         <div class="form__group">
                             <label for="modal-nombre-sensor" class="form__label">Nombre del sensor</label>
-                            <input type="text" id="modal-nombre-sensor" class="form__input form__input--sensor-name" placeholder="Ingrese nombre del sensor" required />
+                            <input type="text" id="modal-nombre-sensor" class="form__input form__input--sensor-name"
+                                placeholder="Ingrese nombre del sensor" required />
                         </div>
                     </div>
 
@@ -364,14 +380,16 @@
                         <div class="form__group">
                             <label for="modal-imagen" class="form__label">Imagen</label>
                             <div class="form__image-input">
-                                <input type="file" id="modal-imagen" class="form__file form__file--sensor-image" accept=".jpg, .jpeg, .png" required />
+                                <input type="file" id="modal-imagen" class="form__file form__file--sensor-image"
+                                    accept=".jpg, .jpeg, .png" required />
                             </div>
                         </div>
                     </div>
 
                     <div class="form__group form__group--full-width">
                         <label for="modal-descripcion" class="form__label">Descripción</label>
-                        <textarea id="modal-descripcion" class="form__textarea form__textarea--sensor-description" placeholder="Ingrese descripción del sensor" required></textarea>
+                        <textarea id="modal-descripcion" class="form__textarea form__textarea--sensor-description"
+                            placeholder="Ingrese descripción del sensor" required></textarea>
                     </div>
 
                     <div class="form__row">
@@ -423,16 +441,19 @@
                     <div class="form__row">
                         <div class="form__group">
                             <label for="modal-nombre-insumo" class="form__label">Nombre</label>
-                            <input type="text" id="modal-nombre-insumo" class="form__input form__input--insume-name" placeholder="Ingrese nombre del insumo" required />
+                            <input type="text" id="modal-nombre-insumo" class="form__input form__input--insume-name"
+                                placeholder="Ingrese nombre del insumo" required />
                         </div>
                         <div class="form__group">
                             <label for="modal-tipo-insumo" class="form__label">Tipo de insumo</label>
-                            <input type="text" id="modal-tipo-insumo" class="form__input form__input--insume-type" placeholder="Tipo de insumo" required />
+                            <input type="text" id="modal-tipo-insumo" class="form__input form__input--insume-type"
+                                placeholder="Tipo de insumo" required />
                         </div>
                     </div>
                     <div class="form__group">
                         <label for="modal-imagen-insumo" class="form__label">Imagen</label>
-                        <input type="file" id="modal-imagen-insumo" class="form__file form__file--insume-image" accept=".jpg, .jpeg, .png" required />
+                        <input type="file" id="modal-imagen-insumo" class="form__file form__file--insume-image"
+                            accept=".jpg, .jpeg, .png" required />
                     </div>
                     <div class="form__row">
                         <div class="form__group">
@@ -451,21 +472,26 @@
                     <div class="form__row">
                         <div class="form__group">
                             <label for="modal-valor-unitario" class="form__label">Valor unitario</label>
-                            <input type="text" id="modal-valor-unitario" class="form__input form__input--insume-price" placeholder="Ingrese el valor unitario del insumo" required />
+                            <input type="text" id="modal-valor-unitario" class="form__input form__input--insume-price"
+                                placeholder="Ingrese el valor unitario del insumo" required />
                         </div>
                         <div class="form__group">
                             <label for="modal-cantidad" class="form__label">Cantidad</label>
-                            <input type="text" id="modal-cantidad" class="form__input form__input--insume-amount" placeholder="Ingrese la cantidad de unidades" required />
+                            <input type="text" id="modal-cantidad" class="form__input form__input--insume-amount"
+                                placeholder="Ingrese la cantidad de unidades" required />
                         </div>
                     </div>
                     <div class="form__row">
                         <div class="form__group">
                             <label for="modal-valor-total" class="form__label">Valor total</label>
-                            <input type="text" id="modal-valor-total" class="form__input form__input--total-value" placeholder="Ingrese el valor total del insumo" readonly required />
+                            <input type="text" id="modal-valor-total" class="form__input form__input--total-value"
+                                placeholder="Ingrese el valor total del insumo" readonly required />
                         </div>
                         <div class="form__group form__group--full-width">
                             <label for="modal-descripcion-insumo" class="form__label">Descripción</label>
-                            <textarea id="modal-descripcion-insumo" class="form__textarea form__textarea--insume-description" placeholder="Ingrese descripción del insumo" required></textarea>
+                            <textarea id="modal-descripcion-insumo"
+                                class="form__textarea form__textarea--insume-description"
+                                placeholder="Ingrese descripción del insumo" required></textarea>
                         </div>
                     </div>
                     <div class="form__group form__group--full-width">
@@ -504,7 +530,8 @@
                     <div class="form__row">
                         <div class="form__group">
                             <label for="modal-nombre-cultivo" class="form__label">Nombre</label>
-                            <input type="text" id="modal-nombre-cultivo" class="form__input form__input--cultive-name" placeholder="Ingrese nombre del cultivo" required />
+                            <input type="text" id="modal-nombre-cultivo" class="form__input form__input--cultive-name"
+                                placeholder="Ingrese nombre del cultivo" required />
                         </div>
                         <div class="form__group">
                             <label for="modal-tipo-cultivo" class="form__label">Tipo de cultivo</label>
@@ -520,24 +547,30 @@
 
                     <div class="form__group">
                         <label for="modal-imagen-cultivo" class="form__label">Imagen</label>
-                        <input type="file" id="modal-imagen-cultivo" class="form__file form__file--cultive-image" accept=".jpg, .jpeg, .png" required />
+                        <input type="file" id="modal-imagen-cultivo" class="form__file form__file--cultive-image"
+                            accept=".jpg, .jpeg, .png" required />
                     </div>
 
                     <div class="form__row">
                         <div class="form__group">
                             <label for="modal-ubicacion-cultivo" class="form__label">Ubicación</label>
-                            <input type="text" id="modal-ubicacion-cultivo" class="form__input form__input--cultive-location" placeholder="Ingrese la ubicación del cultivo" required />
+                            <input type="text" id="modal-ubicacion-cultivo"
+                                class="form__input form__input--cultive-location"
+                                placeholder="Ingrese la ubicación del cultivo" required />
                         </div>
                     </div>
 
                     <div class="form__group form__group--full-width">
                         <label for="modal-tamano-cultivo" class="form__label">Tamaño</label>
-                        <input type="number" id="modal-tamano-cultivo" class="form__input form__input--cultive-size" placeholder="Ingrese el tamaño del cultivo en m2" required />
+                        <input type="number" id="modal-tamano-cultivo" class="form__input form__input--cultive-size"
+                            placeholder="Ingrese el tamaño del cultivo en m2" required />
                     </div>
 
                     <div class="form__group form__group--full-width">
                         <label for="modal-descripcion-cultivo" class="form__label">Descripción</label>
-                        <textarea id="modal-descripcion-cultivo" class="form__textarea form__textarea--cultive-description" placeholder="Ingrese descripción del cultivo" required></textarea>
+                        <textarea id="modal-descripcion-cultivo"
+                            class="form__textarea form__textarea--cultive-description"
+                            placeholder="Ingrese descripción del cultivo" required></textarea>
                     </div>
 
                     <div class="form__group form__group--full-width">
@@ -576,28 +609,33 @@
                 <form id="createCropCycleForm" class="form__container" method="post">
                     <div class="form__group form__group--full-width">
                         <label for="modal-nombre-ciclo" class="form__label">Nombre</label>
-                        <input type="text" id="modal-nombre-ciclo" class="form__input form__input--cycle-name" placeholder="Ingrese nombre del ciclo de cultivo" required />
+                        <input type="text" id="modal-nombre-ciclo" class="form__input form__input--cycle-name"
+                            placeholder="Ingrese nombre del ciclo de cultivo" required />
                     </div>
 
                     <div class="form__group form__group--full-width">
                         <label for="modal-descripcion-ciclo" class="form__label">Descripción</label>
-                        <textarea id="modal-descripcion-ciclo" class="form__textarea form__textarea--cycle-description" placeholder="Ingrese descripción del ciclo de cultivo" required></textarea>
+                        <textarea id="modal-descripcion-ciclo" class="form__textarea form__textarea--cycle-description"
+                            placeholder="Ingrese descripción del ciclo de cultivo" required></textarea>
                     </div>
 
                     <div class="form__row">
                         <div class="form__group">
                             <label for="modal-periodo-inicio" class="form__label">Periodo - Inicio</label>
-                            <input type="date" id="modal-periodo-inicio" class="form__input form__input--cycle-start-date" required />
+                            <input type="date" id="modal-periodo-inicio"
+                                class="form__input form__input--cycle-start-date" required />
                         </div>
                         <div class="form__group">
                             <label for="modal-periodo-final" class="form__label">Periodo - Final</label>
-                            <input type="date" id="modal-periodo-final" class="form__input form__input--cycle-end-date" required />
+                            <input type="date" id="modal-periodo-final" class="form__input form__input--cycle-end-date"
+                                required />
                         </div>
                     </div>
 
                     <div class="form__group form__group--full-width">
                         <label for="modal-novedades-ciclo" class="form__label">Novedades</label>
-                        <textarea id="modal-novedades-ciclo" class="form__textarea form__textarea--cycle-updates" placeholder="Ingrese novedades del ciclo de cultivo" required></textarea>
+                        <textarea id="modal-novedades-ciclo" class="form__textarea form__textarea--cycle-updates"
+                            placeholder="Ingrese novedades del ciclo de cultivo" required></textarea>
                     </div>
 
                     <div class="form__group form__group--full-width">
@@ -627,6 +665,7 @@
     <script src="../js/validations/productionCreationValidator.js" type="module"></script>
     <script src="../js/validations/supplyUsageValidator.js" type="module"></script>
 </body>
+
 </html>
 
 <style>
@@ -635,11 +674,11 @@
         color: #2196F3;
         font-weight: 500;
     }
-    
+
     .hidden {
         display: none;
     }
-    
+
     .toast {
         position: fixed;
         bottom: 20px;
@@ -652,53 +691,59 @@
         min-width: 300px;
         max-width: 400px;
     }
-    
+
     .toast--success .toast-icon {
         color: var(--green-700);
     }
-    
+
     .toast--error .toast-icon {
         color: #e53935;
     }
-    
+
     .toast-content {
         display: flex;
         padding: 16px;
         align-items: flex-start;
     }
-    
+
     .toast-icon {
         font-size: 24px;
         margin-right: 12px;
     }
-    
+
     .toast-message {
         flex: 1;
     }
-    
+
     .toast-title {
         display: block;
         font-weight: 600;
         margin-bottom: 4px;
         font-size: 16px;
     }
-    
+
     .toast-description {
         font-size: 14px;
         color: #666;
     }
-    
+
     .toast-progress {
         height: 4px;
         background-color: var(--green-500);
         width: 0%;
         animation: progress 3s linear;
     }
-    
+
     @keyframes progress {
-        0% { width: 0%; }
-        100% { width: 100%; }
+        0% {
+            width: 0%;
+        }
+
+        100% {
+            width: 100%;
+        }
     }
-    </style>
+</style>
 </body>
+
 </html>
