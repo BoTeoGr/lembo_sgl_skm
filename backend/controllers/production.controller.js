@@ -34,143 +34,140 @@ export function verProducciones(req, res) {
 }
 export function crearProduccion(req, res) {
   try {
-      const {
-          nombre,
-          tipo,
-          imagen,
-          ubicacion,
-          descripcion,
-          usuario_id,
-          cantidad,
-          cultivo_id,
-          ciclo_id,
-          insumos_ids,
-          sensores_ids,
-          fecha_de_inicio,  
-          fecha_fin,        
-          inversion,        
-          meta_ganancia     
-      } = req.body;
+    const {
+      nombre,
+      tipo,
+      ubicacion,
+      descripcion,
+      usuario_id,
+      cantidad,
+      cultivo_id,
+      ciclo_id,
+      insumos_ids,
+      sensores_ids,
+      fecha_de_inicio,
+      fecha_fin,
+      inversion,
+      meta_ganancia
+    } = req.body;
+    if (!nombre || !tipo || !ubicacion || !descripcion || !usuario_id ||
+      cantidad === undefined || !cultivo_id || !ciclo_id) {
+      return res.status(400).json({ error: "Todos los campos obligatorios deben ser proporcionados." });
+    }
 
-      // Validations
-      if (!nombre || !tipo || !ubicacion || !descripcion || !usuario_id || 
-          cantidad === undefined || !cultivo_id || !ciclo_id) {
-          return res.status(400).json({ error: "Todos los campos obligatorios deben ser proporcionados." });
+    if (!insumos_ids || insumos_ids.length === 0) {
+      return res.status(400).json({ error: "Se deben proporcionar los IDs de los insumos utilizados." });
+    }
+
+    if (meta_ganancia !== undefined && inversion !== undefined && meta_ganancia < inversion) {
+      return res.status(400).json({ error: "La meta de ganancia debe ser mayor o igual a la inversión." });
+    }
+
+    // Start transaction
+    db.beginTransaction(transErr => {
+      if (transErr) {
+        console.error("Error al iniciar la transacción:", transErr);
+        return res.status(500).json({ error: "Error al iniciar la transacción." });
       }
 
-      if (!insumos_ids || insumos_ids.length === 0) {
-          return res.status(400).json({ error: "Se deben proporcionar los IDs de los insumos utilizados." });
-      }
-
-      if (meta_ganancia !== undefined && inversion !== undefined && meta_ganancia < inversion) {
-          return res.status(400).json({ error: "La meta de ganancia debe ser mayor o igual a la inversión." });
-      }
-
-      // Start transaction
-      db.beginTransaction(transErr => {
-          if (transErr) {
-              console.error("Error al iniciar la transacción:", transErr);
-              return res.status(500).json({ error: "Error al iniciar la transacción." });
-          }
-
-          // Insert producción (INCLUDING new fields)
-          db.query(
-              `
+      // Insert producción (INCLUDING new fields)
+      db.query(
+        `
               INSERT INTO producciones (
-                  nombre, tipo, imagen, ubicacion, descripcion, 
+                  nombre, tipo, ubicacion, descripcion, 
                   usuario_id, cantidad, estado, cultivo_id, ciclo_id, 
                   insumos_ids, sensores_ids, fecha_de_inicio, fecha_fin,
                   inversion, meta_ganancia
-              ) VALUES (?, ?, ?, ?, ?, ?, ?, 'habilitado', ?, ?, ?, ?, ?, ?, ?, ?)
+              ) VALUES (?, ?, ?, ?, ?, ?, 'habilitado', ?, ?, ?, ?, ?, ?, ?,?)
               `,
-              [nombre, tipo, imagen, ubicacion, descripcion, usuario_id, cantidad, 
-               cultivo_id, ciclo_id, JSON.stringify(insumos_ids), JSON.stringify(sensores_ids), fecha_de_inicio, 
-               fecha_fin, inversion, meta_ganancia],
-              (prodErr, prodResults) => {
-                  if (prodErr) {
-                      return db.rollback(rollbackErr => {
-                          if (rollbackErr) {
-                              console.error("Error al hacer rollback:", rollbackErr);
-                          }
-                          console.error("Error al crear la producción:", prodErr);
-                          return res.status(500).json({ error: "Error al crear la producción." });
-                      });
+        [nombre, tipo, ubicacion, descripcion, usuario_id, cantidad,
+          cultivo_id, ciclo_id, JSON.stringify(insumos_ids), JSON.stringify(sensores_ids), fecha_de_inicio,
+          fecha_fin, inversion, meta_ganancia],
+        (prodErr, prodResults) => {
+          if (prodErr) {
+            return db.rollback(rollbackErr => {
+              if (rollbackErr) {
+                console.error("Error al hacer rollback:", rollbackErr);
+              }
+              console.error("Error al crear la producción:", prodErr);
+              return res.status(500).json({ error: "Error al crear la producción." });
+            });
+          }
+
+          const produccionId = prodResults.insertId;
+
+          // Update insumos con sus cantidades específicas
+          const updateInsumos = () => {
+            // Convertir el array de objetos insumos_ids a un array de IDs
+            const insumoIds = insumos_ids.map(insumo => insumo.id);
+
+            // Crear un objeto para mapear ID de insumo a su cantidad
+            const insumoQuantities = insumos_ids.reduce((acc, insumo) => {
+              acc[insumo.id] = insumo.cantidad_usar;
+              return acc;
+            }, {});
+
+            // Actualizar cada insumo con su cantidad específica
+            const updatePromises = insumoIds.map(insumoId => {
+              return new Promise((resolve, reject) => {
+                const cantidadUsar = insumoQuantities[insumoId];
+                db.query(
+                  'UPDATE insumos SET cantidad = cantidad - ? WHERE id = ?',
+                  [cantidadUsar, insumoId],
+                  (err, results) => {
+                    if (err) {
+                      reject(err);
+                    } else {
+                      resolve(results);
+                    }
+                  }
+                );
+              });
+            });
+
+            // Ejecutar todas las actualizaciones
+            Promise.all(updatePromises)
+              .then(() => {
+                // Commit transaction
+                db.commit(commitErr => {
+                  if (commitErr) {
+                    return db.rollback(rollbackErr => {
+                      if (rollbackErr) {
+                        console.error("Error al hacer rollback:", rollbackErr);
+                      }
+                      console.error("Error al hacer commit:", commitErr);
+                      return res.status(500).json({ error: "Error al finalizar la transacción." });
+                    });
                   }
 
-                  const produccionId = prodResults.insertId;
+                  return res.status(201).json({
+                    message: "Producción creada e insumos actualizados con éxito.",
+                    produccion_id: produccionId
+                  });
+                });
+              })
+              .catch(err => {
+                return db.rollback(rollbackErr => {
+                  if (rollbackErr) {
+                    console.error("Error al hacer rollback:", rollbackErr);
+                  }
+                  console.error("Error al actualizar insumos:", err);
+                  return res.status(500).json({ error: "Error al actualizar insumos." });
+                });
+              });
+          };
 
-                  // Update insumos con sus cantidades específicas
-                  const updateInsumos = () => {
-                      // Convertir el array de objetos insumos_ids a un array de IDs
-                      const insumoIds = insumos_ids.map(insumo => insumo.id);
-                      
-                      // Crear un objeto para mapear ID de insumo a su cantidad
-                      const insumoQuantities = insumos_ids.reduce((acc, insumo) => {
-                          acc[insumo.id] = insumo.cantidad_usar;
-                          return acc;
-                      }, {});
-
-                      // Actualizar cada insumo con su cantidad específica
-                      const updatePromises = insumoIds.map(insumoId => {
-                          return new Promise((resolve, reject) => {
-                              const cantidadUsar = insumoQuantities[insumoId];
-                              db.query(
-                                  'UPDATE insumos SET cantidad = cantidad - ? WHERE id = ?',
-                                  [cantidadUsar, insumoId],
-                                  (err, results) => {
-                                      if (err) {
-                                          reject(err);
-                                      } else {
-                                          resolve(results);
-                                      }
-                                  }
-                              );
-                          });
-                      });
-
-                      // Ejecutar todas las actualizaciones
-                      Promise.all(updatePromises)
-                          .then(() => {
-                              // Commit transaction
-                              db.commit(commitErr => {
-                                  if (commitErr) {
-                                      return db.rollback(rollbackErr => {
-                                          if (rollbackErr) {
-                                              console.error("Error al hacer rollback:", rollbackErr);
-                                          }
-                                          console.error("Error al hacer commit:", commitErr);
-                                          return res.status(500).json({ error: "Error al finalizar la transacción." });
-                                      });
-                                  }
-
-                                  return res.status(201).json({ 
-                                      message: "Producción creada e insumos actualizados con éxito.",
-                                      produccion_id: produccionId 
-                                  });
-                              });
-                          })
-                          .catch(err => {
-                              return db.rollback(rollbackErr => {
-                                  if (rollbackErr) {
-                                      console.error("Error al hacer rollback:", rollbackErr);
-                                  }
-                                  console.error("Error al actualizar insumos:", err);
-                                  return res.status(500).json({ error: "Error al actualizar insumos." });
-                              });
-                          });
-                  };
-
-                  updateInsumos();
-              }
-          );
-      });
+          updateInsumos();
+        }
+      );
+    });
 
   } catch (error) {
-      console.error("Error en el servidor:", error);
-      return res.status(500).json({ error: "Error en el servidor." });
+    console.error("Error en el servidor:", error);
+    return res.status(500).json({ error: "Error en el servidor." });
   }
 }
-  
+
 
 
 
@@ -273,12 +270,9 @@ export function obtenerProduccionPorId(req, res) {
 }
 
 export function actualizarProduccion(req, res) {
-  try {
-    const { id } = req.params;
     const {
       nombre,
       tipo,
-      imagen,
       ubicacion,
       descripcion,
       usuario_id,
@@ -329,10 +323,7 @@ export function actualizarProduccion(req, res) {
           updateValues.push(tipo);
         }
 
-        if (imagen) {
-          updateFields.push("imagen = ?");
-          updateValues.push(imagen);
-        }
+  // Eliminado campo imagen para produccion
 
         if (ubicacion) {
           updateFields.push("ubicacion = ?");
@@ -429,12 +420,6 @@ export function actualizarProduccion(req, res) {
         });
       }
     );
-  } catch (error) {
-    console.error("Error al actualizar producción:", error);
-    res
-      .status(500)
-      .json({ error: "Error interno del servidor: " + error.message });
-  }
 }
 
 export function actualizarEstadoProduccion(req, res) {
@@ -616,38 +601,38 @@ export function obtenerProduccionesPorUsuario(req, res) {
 
   // Primero, obtén la información del usuario
   db.query('SELECT id, nombre, correo, telefono, rol FROM usuarios WHERE id = ?', [usuarioId], (error, usuarioResult) => {
+    if (error) {
+      console.error("Error al obtener el usuario:", error);
+      return res.status(500).json({ mensaje: 'Error al obtener el usuario' });
+    }
+
+    if (usuarioResult.length === 0) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+
+    const usuario = usuarioResult[0];
+
+    // Luego, obtén las producciones asociadas al usuario
+    db.query('SELECT id, nombre FROM producciones WHERE usuario_id = ?', [usuarioId], (error, produccionesResult) => {
       if (error) {
-          console.error("Error al obtener el usuario:", error);
-          return res.status(500).json({ mensaje: 'Error al obtener el usuario' });
+        console.error("Error al obtener las producciones:", error);
+        return res.status(500).json({ mensaje: 'Error al obtener las producciones' });
       }
 
-      if (usuarioResult.length === 0) {
-          return res.status(404).json({ mensaje: 'Usuario no encontrado' });
-      }
+      const producciones = produccionesResult;
 
-      const usuario = usuarioResult[0];
-
-      // Luego, obtén las producciones asociadas al usuario
-      db.query('SELECT id, nombre FROM producciones WHERE usuario_id = ?', [usuarioId], (error, produccionesResult) => {
-          if (error) {
-              console.error("Error al obtener las producciones:", error);
-              return res.status(500).json({ mensaje: 'Error al obtener las producciones' });
-          }
-
-          const producciones = produccionesResult;
-
-          // Envía la respuesta con la información del usuario y sus producciones
-          res.status(200).json({
-              usuario: {
-                  id: usuario.id,
-                  nombre: usuario.nombre,
-                  correo: usuario.correo,
-                  telefono: usuario.telefono,
-                  rol: usuario.rol
-              },
-              producciones: producciones
-          });
+      // Envía la respuesta con la información del usuario y sus producciones
+      res.status(200).json({
+        usuario: {
+          id: usuario.id,
+          nombre: usuario.nombre,
+          correo: usuario.correo,
+          telefono: usuario.telefono,
+          rol: usuario.rol
+        },
+        producciones: producciones
       });
+    });
   });
 }
 export function obtenerProduccionesPorCultivo(req, res) {
@@ -655,36 +640,36 @@ export function obtenerProduccionesPorCultivo(req, res) {
 
   // Primero, obtén la información del cultivo
   db.query('SELECT id, nombre, descripcion FROM cultivos WHERE id = ?', [cultivoId], (error, cultivoResult) => {
+    if (error) {
+      console.error("Error al obtener el cultivo:", error);
+      return res.status(500).json({ mensaje: 'Error al obtener el cultivo' });
+    }
+
+    if (cultivoResult.length === 0) {
+      return res.status(404).json({ mensaje: 'Cultivo no encontrado' });
+    }
+
+    const cultivo = cultivoResult[0];
+
+    // Luego, obtén las producciones asociadas al cultivo
+    db.query('SELECT id, nombre FROM producciones WHERE cultivo_id = ?', [cultivoId], (error, produccionesResult) => {
       if (error) {
-          console.error("Error al obtener el cultivo:", error);
-          return res.status(500).json({ mensaje: 'Error al obtener el cultivo' });
+        console.error("Error al obtener las producciones:", error);
+        return res.status(500).json({ mensaje: 'Error al obtener las producciones' });
       }
 
-      if (cultivoResult.length === 0) {
-          return res.status(404).json({ mensaje: 'Cultivo no encontrado' });
-      }
+      const producciones = produccionesResult;
 
-      const cultivo = cultivoResult[0];
-
-      // Luego, obtén las producciones asociadas al cultivo
-      db.query('SELECT id, nombre FROM producciones WHERE cultivo_id = ?', [cultivoId], (error, produccionesResult) => {
-          if (error) {
-              console.error("Error al obtener las producciones:", error);
-              return res.status(500).json({ mensaje: 'Error al obtener las producciones' });
-          }
-
-          const producciones = produccionesResult;
-
-          // Envía la respuesta con la información del cultivo y sus producciones
-          res.status(200).json({
-              cultivo: {
-                  id: cultivo.id,
-                  nombre: cultivo.nombre,
-                  descripcion: cultivo.descripcion
-              },
-              producciones: producciones
-          });
+      // Envía la respuesta con la información del cultivo y sus producciones
+      res.status(200).json({
+        cultivo: {
+          id: cultivo.id,
+          nombre: cultivo.nombre,
+          descripcion: cultivo.descripcion
+        },
+        producciones: producciones
       });
+    });
   });
 }
 
@@ -692,71 +677,71 @@ export function obtenerProduccionesPorInsumo(req, res) {
   const insumoId = req.params.id;
   // Primero, obtén la información del insumo
   db.query('SELECT id, nombre, descripcion, cantidad, unidad_medida, tipo FROM insumos WHERE id = ?', [insumoId], (error, insumoResult) => {
+    if (error) {
+      console.error("Error al obtener el insumo:", error);
+      return res.status(500).json({ mensaje: 'Error al obtener el insumo' });
+    }
+
+    if (insumoResult.length === 0) {
+      return res.status(404).json({ mensaje: 'Insumo no encontrado' });
+    }
+
+    const insumo = insumoResult[0];
+
+    db.query('SELECT id, nombre FROM producciones WHERE FIND_IN_SET(?, insumos_ids)', [insumoId], (error, produccionesResult) => {
       if (error) {
-          console.error("Error al obtener el insumo:", error);
-          return res.status(500).json({ mensaje: 'Error al obtener el insumo' });
+        console.error("Error al obtener las producciones:", error);
+        return res.status(500).json({ mensaje: 'Error al obtener las producciones' });
       }
 
-      if (insumoResult.length === 0) {
-          return res.status(404).json({ mensaje: 'Insumo no encontrado' });
-      }
+      const producciones = produccionesResult;
 
-      const insumo = insumoResult[0];
-
-      db.query('SELECT id, nombre FROM producciones WHERE FIND_IN_SET(?, insumos_ids)', [insumoId], (error, produccionesResult) => {
-          if (error) {
-              console.error("Error al obtener las producciones:", error);
-              return res.status(500).json({ mensaje: 'Error al obtener las producciones' });
-          }
-
-          const producciones = produccionesResult;
-
-          // Envía la respuesta con la información del insumo y sus producciones
-          res.status(200).json({
-              insumo: {
-                  id: insumo.id,
-                  nombre: insumo.nombre,
-                  descripcion: insumo.descripcion,
-                  cantidad: insumo.cantidad,
-                  unidad_medida: insumo.unidad_medida,
-                  tipo: insumo.tipo
-              },
-              producciones: producciones
-          });
+      // Envía la respuesta con la información del insumo y sus producciones
+      res.status(200).json({
+        insumo: {
+          id: insumo.id,
+          nombre: insumo.nombre,
+          descripcion: insumo.descripcion,
+          cantidad: insumo.cantidad,
+          unidad_medida: insumo.unidad_medida,
+          tipo: insumo.tipo
+        },
+        producciones: producciones
       });
+    });
   });
-}export function obtenerProduccionesPorSensor(req, res) {
+} export function obtenerProduccionesPorSensor(req, res) {
   const sensorId = req.params.id;
 
   // Primero, obtén la información del sensor (opcional, pero útil)
   db.query('SELECT id, tipo_sensor, nombre_sensor, unidad_medida FROM sensores WHERE id = ?', [sensorId], (error, sensorResult) => {
+    if (error) {
+      console.error("Error al obtener el sensor:", error);
+      return res.status(500).json({ mensaje: 'Error al obtener el sensor' });
+    }
+
+    if (sensorResult.length === 0) {
+      return res.status(404).json({ mensaje: 'Sensor no encontrado' });
+    }
+
+    const sensor = sensorResult[0];
+
+    // Luego, obtén las producciones asociadas al sensor
+    // **¡IMPORTANTE: Usamos FIND_IN_SET porque sensores_ids es TEXT con comas!**
+    db.query('SELECT id, nombre FROM producciones WHERE FIND_IN_SET(?, sensores_ids)', [sensorId], (error, produccionesResult) => {
       if (error) {
-          console.error("Error al obtener el sensor:", error);
-          return res.status(500).json({ mensaje: 'Error al obtener el sensor' });
+        console.error("Error al obtener las producciones:", error);
+        return res.status(500).json({ mensaje: 'Error al obtener las producciones' });
       }
 
-      if (sensorResult.length === 0) {
-          return res.status(404).json({ mensaje: 'Sensor no encontrado' });
-      }
+      const producciones = produccionesResult;
 
-      const sensor = sensorResult[0];
-
-      // Luego, obtén las producciones asociadas al sensor
-      // **¡IMPORTANTE: Usamos FIND_IN_SET porque sensores_ids es TEXT con comas!**
-      db.query('SELECT id, nombre FROM producciones WHERE FIND_IN_SET(?, sensores_ids)', [sensorId], (error, produccionesResult) => {
-          if (error) {
-              console.error("Error al obtener las producciones:", error);
-              return res.status(500).json({ mensaje: 'Error al obtener las producciones' });
-          }
-
-          const producciones = produccionesResult;
-
-          // Envía la respuesta con la información del sensor y sus producciones
-          res.status(200).json({
-              sensor: sensor, // Incluimos la info del sensor (opcional)
-              producciones: producciones
-          });
+      // Envía la respuesta con la información del sensor y sus producciones
+      res.status(200).json({
+        sensor: sensor, // Incluimos la info del sensor (opcional)
+        producciones: producciones
       });
+    });
   });
 }
 // Exportar todas las funciones

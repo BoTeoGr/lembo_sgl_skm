@@ -130,7 +130,6 @@ CREATE TABLE `producciones` (
   `id` int NOT NULL AUTO_INCREMENT,
   `nombre` varchar(100) NOT NULL,
   `tipo` varchar(50) NOT NULL,
-  `imagen` varchar(255) NOT NULL,
   `ubicacion` varchar(100) NOT NULL,
   `descripcion` text NOT NULL,
   `usuario_id` int DEFAULT NULL,

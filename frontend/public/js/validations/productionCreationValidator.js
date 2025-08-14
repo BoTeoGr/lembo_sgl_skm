@@ -23,7 +23,6 @@ const NAME_FIELDS = {
 const productionData = {
   nombre: "",
   tipo: "",
-  imagen: "produccion-default.jpg", // Valor predeterminado para la imagen
   ubicacion: "",
   descripcion: "",
   usuario_id: 0,
@@ -37,6 +36,7 @@ const productionData = {
   fecha_fin: "",
   inversion: 0,
   meta_ganancia: 0,
+  // NO incluir campo imagen para produccion
 }
 
 // Variables globales
@@ -949,7 +949,6 @@ async function createProduction(e) {
   const productionData = {
     nombre: document.getElementById("productionName").value,
     tipo: document.getElementById("productionType").value,
-    imagen: "produccion-default.jpg",
     ubicacion: document.getElementById("location").value,
     descripcion: document.getElementById("description").value,
     usuario_id: document.getElementById("responsible").value,
@@ -1135,13 +1134,15 @@ document.getElementById('hideSupplyUsageForm').addEventListener('click', (e) => 
 // Event listener para el botón Registrar Uso
 const addSupplyUsageBtn = document.getElementById('addSupplyUsage');
 if (addSupplyUsageBtn) {
-    addSupplyUsageBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        console.log('Botón Registrar Uso clickeado');
-        console.log('tempSelectedSupply:', tempSelectedSupply);
-        console.log('Valor ingresado:', document.getElementById('supplyUsageQuantity').value);
-        registerSupplyUsage();
-    });
+  addSupplyUsageBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    console.log('Botón Registrar Uso clickeado');
+    console.log('tempSelectedSupply:', tempSelectedSupply);
+    console.log('Valor ingresado:', document.getElementById('supplyUsageQuantity').value);
+    registerSupplyUsage();
+    // Ocultar el formulario automáticamente después de registrar el uso
+    hideSupplyUsageForm();
+  });
 }
 
 // Event listeners para el modal
