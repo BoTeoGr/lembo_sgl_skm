@@ -29,6 +29,7 @@ CREATE TABLE `usuarios` (
   `nombre` varchar(100) NOT NULL,
   `telefono` varchar(20) NOT NULL,
   `correo` varchar(100) NOT NULL,
+  `password` varchar(255) NOT NULL,
   `rol` varchar(50) NOT NULL,
   `estado` enum('habilitado','deshabilitado') NOT NULL DEFAULT 'habilitado',
   `fecha_creacion` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -44,10 +45,10 @@ CREATE TABLE `usuarios` (
 LOCK TABLES `usuarios` WRITE;
 /*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
 INSERT INTO `usuarios` VALUES 
-(1,'Cédula','1000000000','admin','3111111111','admin@example.com','Administrador','habilitado','2025-04-22 17:40:51'),
-(2,'Cédula','1000000001','superadmin','3111111112','gerente@example.com','Gerente','habilitado','2025-04-22 17:40:51'),
-(3,'Cédula','1000000002','admin','3111111113','supervisor@example.com','Supervisor','habilitado','2025-04-22 17:40:51');
-/*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
+-- Estos datos datos deben ser actualizados para que tengan contraseña
+(1,'Cédula','1000000000','Administrador','3111111111','admin@example.com',SHA2('Admin123!', 256),'admin','habilitado','2025-04-22 17:40:51'),
+(2,'Cédula','1000000001','Gerente','3111111112','gerente@example.com',SHA2('Gerente123!', 256),'superadmin','habilitado','2025-04-22 17:40:51'),
+(3,'Cédula','1000000002','Supervisor','3111111113','supervisor@example.com',SHA2('Supervisor123!', 256),'admin','habilitado','2025-04-22 17:40:51');/*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -211,6 +212,7 @@ CREATE TABLE `producciones` (
   `ubicacion` varchar(100) NOT NULL,
   `descripcion` text NOT NULL,
   `usuario_id` int DEFAULT NULL,
+  `cantidad` decimal(10,2) NOT NULL,
   `estado` enum('habilitado','deshabilitado') NOT NULL DEFAULT 'habilitado',
   `fecha_creacion` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `cultivo_id` int DEFAULT NULL,
@@ -236,9 +238,9 @@ CREATE TABLE `producciones` (
 LOCK TABLES `producciones` WRITE;
 /*!40000 ALTER TABLE `producciones` DISABLE KEYS */;
 INSERT INTO `producciones` VALUES 
-(1,'Producción de Tomates 2025','Orgánica','Invernadero 1','Producción de tomates orgánicos',1,'habilitado','2025-04-22 17:40:51',1,1,NULL,NULL,10000.00,15000.00),
-(2,'Producción de Maíz Verano','Tradicional','Campo 3','Producción de maíz para temporada de verano',3,'habilitado','2025-04-22 17:40:51',3,2,NULL,NULL,15000.00,20000.00),
-(3,'Producción de Fresas','Hidropónica','Invernadero 2','Producción de fresas en sistema hidropónico',8,'habilitado','2025-04-22 17:40:51',8,8,NULL,NULL,8000.00,12000.00);
+(1,'Producción de Tomates 2025','Orgánica','Invernadero 1','Producción de tomates orgánicos',1, 40, 'habilitado','2025-04-22 17:40:51',1,1,NULL,NULL,10000.00,15000.00),
+(2,'Producción de Maíz Verano','Tradicional','Campo 3','Producción de maíz para temporada de verano',3, 50,'habilitado','2025-04-22 17:40:51',3,2,NULL,NULL,15000.00,20000.00),
+(3,'Producción de Fresas','Hidropónica','Invernadero 2','Producción de fresas en sistema hidropónico',8, 10,'habilitado','2025-04-22 17:40:51',8,8,NULL,NULL,8000.00,12000.00);
 /*!40000 ALTER TABLE `producciones` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -250,7 +252,7 @@ DROP TABLE IF EXISTS `uso_insumo`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `uso_insumo` (
-  `id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `id` int NOT NULL AUTO_INCREMENT,
   `produccion_id` int NOT NULL,
   `insumo_id` int NOT NULL,
   `cantidad_utilizada` decimal(10,2) NOT NULL,
@@ -269,14 +271,14 @@ DROP TABLE IF EXISTS `uso_sensor`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `uso_sensor` (
-  `id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  `produccion_id` int NOT NULL,
-  `sensor_id` int NULL,
-  PRIMARY KEY (`id`),
-  KEY `fk_produccion_id` (`produccion_id`),
-  KEY `fk_sensor_id` (`sensor_id`),
-  CONSTRAINT `fk_produccion_id` FOREIGN KEY (`produccion_id`) REFERENCES `producciones` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_sensor_id` FOREIGN KEY (`sensor_id`) REFERENCES `sensores` (`id`) ON DELETE CASCADE
+   `id` int NOT NULL AUTO_INCREMENT,
+   `produccion_id` int NOT NULL,
+   `sensor_id` int NULL,
+   PRIMARY KEY (`id`),
+   KEY `fk_uso_sensor_produccion_id` (`produccion_id`),
+   KEY `fk_uso_sensor_sensor_id` (`sensor_id`),
+   CONSTRAINT `fk_uso_sensor_produccion_id` FOREIGN KEY (`produccion_id`) REFERENCES `producciones` (`id`) ON DELETE CASCADE,
+   CONSTRAINT `fk_uso_sensor_sensor_id` FOREIGN KEY (`sensor_id`) REFERENCES `sensores` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
