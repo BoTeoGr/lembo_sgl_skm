@@ -1242,7 +1242,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		<h3 class='card-section-title'>Insumos Utilizados</h3>
 		<div class='insumos-list'></div>
 	  `
-	  modal.querySelector('.modal-content').appendChild(insumosUtilizadosContainer)
+		modal.querySelector('.modal__content').appendChild(insumosUtilizadosContainer)
 
 	  // Obtener los insumos utilizados para esta producción
 	  fetch(`http://localhost:5000/uso_insumo?produccion_id=${id}`)

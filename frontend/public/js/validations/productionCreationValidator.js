@@ -945,20 +945,17 @@ async function createProduction(e) {
     return;
   }
 
-  // Crear el objeto de datos de la producción
+  // Crear el objeto de datos de la producción con insumos_ids como array de objetos {id, cantidad_usar}
   const productionData = {
     nombre: document.getElementById("productionName").value,
     tipo: document.getElementById("productionType").value,
     ubicacion: document.getElementById("location").value,
     descripcion: document.getElementById("description").value,
-    usuario_id: document.getElementById("responsible").value,
-    cantidad: 1,
-    cultivo_id: document.getElementById("crop").value,
-    ciclo_id: document.getElementById("cropCycle").value,
-    insumos_ids: validSupplies.map(s => ({
-      id: s.id,
-      cantidad_usar: s.cantidad_usar
-    })),
+    usuario_id: parseInt(document.getElementById("responsible").value),
+    cantidad: parseFloat(document.getElementById("quantity").value),
+    cultivo_id: parseInt(document.getElementById("crop").value),
+    ciclo_id: parseInt(document.getElementById("cropCycle").value),
+    insumos_ids: validSupplies.map(s => ({ id: s.id, cantidad_usar: s.cantidad_usar })),
     sensores_ids: Array.from(selectedSensors).map(id => parseInt(id)),
     fecha_de_inicio: document.getElementById("startDate")?.value || null,
     fecha_fin: document.getElementById("endDate")?.value || null,

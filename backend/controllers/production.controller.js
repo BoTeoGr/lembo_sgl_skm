@@ -70,18 +70,17 @@ export function crearProduccion(req, res) {
         return res.status(500).json({ error: "Error al iniciar la transacción." });
       }
 
-      // Insert producción (INCLUDING new fields)
+      // Insert producción (solo campos válidos)
       db.query(
         `
               INSERT INTO producciones (
                   nombre, tipo, ubicacion, descripcion, 
                   usuario_id, cantidad, estado, cultivo_id, ciclo_id, 
-                  insumos_ids, sensores_ids, fecha_de_inicio, fecha_fin,
-                  inversion, meta_ganancia
-              ) VALUES (?, ?, ?, ?, ?, ?, 'habilitado', ?, ?, ?, ?, ?, ?, ?,?)
+                  fecha_de_inicio, fecha_fin, inversion, meta_ganancia
+              ) VALUES (?, ?, ?, ?, ?, ?, 'habilitado', ?, ?, ?, ?, ?, ?)
               `,
         [nombre, tipo, ubicacion, descripcion, usuario_id, cantidad,
-          cultivo_id, ciclo_id, JSON.stringify(insumos_ids), JSON.stringify(sensores_ids), fecha_de_inicio,
+          cultivo_id, ciclo_id, fecha_de_inicio,
           fecha_fin, inversion, meta_ganancia],
         (prodErr, prodResults) => {
           if (prodErr) {
@@ -96,68 +95,165 @@ export function crearProduccion(req, res) {
 
           const produccionId = prodResults.insertId;
 
-          // Update insumos con sus cantidades específicas
-          const updateInsumos = () => {
-            // Convertir el array de objetos insumos_ids a un array de IDs
-            const insumoIds = insumos_ids.map(insumo => insumo.id);
-
-            // Crear un objeto para mapear ID de insumo a su cantidad
-            const insumoQuantities = insumos_ids.reduce((acc, insumo) => {
-              acc[insumo.id] = insumo.cantidad_usar;
-              return acc;
-            }, {});
-
-            // Actualizar cada insumo con su cantidad específica
-            const updatePromises = insumoIds.map(insumoId => {
-              return new Promise((resolve, reject) => {
-                const cantidadUsar = insumoQuantities[insumoId];
-                db.query(
-                  'UPDATE insumos SET cantidad = cantidad - ? WHERE id = ?',
-                  [cantidadUsar, insumoId],
-                  (err, results) => {
-                    if (err) {
-                      reject(err);
-                    } else {
-                      resolve(results);
-                    }
-                  }
-                );
+          // Save insumos usage in uso_insumo table
+          const saveInsumoUsage = () => {
+            if (Array.isArray(insumos_ids) && insumos_ids.length > 0) {
+              // Insert insumos into uso_insumo table
+              const insumosValues = insumos_ids.map(insumo => {
+                return [produccionId, insumo.id, insumo.cantidad_usar];
               });
-            });
 
-            // Ejecutar todas las actualizaciones
-            Promise.all(updatePromises)
-              .then(() => {
-                // Commit transaction
-                db.commit(commitErr => {
-                  if (commitErr) {
+              const placeholders = insumosValues.map(() => '(?, ?, ?)').join(', ');
+              const values = insumosValues.flat();
+
+              db.query(
+                `INSERT INTO uso_insumo (produccion_id, insumo_id, cantidad_utilizada) VALUES ${placeholders}`,
+                values,
+                (insumoErr, insumoResults) => {
+                  if (insumoErr) {
                     return db.rollback(rollbackErr => {
                       if (rollbackErr) {
                         console.error("Error al hacer rollback:", rollbackErr);
                       }
-                      console.error("Error al hacer commit:", commitErr);
-                      return res.status(500).json({ error: "Error al finalizar la transacción." });
+                      console.error("Error al guardar el uso de insumos:", insumoErr);
+                      return res.status(500).json({ error: "Error al guardar el uso de insumos." });
                     });
                   }
 
-                  return res.status(201).json({
-                    message: "Producción creada e insumos actualizados con éxito.",
-                    produccion_id: produccionId
+                  // Update insumo quantities
+                  const insumoIds = insumos_ids.map(insumo => insumo.id);
+                  const insumoQuantities = insumos_ids.reduce((acc, insumo) => {
+                    acc[insumo.id] = insumo.cantidad_usar;
+                    return acc;
+                  }, {});
+
+                  const updatePromises = insumoIds.map(insumoId => {
+                    return new Promise((resolve, reject) => {
+                      const cantidadUsar = insumoQuantities[insumoId];
+                      db.query(
+                        'UPDATE insumos SET cantidad = cantidad - ? WHERE id = ?',
+                        [cantidadUsar, insumoId],
+                        (err, results) => {
+                          if (err) {
+                            reject(err);
+                          } else {
+                            resolve(results);
+                          }
+                        }
+                      );
+                    });
                   });
-                });
-              })
-              .catch(err => {
-                return db.rollback(rollbackErr => {
-                  if (rollbackErr) {
-                    console.error("Error al hacer rollback:", rollbackErr);
-                  }
-                  console.error("Error al actualizar insumos:", err);
-                  return res.status(500).json({ error: "Error al actualizar insumos." });
+
+                  Promise.all(updatePromises)
+                    .then(() => {
+                      // Register sensors in uso_sensor table
+                      const sensorIds = Array.isArray(req.body.sensores_ids) ? req.body.sensores_ids.map(id => parseInt(id)) : [];
+                      
+                      if (sensorIds.length === 0) {
+                        // Si no hay sensores, crear un registro con sensor_id NULL
+                        db.query(
+                          `INSERT INTO uso_sensor (produccion_id, sensor_id) VALUES (?, NULL)`,
+                          [produccionId],
+                          (sensorErr, sensorResults) => {
+                            if (sensorErr) {
+                              return db.rollback(rollbackErr => {
+                                if (rollbackErr) {
+                                  console.error("Error al hacer rollback:", rollbackErr);
+                                }
+                                console.error("Error al guardar el uso de sensores:", sensorErr);
+                                return res.status(500).json({ error: "Error al guardar el uso de sensores." });
+                              });
+                            }
+                            // Commit transaction
+                            db.commit(commitErr => {
+                              if (commitErr) {
+                                return db.rollback(rollbackErr => {
+                                  if (rollbackErr) {
+                                    console.error("Error al hacer rollback:", rollbackErr);
+                                  }
+                                  console.error("Error al hacer commit:", commitErr);
+                                  return res.status(500).json({ error: "Error al finalizar la transacción." });
+                                });
+                              }
+                              return res.status(201).json({
+                                message: "Producción creada con éxito (sin sensor registrado).",
+                                produccion_id: produccionId
+                              });
+                            });
+                          }
+                        );
+                      } else {
+                        // Crear registros para cada sensor
+                        const sensorValues = sensorIds.map(sensorId => [produccionId, sensorId]);
+                        const sensorPlaceholders = sensorValues.map(() => '(?, ?)').join(', ');
+                        const sensorValuesFlat = sensorValues.flat();
+
+                        db.query(
+                          `INSERT INTO uso_sensor (produccion_id, sensor_id) VALUES ${sensorPlaceholders}`,
+                          sensorValuesFlat,
+                          (sensorErr, sensorResults) => {
+                            if (sensorErr) {
+                              return db.rollback(rollbackErr => {
+                                if (rollbackErr) {
+                                  console.error("Error al hacer rollback:", rollbackErr);
+                                }
+                                console.error("Error al guardar el uso de sensores:", sensorErr);
+                                return res.status(500).json({ error: "Error al guardar el uso de sensores." });
+                              });
+                            }
+                            // Commit transaction
+                            db.commit(commitErr => {
+                              if (commitErr) {
+                                return db.rollback(rollbackErr => {
+                                  if (rollbackErr) {
+                                    console.error("Error al hacer rollback:", rollbackErr);
+                                  }
+                                  console.error("Error al hacer commit:", commitErr);
+                                  return res.status(500).json({ error: "Error al finalizar la transacción." });
+                                });
+                              }
+                              return res.status(201).json({
+                                message: "Producción creada e insumos y sensores registrados con éxito.",
+                                produccion_id: produccionId
+                              });
+                            });
+                          }
+                        );
+                      }   
+                    })
+                    .catch(err => {
+                      return db.rollback(rollbackErr => {
+                        if (rollbackErr) {
+                          console.error("Error al hacer rollback:", rollbackErr);
+                        }
+                        console.error("Error al actualizar insumos:", err);
+                        return res.status(500).json({ error: "Error al actualizar insumos." });
+                      });
+                    });
+                }
+              );
+            } else {
+              // If no insumos, commit transaction
+              db.commit(commitErr => {
+                if (commitErr) {
+                  return db.rollback(rollbackErr => {
+                    if (rollbackErr) {
+                      console.error("Error al hacer rollback:", rollbackErr);
+                    }
+                    console.error("Error al hacer commit:", commitErr);
+                    return res.status(500).json({ error: "Error al finalizar la transacción." });
+                  });
+                }
+
+                return res.status(201).json({
+                  message: "Producción creada con éxito.",
+                  produccion_id: produccionId
                 });
               });
+            }
           };
 
-          updateInsumos();
+          saveInsumoUsage();
         }
       );
     });
@@ -167,10 +263,6 @@ export function crearProduccion(req, res) {
     return res.status(500).json({ error: "Error en el servidor." });
   }
 }
-
-
-
-
 
 export function obtenerProduccionPorId(req, res) {
   try {
