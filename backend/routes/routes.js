@@ -1,7 +1,7 @@
 import express from 'express'
 import {loginUsuario, crearUsuario, VerUsuarios, actualizarEstadoUsuario, actualizarUsuario, obtenerUsuarioPorId} from '../controllers/user.controller.js'
 import {VerSensores, crearSensor, actualizarEstadoSensor, actualizarSensor, obtenerSensorPorId} from '../controllers/sensor.controller.js'
-import {crearInsumo,VerInsumos,actualizarEstadoInsumo, actualizarInsumo, obtenerInsumoPorId, obtenerResumenInsumos} from '../controllers/insumo.controller.js'
+import {crearInsumo,VerInsumos,actualizarEstadoInsumo, actualizarInsumo, obtenerInsumoPorId, obtenerResumenInsumos, reponerStockInsumo} from '../controllers/insumo.controller.js'
 import {crearCultivo,VerCultivos,actualizarEstadoCultivo, actualizarCultivo, obtenerCultivoPorId} from '../controllers/cultivo.controller.js'
 import {VerCiclosCultivo, crearCicloCultivo, actualizarEstadoCicloCultivo, obtenerCicloCultivoPorId, actualizarCicloCultivo} from '../controllers/ciclo-cultivo.controller.js'
 import {actualizarProduccion,crearProduccion,eliminarProduccion,obtenerProduccionPorId,verProducciones,actualizarEstadoProduccion, obtenerProduccionesPorInsumo, obtenerProduccionesPorCultivo, obtenerProduccionesPorUsuario, obtenerProduccionesPorSensor, actualizarEstadosProduccionHabilitado, deshabilitarProducciones} from '../controllers/production.controller.js'
@@ -30,6 +30,7 @@ router.put('/insumos/:id/estado', actualizarEstadoInsumo);
 router.put('/insumos/:id', actualizarInsumo);
 router.get('/insumos/:id', obtenerInsumoPorId);
 router.get('/insumos-resumen/resumen', obtenerResumenInsumos); 
+router.post('/insumos/reponer-stock', reponerStockInsumo);
 // Rutas para cultivos
 router.get('/cultivos', VerCultivos);
 router.post('/cultivos', crearCultivo);

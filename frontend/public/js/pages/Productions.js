@@ -67,6 +67,156 @@ document.addEventListener("DOMContentLoaded", () => {
 			  if (context.dataset.label) {
 				label += context.dataset.label + ": "
 			  }
+
+			// --- Lógica de actualización de producción (solo para actualizar-produccion.html) ---
+			document.addEventListener('DOMContentLoaded', () => {
+				if (!window.location.pathname.endsWith('actualizar-produccion.html')) return;
+
+				const form = document.getElementById('productionForm');
+				const urlParams = new URLSearchParams(window.location.search);
+				const productionId = urlParams.get('id');
+				if (!form || !productionId) return;
+
+				// Elementos del formulario
+					const cropSelect = document.getElementById('crop');
+					const cycleSelect = document.getElementById('cropCycle');
+					const responsibleSelect = document.getElementById('responsible');
+					const insumosContainer = document.getElementById('selectedSupplies');
+					const sensoresContainer = document.getElementById('selectedSensors');
+					const startDateInput = document.getElementById('startDate');
+					const endDateInput = document.getElementById('endDate');
+					const investmentInput = document.getElementById('totalInvestment');
+					const profitInput = document.getElementById('estimatedProfit');
+
+				// Cargar datos de la producción a editar
+				fetch(`http://localhost:5000/producciones/${productionId}`)
+					.then(res => res.json())
+					.then(data => {
+
+						// Llenar campos básicos
+						form.productionName.value = data.nombre || '';
+						form.productionType.value = data.tipo || '';
+						form.location.value = data.ubicacion || '';
+						form.description.value = data.descripcion || '';
+						form.quantity.value = data.cantidad || '';
+						if (startDateInput) startDateInput.value = data.fecha_de_inicio ? data.fecha_de_inicio.slice(0,10) : '';
+						if (endDateInput) endDateInput.value = data.fecha_fin ? data.fecha_fin.slice(0,10) : '';
+						if (investmentInput) investmentInput.value = data.inversion || '';
+						if (profitInput) profitInput.value = data.meta_ganancia || '';
+
+						// Llenar selects dinámicos (cultivo, ciclo, responsable)
+						fetch('http://localhost:5000/cultivos')
+							// Llenar selects dinámicos (cultivo, ciclo, responsable)
+							Promise.all([
+								fetch('http://localhost:5000/cultivos').then(res => res.json()),
+								fetch('http://localhost:5000/ciclos-cultivo').then(res => res.json()),
+								fetch('http://localhost:5000/usuarios').then(res => res.json())
+							]).then(([cultivos, ciclos, usuarios]) => {
+								cropSelect.innerHTML = '<option value="">Seleccione un cultivo</option>' +
+									cultivos.map(c => `<option value="${c.id}"${String(c.id) === String(data.cultivo_id) ? ' selected' : ''}>${c.nombre}</option>`).join('');
+								cycleSelect.innerHTML = '<option value="">Seleccione un ciclo</option>' +
+									ciclos.map(c => `<option value="${c.id}"${String(c.id) === String(data.ciclo_id) ? ' selected' : ''}>${c.nombre}</option>`).join('');
+								const listaUsuarios = Array.isArray(usuarios) ? usuarios : usuarios.usuarios;
+								responsibleSelect.innerHTML = '<option value="">Seleccione un responsable</option>' +
+									listaUsuarios.map(u => `<option value="${u.id}"${String(u.id) === String(data.usuario_id) ? ' selected' : ''}>${u.nombre}</option>`).join('');
+							});
+
+							// Llenar insumos seleccionados
+							if (Array.isArray(data.insumos) && data.insumos.length > 0) {
+								insumosContainer.innerHTML = '';
+								data.insumos.forEach(insumo => {
+									const item = document.createElement('div');
+									item.className = 'insumo-item';
+									item.innerHTML = `
+										<span>${insumo.nombre} (Cantidad: <input type="number" min="0" value="${insumo.cantidad || ''}" data-insumo-id="${insumo.id}" class="insumo-cantidad-input" style="width:60px">)</span>
+										<button type="button" class="remove-insumo-btn" data-insumo-id="${insumo.id}">Quitar</button>
+									`;
+									insumosContainer.appendChild(item);
+								});
+							} else {
+								insumosContainer.innerHTML = '<span style="color:#888">No hay insumos seleccionados.</span>';
+							}
+
+							// Llenar sensores seleccionados
+							if (Array.isArray(data.sensores) && data.sensores.length > 0) {
+								sensoresContainer.innerHTML = '';
+								data.sensores.forEach(sensor => {
+									const item = document.createElement('div');
+									item.className = 'sensor-item';
+									item.innerHTML = `
+										<span>${sensor.nombre || sensor.nombre_sensor || 'Sensor'}</span>
+										<button type="button" class="remove-sensor-btn" data-sensor-id="${sensor.id}">Quitar</button>
+									`;
+									sensoresContainer.appendChild(item);
+								});
+							} else {
+								sensoresContainer.innerHTML = '<span style="color:#888">No hay sensores seleccionados.</span>';
+							}
+				});
+
+					// Guardar cambios (actualizar producción)
+					// Cambiar el botón a type submit si es necesario
+					const createBtn = document.getElementById('createBtn');
+					if (createBtn && createBtn.type !== 'submit') {
+						createBtn.type = 'submit';
+					}
+
+					form.addEventListener('submit', function (e) {
+						e.preventDefault();
+
+						// Validación básica (ya existe en productionUpdateValidator.js, pero por si acaso)
+						if (!form.productionName.value.trim() || !form.productionType.value || !form.location.value.trim() || !form.description.value.trim() || !form.quantity.value) {
+							alert('Por favor complete todos los campos obligatorios.');
+							return;
+						}
+
+
+							// Recolectar insumos y sensores seleccionados
+							const insumos = Array.from(insumosContainer.querySelectorAll('.insumo-cantidad-input')).map(input => ({
+								id: input.getAttribute('data-insumo-id'),
+								cantidad: input.value
+							}));
+							const sensores = Array.from(sensoresContainer.querySelectorAll('.sensor-item')).map(item => {
+								const btn = item.querySelector('.remove-sensor-btn');
+								return { id: btn.getAttribute('data-sensor-id') };
+							});
+
+							// Mapear a los campos que espera el backend
+							const insumos_ids = insumos.map(i => i.id).join(',');
+							const sensores_ids = sensores.map(s => s.id).join(',');
+
+							const updatedData = {
+								nombre: form.productionName.value.trim(),
+								tipo: form.productionType.value,
+								ubicacion: form.location.value.trim(),
+								descripcion: form.description.value.trim(),
+								cantidad: form.quantity.value,
+								cultivo_id: cropSelect.value,
+								ciclo_id: cycleSelect.value,
+								usuario_id: responsibleSelect.value,
+								fecha_de_inicio: startDateInput ? startDateInput.value : undefined,
+								fecha_fin: endDateInput ? endDateInput.value : undefined,
+								inversion: investmentInput ? investmentInput.value : undefined,
+								meta_ganancia: profitInput ? profitInput.value : undefined,
+								insumos_ids,
+								sensores_ids
+							};
+
+						fetch(`http://localhost:5000/producciones/${productionId}`, {
+							method: 'PUT',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify(updatedData)
+						})
+							.then(res => res.json())
+							.then(resp => {
+								alert('Producción actualizada correctamente.');
+								window.location.href = 'listar-producciones.html';
+							})
+							.catch(err => {
+								alert('Error al actualizar la producción.');
+							});
+					});
+			});
 			  if (context.parsed.y !== null) {
 				label += context.parsed.y + (context.dataset.label.includes("Humedad") ? "%" : "°C")
 			  }
@@ -1070,10 +1220,17 @@ document.addEventListener("DOMContentLoaded", () => {
 		  <button class="table__action-button table__action-button--view" data-id="${produccion.id}">
 			<span class="material-symbols-outlined">visibility</span>
 		  </button>
+
+		  
+          <a href="../views/actualizar-produccion.html?id=${produccion.id}" class="table__action-button-wrapper">
+            <button class="table__action-button table__action-button--edit"><span class="material-symbols-outlined">edit</span></button>
+          </a>
+        
 		  
 		  <button class="table__action-button table__action-button--disable" data-id="${produccion.id}">
 			<span class="material-symbols-outlined">power_settings_new</span>
 		  </button>
+		  
 		</td>
 	  `
   

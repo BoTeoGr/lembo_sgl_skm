@@ -300,44 +300,33 @@ export function obtenerProduccionPorId(req, res) {
 
       const produccion = results[0];
 
-      // Obtener insumos relacionados
+      // Obtener insumos y sensores relacionados desde las tablas relacionales
       const obtenerInsumos = new Promise((resolve) => {
-        if (produccion.insumos_ids) {
-          const insumoIds = produccion.insumos_ids.split(",");
-          const insumoQuery = `SELECT * FROM insumos WHERE id IN (?)`;
-
-          db.query(insumoQuery, [insumoIds], (err, insumosResults) => {
-            if (!err && insumosResults) {
-              produccion.insumos = insumosResults;
-            } else {
-              produccion.insumos = [];
-            }
+        db.query(
+          `SELECT ui.insumo_id AS id, i.nombre, i.valor_unitario, ui.cantidad_utilizada AS cantidad_usar
+           FROM uso_insumo ui
+           JOIN insumos i ON ui.insumo_id = i.id
+           WHERE ui.produccion_id = ?`,
+          [id],
+          (err, insumos) => {
+            produccion.insumos = (!err && insumos) ? insumos : [];
             resolve();
-          });
-        } else {
-          produccion.insumos = [];
-          resolve();
-        }
+          }
+        );
       });
 
-      // Obtener sensores relacionados
       const obtenerSensores = new Promise((resolve) => {
-        if (produccion.sensores_ids) {
-          const sensorIds = produccion.sensores_ids.split(",");
-          const sensorQuery = `SELECT * FROM sensores WHERE id IN (?)`;
-
-          db.query(sensorQuery, [sensorIds], (err, sensoresResults) => {
-            if (!err && sensoresResults) {
-              produccion.sensores = sensoresResults;
-            } else {
-              produccion.sensores = [];
-            }
+        db.query(
+          `SELECT us.sensor_id AS id, s.nombre_sensor, s.tipo_sensor
+           FROM uso_sensor us
+           JOIN sensores s ON us.sensor_id = s.id
+           WHERE us.produccion_id = ?`,
+          [id],
+          (err, sensores) => {
+            produccion.sensores = (!err && sensores) ? sensores : [];
             resolve();
-          });
-        } else {
-          produccion.sensores = [];
-          resolve();
-        }
+          }
+        );
       });
 
       Promise.all([obtenerInsumos, obtenerSensores])
@@ -346,11 +335,7 @@ export function obtenerProduccionPorId(req, res) {
         })
         .catch((error) => {
           console.error("Error al procesar la producción:", error);
-          res
-            .status(500)
-            .json({
-              error: "Error al procesar la producción: " + error.message,
-            });
+          res.status(500).json({ error: "Error al procesar la producción: " + error.message });
         });
     });
   } catch (error) {
@@ -362,6 +347,7 @@ export function obtenerProduccionPorId(req, res) {
 }
 
 export function actualizarProduccion(req, res) {
+    const { id } = req.params;
     const {
       nombre,
       tipo,
@@ -375,143 +361,187 @@ export function actualizarProduccion(req, res) {
       insumos_ids,
       sensores_ids,
       inversion,
+      meta_ganancia,
+      fecha_de_inicio,
+      fecha_fin
     } = req.body;
 
     if (!id) {
-      return res
-        .status(400)
-        .json({ error: "Se requiere el ID de la producción" });
+      return res.status(400).json({ error: "Se requiere el ID de la producción" });
     }
 
     // Verificar que la producción existe
-    db.query(
-      "SELECT * FROM producciones WHERE id = ?",
-      [id],
-      (err, results) => {
-        if (err) {
-          console.error("Error al verificar la producción:", err);
-          return res
-            .status(500)
-            .json({
-              error: "Error al verificar la producción: " + err.message,
-            });
-        }
-
-        if (results.length === 0) {
-          return res.status(404).json({ error: "Producción no encontrada" });
-        }
-
-        // Construir la consulta de actualización dinámicamente
-        let updateFields = [];
-        let updateValues = [];
-
-        if (nombre) {
-          updateFields.push("nombre = ?");
-          updateValues.push(nombre);
-        }
-
-        if (tipo) {
-          updateFields.push("tipo = ?");
-          updateValues.push(tipo);
-        }
-
-  // Eliminado campo imagen para produccion
-
-        if (ubicacion) {
-          updateFields.push("ubicacion = ?");
-          updateValues.push(ubicacion);
-        }
-
-        if (descripcion) {
-          updateFields.push("descripcion = ?");
-          updateValues.push(descripcion);
-        }
-
-        if (usuario_id) {
-          updateFields.push("usuario_id = ?");
-          updateValues.push(usuario_id);
-        }
-
-        if (cantidad) {
-          const parsedQuantity = parseFloat(cantidad);
-          if (
-            isNaN(parsedQuantity) ||
-            parsedQuantity < 1 ||
-            parsedQuantity > 1000000
-          ) {
-            return res.status(400).json({
-              error:
-                "La cantidad de producción debe ser un número válido entre 1 y 1,000,000 kg",
-            });
-          }
-          updateFields.push("cantidad = ?");
-          updateValues.push(parsedQuantity);
-        }
-
-        if (estado) {
-          if (estado !== "habilitado" && estado !== "deshabilitado") {
-            return res.status(400).json({ error: "Estado no válido" });
-          }
-          updateFields.push("estado = ?");
-          updateValues.push(estado);
-        }
-
-        if (inversion !== undefined) {
-          updateFields.push("inversion = ?");
-          updateValues.push(inversion);
-        }
-
-        if (cultivo_id !== undefined) {
-          updateFields.push("cultivo_id = ?");
-          updateValues.push(cultivo_id === null ? null : cultivo_id);
-        }
-
-        if (ciclo_id !== undefined) {
-          updateFields.push("ciclo_id = ?");
-          updateValues.push(ciclo_id === null ? null : ciclo_id);
-        }
-
-        if (insumos_ids !== undefined) {
-          updateFields.push("insumos_ids = ?");
-          updateValues.push(insumos_ids === null ? null : insumos_ids);
-        }
-
-        if (sensores_ids !== undefined) {
-          updateFields.push("sensores_ids = ?");
-          updateValues.push(sensores_ids === null ? null : sensores_ids);
-        }
-
-        if (updateFields.length === 0) {
-          return res
-            .status(400)
-            .json({ error: "No se proporcionaron campos para actualizar" });
-        }
-
-        // Añadir el ID al final de los valores
-        updateValues.push(id);
-
-        const updateQuery = `UPDATE producciones SET ${updateFields.join(
-          ", "
-        )} WHERE id = ?`;
-
-        db.query(updateQuery, updateValues, (err, results) => {
-          if (err) {
-            console.error("Error al actualizar la producción:", err);
-            return res
-              .status(500)
-              .json({
-                error: "Error al actualizar la producción: " + err.message,
-              });
-          }
-
-          res.status(200).json({
-            message: "Producción actualizada correctamente",
-            produccionId: id,
-            affectedRows: results.affectedRows,
-          });
-        });
+    db.query("SELECT * FROM producciones WHERE id = ?", [id], (err, results) => {
+      if (err) {
+        console.error("Error al verificar la producción:", err);
+        return res.status(500).json({ error: "Error al verificar la producción: " + err.message });
       }
-    );
+      if (results.length === 0) {
+        return res.status(404).json({ error: "Producción no encontrada" });
+      }
+
+      // Construir la consulta de actualización dinámicamente
+      let updateFields = [];
+      let updateValues = [];
+      if (nombre) { updateFields.push("nombre = ?"); updateValues.push(nombre); }
+      if (tipo) { updateFields.push("tipo = ?"); updateValues.push(tipo); }
+      if (ubicacion) { updateFields.push("ubicacion = ?"); updateValues.push(ubicacion); }
+      if (descripcion) { updateFields.push("descripcion = ?"); updateValues.push(descripcion); }
+      if (usuario_id) { updateFields.push("usuario_id = ?"); updateValues.push(usuario_id); }
+      if (cantidad !== undefined) {
+        const parsedQuantity = parseFloat(cantidad);
+        if (isNaN(parsedQuantity) || parsedQuantity < 1 || parsedQuantity > 1000000) {
+          return res.status(400).json({ error: "La cantidad de producción debe ser un número válido entre 1 y 1,000,000 kg" });
+        }
+        updateFields.push("cantidad = ?"); updateValues.push(parsedQuantity);
+      }
+      if (estado) {
+        if (estado !== "habilitado" && estado !== "deshabilitado") {
+          return res.status(400).json({ error: "Estado no válido" });
+        }
+        updateFields.push("estado = ?"); updateValues.push(estado);
+      }
+      if (inversion !== undefined) { updateFields.push("inversion = ?"); updateValues.push(inversion); }
+      if (meta_ganancia !== undefined) { updateFields.push("meta_ganancia = ?"); updateValues.push(meta_ganancia); }
+      if (fecha_de_inicio !== undefined) { updateFields.push("fecha_de_inicio = ?"); updateValues.push(fecha_de_inicio); }
+      if (fecha_fin !== undefined) { updateFields.push("fecha_fin = ?"); updateValues.push(fecha_fin); }
+      if (cultivo_id !== undefined) { updateFields.push("cultivo_id = ?"); updateValues.push(cultivo_id === null ? null : cultivo_id); }
+      if (ciclo_id !== undefined) { updateFields.push("ciclo_id = ?"); updateValues.push(ciclo_id === null ? null : ciclo_id); }
+
+      if (updateFields.length === 0) {
+        return res.status(400).json({ error: "No se proporcionaron campos para actualizar" });
+      }
+
+      // Añadir el ID al final de los valores
+      updateValues.push(id);
+      const updateQuery = `UPDATE producciones SET ${updateFields.join(", ")} WHERE id = ?`;
+      db.query(updateQuery, updateValues, (err, results) => {
+        if (err) {
+          console.error("Error al actualizar la producción:", err);
+          return res.status(500).json({ error: "Error al actualizar la producción: " + err.message });
+        }
+
+        // Actualizar insumos en uso_insumo
+        if (Array.isArray(insumos_ids)) {
+          // Eliminar insumos anteriores
+          db.query('DELETE FROM uso_insumo WHERE produccion_id = ?', [id], (delErr) => {
+            if (delErr) {
+              console.error("Error al eliminar insumos previos:", delErr);
+            }
+            if (insumos_ids.length > 0) {
+              const insumosValues = insumos_ids.map(insumo => [id, insumo.id, insumo.cantidad_usar]);
+              const placeholders = insumosValues.map(() => '(?, ?, ?)').join(', ');
+              const values = insumosValues.flat();
+              db.query(`INSERT INTO uso_insumo (produccion_id, insumo_id, cantidad_utilizada) VALUES ${placeholders}`, values, (insumoErr) => {
+                if (insumoErr) {
+                  console.error("Error al registrar insumos:", insumoErr);
+                } else {
+                  // Solo descontar la cantidad de insumos nuevos (esNuevo: true)
+                  const nuevosInsumos = Array.isArray(insumos_ids)
+                    ? insumos_ids.filter(insumo => insumo.esNuevo === true)
+                    : [];
+                  if (nuevosInsumos.length > 0) {
+                    const updatePromises = nuevosInsumos.map(insumo => {
+                      return new Promise((resolve, reject) => {
+                        db.query(
+                          'UPDATE insumos SET cantidad = cantidad - ? WHERE id = ?',
+                          [insumo.cantidad_usar, insumo.id],
+                          (err, results) => {
+                            if (err) {
+                              console.error(`Error al descontar insumo ${insumo.id}:`, err);
+                              reject(err);
+                            } else {
+                              resolve(results);
+                            }
+                          }
+                        );
+                      });
+                    });
+                    Promise.all(updatePromises)
+                      .then(() => {
+                        // Todo bien, continuar flujo normal
+                      })
+                      .catch((err) => {
+                        console.error('Error al actualizar cantidades de insumos:', err);
+                      });
+                  }
+                }
+              });
+            }
+          });
+        }
+
+        // Actualizar sensores en uso_sensor
+        if (Array.isArray(sensores_ids)) {
+          // Eliminar sensores anteriores
+          db.query('DELETE FROM uso_sensor WHERE produccion_id = ?', [id], (delErr) => {
+            if (delErr) {
+              console.error("Error al eliminar sensores previos:", delErr);
+            }
+            if (sensores_ids.length > 0) {
+              const sensorValues = sensores_ids.map(sensorId => [id, sensorId]);
+              const sensorPlaceholders = sensorValues.map(() => '(?, ?)').join(', ');
+              const sensorValuesFlat = sensorValues.flat();
+              db.query(`INSERT INTO uso_sensor (produccion_id, sensor_id) VALUES ${sensorPlaceholders}`, sensorValuesFlat, (sensorErr) => {
+                if (sensorErr) {
+                  console.error("Error al registrar sensores:", sensorErr);
+                }
+              });
+            }
+          });
+        }
+
+        // Obtener la producción actualizada y devolverla con insumos y sensores asociados
+        db.query(`SELECT * FROM producciones WHERE id = ?`, [id], (err, updatedResults) => {
+          if (err || !updatedResults || updatedResults.length === 0) {
+            return res.status(500).json({ error: "Error al obtener la producción actualizada" });
+          }
+          const produccion = updatedResults[0];
+
+          // Obtener insumos relacionados desde uso_insumo
+          const obtenerInsumos = new Promise((resolve) => {
+            db.query(
+              `SELECT ui.insumo_id AS id, i.nombre, i.valor_unitario, ui.cantidad_utilizada AS cantidad_usar
+               FROM uso_insumo ui
+               JOIN insumos i ON ui.insumo_id = i.id
+               WHERE ui.produccion_id = ?`,
+              [id],
+              (err, insumos) => {
+                produccion.insumos = (!err && insumos) ? insumos : [];
+                resolve();
+              }
+            );
+          });
+
+          // Obtener sensores relacionados desde uso_sensor
+          const obtenerSensores = new Promise((resolve) => {
+            db.query(
+              `SELECT us.sensor_id AS id, s.nombre_sensor, s.tipo_sensor
+               FROM uso_sensor us
+               JOIN sensores s ON us.sensor_id = s.id
+               WHERE us.produccion_id = ?`,
+              [id],
+              (err, sensores) => {
+                produccion.sensores = (!err && sensores) ? sensores : [];
+                resolve();
+              }
+            );
+          });
+
+          Promise.all([obtenerInsumos, obtenerSensores])
+            .then(() => {
+              res.status(200).json({
+                message: "Producción actualizada correctamente",
+                produccion,
+                affectedRows: results.affectedRows,
+              });
+            })
+            .catch((error) => {
+              res.status(500).json({ error: "Error al obtener insumos o sensores: " + error.message });
+            });
+        });
+      });
+    });
 }
 
 export function actualizarEstadoProduccion(req, res) {
@@ -836,6 +866,7 @@ export function obtenerProduccionesPorInsumo(req, res) {
     });
   });
 }
+
 // Exportar todas las funciones
 export default {
   verProducciones,
@@ -845,3 +876,5 @@ export default {
   actualizarEstadoProduccion,
   eliminarProduccion,
 };
+
+

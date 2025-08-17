@@ -242,3 +242,18 @@ export function obtenerResumenInsumos(req, res) {
         res.json(resumenArray);
     });
 }
+
+// Reponer stock de un insumo (usado al remover de una producción)
+export function reponerStockInsumo(req, res) {
+    const { id, cantidad } = req.body;
+    if (!id || !cantidad || isNaN(cantidad) || cantidad <= 0) {
+        return res.status(400).json({ error: 'ID y cantidad válidos requeridos' });
+    }
+    db.query('UPDATE insumos SET cantidad = cantidad + ? WHERE id = ?', [cantidad, id], (err, result) => {
+        if (err) {
+            console.error('Error al reponer stock:', err);
+            return res.status(500).json({ error: 'Error al reponer stock' });
+        }
+        res.json({ success: true });
+    });
+}
