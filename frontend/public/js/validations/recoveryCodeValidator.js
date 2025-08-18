@@ -1,7 +1,21 @@
+const API_URL = 'http://localhost:5000';
+
 document.addEventListener("DOMContentLoaded", () => {
 	const codeInputs = document.querySelectorAll(".login-code__input");
 	const form = document.querySelector("#form-recovery-code");
 	const alertContainer = document.querySelector("#alert-container");
+	
+	// Obtener el correo de localStorage
+	const recoveryEmail = localStorage.getItem('recoveryEmail');
+	
+	// Si no hay correo, redirigir a la página de recuperación
+	if (!recoveryEmail) {
+		showAlert("Sesión de recuperación inválida. Por favor, inténtalo de nuevo.", true);
+		setTimeout(() => {
+			window.location.href = "login-olvide-contraseña.html";
+		}, 3000);
+		return;
+	}
 
 	// Mover al siguiente input
 	codeInputs.forEach((input, index) => {
@@ -30,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	});
 
 	// Validar código al enviar
-	form.addEventListener("submit", (e) => {
+	form.addEventListener("submit", async (e) => {
 		e.preventDefault();
 
 		const code = Array.from(codeInputs).map((input) => input.value).join("");
@@ -41,18 +55,48 @@ document.addEventListener("DOMContentLoaded", () => {
 			return;
 		}
 
-		// Si el código tiene 6 dígitos
-		showAlert("Datos enviados satisfactoriamente!", false);
+		try {
+			showAlert("Verificando código...");
 
-		// Redirigir a la página de actualización de contraseña
-		setTimeout(() => {
-			window.location.href = "actualizacion-contraseña.html";
-		}, 2000); // Damos un poco más de tiempo para que el usuario vea el mensaje
+			const response = await fetch(`${API_URL}/verificar-codigo`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					email: recoveryEmail,
+					codigo: code
+				})
+			});
+
+			const data = await response.json();
+
+			if (!response.ok) {
+				throw new Error(data.error || 'Error al verificar el código');
+			}
+
+			// Guardar el token para el restablecimiento de contraseña
+			localStorage.setItem('recoveryToken', data.token);
+
+			showAlert("Código verificado correctamente. Redirigiendo...");
+
+			setTimeout(() => {
+				window.location.href = "actualizacion-contraseña.html";
+			}, 1500);
+
+		} catch (error) {
+			console.error('Error:', error);
+			showAlert(error.message || 'Error al verificar el código', true);
+			
+			// Limpiar los inputs en caso de error
+			codeInputs.forEach(input => input.value = '');
+			codeInputs[0].focus();
+		}
 	});
 
 	// Función para mostrar alertas
 	function showAlert(message, error = false) {
-		const alert = document.createElement("p");
+		const alert = document.createElement("div");
 		alert.textContent = message;
 		alert.classList.add("login-code__alert");
 
@@ -62,13 +106,19 @@ document.addEventListener("DOMContentLoaded", () => {
 			alert.classList.add("login-code__alert--success");
 		}
 
-		alertContainer.innerHTML = ""; // Limpiar alertas anteriores
+		// Limpiar alertas anteriores
+		const existingAlerts = alertContainer.querySelectorAll('.login-code__alert');
+		existingAlerts.forEach(alert => alert.remove());
+
+		// Agregar la nueva alerta
 		alertContainer.appendChild(alert);
 
-		// Eliminar la alerta después de 5 segundos (solo para alertas de error)
+		// Auto-eliminar después de 5 segundos para alertas de error
 		if (error) {
 			setTimeout(() => {
-				alert.remove();
+				if (document.body.contains(alert)) {
+					alert.remove();
+				}
 			}, 5000);
 		}
 	}

@@ -1,4 +1,189 @@
 import jwt from 'jsonwebtoken';
+import nodemailer from 'nodemailer';
+import crypto from 'crypto';
+
+// Configuración del transporte de correo
+console.log('Configurando transporte de correo con usuario:', process.env.EMAIL_USER);
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false, // true for 465, false for other ports
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    },
+    tls: {
+        rejectUnauthorized: false
+    }
+});
+
+// Verificar la conexión del transporte
+transporter.verify(function(error, success) {
+    if (error) {
+        console.error('Error al verificar el transporte de correo:', error);
+    } else {
+        console.log('Servidor de correo listo para enviar mensajes');
+    }
+});
+
+// Generar código de recuperación
+function generateRecoveryCode() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+// Almacenamiento temporal de códigos de recuperación (en producción, usa una base de datos)
+const recoveryCodes = new Map();
+
+// Solicitar recuperación de contraseña
+export function solicitarRecuperacionContrasena(req, res) {
+    const { email } = req.body;
+    
+    if (!email) {
+        return res.status(400).json({ error: 'El correo electrónico es requerido' });
+    }
+
+    // Verificar si el correo existe
+    db.query('SELECT id, nombre FROM usuarios WHERE correo = ?', [email], (err, results) => {
+        if (err) {
+            console.error('Error al buscar usuario:', err);
+            return res.status(500).json({ error: 'Error al procesar la solicitud' });
+        }
+
+        if (results.length === 0) {
+            // Por seguridad, no revelamos si el correo existe o no
+            return res.status(200).json({ message: 'Si el correo existe, se ha enviado un código de recuperación' });
+        }
+
+        const usuario = results[0];
+        const codigo = generateRecoveryCode();
+        const expiracion = Date.now() + 15 * 60 * 1000; // 15 minutos de expiración
+
+        // Guardar el código de recuperación
+        recoveryCodes.set(email, { codigo, expiracion, usuarioId: usuario.id });
+
+        // Configurar el correo
+        const mailOptions = {
+            from: process.env.EMAIL_USER || 'tu_correo@gmail.com',
+            to: email,
+            subject: 'Código de recuperación de contraseña',
+            text: `Hola ${usuario.nombre},\n\nTu código de recuperación es: ${codigo}\n\nEste código expirará en 15 minutos.`,
+            html: `
+                <h2>Recuperación de contraseña</h2>
+                <p>Hola ${usuario.nombre},</p>
+                <p>Hemos recibido una solicitud para restablecer tu contraseña. Utiliza el siguiente código para continuar:</p>
+                <h3 style="background: #f0f0f0; padding: 10px; display: inline-block; border-radius: 5px;">${codigo}</h3>
+                <p>Este código expirará en 15 minutos.</p>
+                <p>Si no has solicitado este cambio, por favor ignora este mensaje.</p>
+            `
+        };
+
+        // Enviar el correo
+        console.log('Enviando correo a:', email);
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.error('Error detallado al enviar correo:', {
+                    message: error.message,
+                    code: error.code,
+                    response: error.response,
+                    stack: error.stack
+                });
+                return res.status(500).json({ 
+                    error: 'Error al enviar el correo de recuperación',
+                    details: error.message
+                });
+            }
+            console.log('Correo enviado:', info.messageId);
+            res.status(200).json({ message: 'Si el correo existe, se ha enviado un código de recuperación' });
+        });
+    });
+}
+
+// Verificar código de recuperación
+export function verificarCodigoRecuperacion(req, res) {
+    const { email, codigo } = req.body;
+
+    if (!email || !codigo) {
+        return res.status(400).json({ error: 'Correo y código son requeridos' });
+    }
+
+    const datosRecuperacion = recoveryCodes.get(email);
+    
+    if (!datosRecuperacion) {
+        return res.status(400).json({ error: 'Código inválido o expirado' });
+    }
+
+    if (datosRecuperacion.expiracion < Date.now()) {
+        recoveryCodes.delete(email);
+        return res.status(400).json({ error: 'El código ha expirado' });
+    }
+
+    if (datosRecuperacion.codigo !== codigo) {
+        return res.status(400).json({ error: 'Código incorrecto' });
+    }
+
+    // Generar token para restablecer contraseña (válido por 15 minutos)
+    const token = jwt.sign(
+        { email, usuarioId: datosRecuperacion.usuarioId },
+        process.env.JWT_SECRET || 'tu_clave_secreta',
+        { expiresIn: '15m' }
+    );
+
+    // Eliminar el código de recuperación ya que ya fue usado
+    recoveryCodes.delete(email);
+
+    res.status(200).json({ 
+        message: 'Código verificado correctamente',
+        token 
+    });
+}
+
+// Restablecer contraseña
+export function restablecerContrasena(req, res) {
+    const { token, nuevaContrasena } = req.body;
+
+    if (!token || !nuevaContrasena) {
+        return res.status(400).json({ error: 'Token y nueva contraseña son requeridos' });
+    }
+
+    try {
+        // Verificar el token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'tu_clave_secreta');
+        
+        // Hashear la nueva contraseña
+        bcrypt.hash(nuevaContrasena, 10, (err, hashedPassword) => {
+            if (err) {
+                console.error('Error al hashear la contraseña:', err);
+                return res.status(500).json({ error: 'Error al procesar la contraseña' });
+            }
+
+            // Actualizar la contraseña en la base de datos
+            db.query(
+                'UPDATE usuarios SET password = ? WHERE id = ?',
+                [hashedPassword, decoded.usuarioId],
+                (err, result) => {
+                    if (err) {
+                        console.error('Error al actualizar la contraseña:', err);
+                        return res.status(500).json({ error: 'Error al actualizar la contraseña' });
+                    }
+                    
+                    if (result.affectedRows === 0) {
+                        return res.status(404).json({ error: 'Usuario no encontrado' });
+                    }
+
+                    res.status(200).json({ message: 'Contraseña actualizada exitosamente' });
+                }
+            );
+        });
+    } catch (error) {
+        console.error('Error al verificar el token:', error);
+        if (error.name === 'TokenExpiredError') {
+            return res.status(400).json({ error: 'El enlace ha expirado, por favor solicita otro' });
+        }
+        res.status(400).json({ error: 'Token inválido' });
+    }
+}
+
 // Login de usuario con JWT
 export function loginUsuario(req, res) {
     const { userEmail, password } = req.body;

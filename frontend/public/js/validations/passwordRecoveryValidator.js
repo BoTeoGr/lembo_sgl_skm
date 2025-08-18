@@ -1,3 +1,4 @@
+const API_URL = 'http://localhost:5000';
 const recuperar = {
 	emailRecuperar: "",
 };
@@ -9,25 +10,48 @@ form.addEventListener("input", readText);
 emailRecuperar.addEventListener("input", readText);
 
 // Evento submit
-form.addEventListener("submit", function (e) {
+form.addEventListener("submit", async function (e) {
 	e.preventDefault();
-	const { emailRecuperar } = recuperar;
+	const email = emailRecuperar.value.trim();
 
-	if (emailRecuperar === "") {
+	if (email === "") {
 		showAlert("Este campo es obligatorio", true);
 		return;
 	}
 
-	if (!validarEmail(emailRecuperar)) {
+	if (!validarEmail(email)) {
 		showAlert("El correo no es válido", true);
 		return;
 	}
 
-	showAlert("Tu correo ha sido enviado satisfactoriamente");
+	try {
+		const response = await fetch(`${API_URL}/solicitar-recuperacion`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({ email })
+		});
 
-	setTimeout(() => {
-		window.location.href = "login-codigo-recuperar.html";
-	}, 1000);
+		const data = await response.json();
+
+		if (!response.ok) {
+			throw new Error(data.error || 'Error al procesar la solicitud');
+		}
+
+		showAlert("Si el correo existe, se ha enviado un código de recuperación");
+
+		// Guardar el correo en localStorage para usarlo en la siguiente pantalla
+		localStorage.setItem('recoveryEmail', email);
+
+		setTimeout(() => {
+			window.location.href = "login-codigo-recuperar.html";
+		}, 1500);
+
+	} catch (error) {
+		console.error('Error:', error);
+		showAlert(error.message || 'Error al enviar el correo de recuperación', true);
+	}
 });
 
 function validarEmail(emailRecuperar) {
@@ -36,26 +60,21 @@ function validarEmail(emailRecuperar) {
 }
 
 function showAlert(message, error = null) {
-	const alert = document.createElement("p");
-	alert.textContent = message;
-	alert.classList.add("form__alert");
-
-	if (error) {
-		alert.classList.add("form__alert--error");
-	} else {
-		alert.classList.add("form__alert--success");
-	}
-
-	form.appendChild(alert);
-
-	setTimeout(() => {
-		alert.remove();
-	}, 5000);
+	// Usar el sistema de toast
+	const type = error ? 'error' : 'success';
+	showToast(message, type);
 }
 
 function readText(e) {
-	if (e.target.id === "emailRecuperar") {
-		recuperar.emailRecuperar = e.target.value;
-	}
-	console.log(recuperar);
+    if (e && e.target && e.target.id) {
+        recuperar[e.target.id] = e.target.value;
+    }
 }
+
+// Manejar el botón de retroceso para limpiar el localStorage
+window.addEventListener('pageshow', function(event) {
+    // Si la página se carga desde la caché (como al presionar atrás)
+    if (event.persisted) {
+        localStorage.removeItem('recoveryEmail');
+    }
+});

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,6 +10,7 @@
 		<title>Recuperar Contraseña</title>
 		<link rel="shortcut icon" href="../imgs/logoSena.svg" type="image/x-icon" />
 		<link rel="stylesheet" href="../css/pages/log.css" />
+		<link rel="stylesheet" href="../css/components/toast.css" />
 	</head>
 
 	<body>
@@ -64,6 +65,76 @@
 				</form>
 			</section>
 		</main>
+
+		<div id="toast-container" class="toast-container"></div>
+
+		<script>
+			// Función para mover automáticamente al siguiente campo de entrada
+			function moveToNext(input, currentIndex) {
+				// Obtener todos los campos de entrada
+				const inputs = document.querySelectorAll('.login-code__input');
+				
+				// Limitar a un solo carácter
+				if (input.value.length > 1) {
+					input.value = input.value.slice(0, 1);
+				}
+
+				// Mover al siguiente campo si hay un valor
+				if (input.value && currentIndex < inputs.length - 1) {
+					inputs[currentIndex + 1].focus();
+				}
+
+				// Si se presiona retroceso y el campo está vacío, ir al campo anterior
+				input.addEventListener('keydown', function(e) {
+					if (e.key === 'Backspace' && !input.value && currentIndex > 0) {
+						inputs[currentIndex - 1].focus();
+					}
+				});
+			}
+
+			// Función para mostrar notificaciones toast
+			function showToast(message, type = 'info') {
+				const toastContainer = document.getElementById('toast-container');
+				const toast = document.createElement('div');
+				toast.className = `toast ${type}`;
+				
+				// Crear el contenido del toast
+				toast.innerHTML = `
+					<div class="toast-message">${message}</div>
+					<button class="toast-close" aria-label="Cerrar">&times;</button>
+				`;
+
+				// Agregar el toast al contenedor
+				toastContainer.prepend(toast);
+
+				// Forzar el reflow para que la animación funcione
+				void toast.offsetWidth;
+
+				// Mostrar el toast con animación
+				setTimeout(() => {
+					toast.classList.add('show');
+				}, 10);
+
+				// Configurar el cierre automático
+				const autoRemove = setTimeout(() => {
+					toast.classList.add('slide-out');
+					setTimeout(() => toast.remove(), 300);
+				}, 5000);
+
+				// Cerrar al hacer clic en el botón
+				const closeButton = toast.querySelector('.toast-close');
+				closeButton.addEventListener('click', () => {
+					clearTimeout(autoRemove);
+					toast.classList.add('slide-out');
+					setTimeout(() => toast.remove(), 300);
+				});
+
+				return toast;
+			}
+
+			// Hacer la función global para que sea accesible desde otros scripts
+			window.showToast = showToast;
+		</script>
 
 		<script src="../js/validations/recoveryCodeValidator.js"></script>
 	</body>

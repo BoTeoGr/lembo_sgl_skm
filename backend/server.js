@@ -1,12 +1,42 @@
-import express from 'express';//lo que se usa pa los servidores listo
+import express from 'express';
 import db from './db/config.db.js'
-import cors from 'cors';//y esto es para que el html y js del navegador no piensen que es peligroso
+import cors from 'cors';
 import dataRoutes from './routes/routes.js'
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
+
+// Validate required environment variables
+const requiredEnvVars = ['JWT_SECRET', 'EMAIL_USER', 'EMAIL_PASS'];
+const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingVars.length > 0) {
+    console.error('Error: The following required environment variables are missing:');
+    missingVars.forEach(varName => console.error(`- ${varName}`));
+    console.error('Please create a .env file in the backend directory with these variables.');
+    process.exit(1);
+}
 
 const app = express();
-app.use(express.json({ limit: '50mb' })); // Aumentar el límite para imágenes base64
-app.use(cors());
-app.use('/', dataRoutes)
+
+// Middleware
+app.use(express.json({ limit: '50mb' }));
+app.use(cors({
+    origin: ['http://localhost:3000', 'http://127.0.0.1:5500'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Routes
+app.use('/', dataRoutes);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error('Error:', err.stack);
+    res.status(500).json({ error: 'Something went wrong!' });
+});
 
 db.connect(err => {
     if (err) {

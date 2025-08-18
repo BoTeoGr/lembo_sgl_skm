@@ -18,6 +18,8 @@
 --
 -- Table structure for table `usuarios`
 --
+create database sistema_gestion_agricola;
+use sistema_gestion_agricola;
 
 DROP TABLE IF EXISTS `usuarios`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

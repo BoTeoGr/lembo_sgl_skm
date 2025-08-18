@@ -121,7 +121,7 @@ function updateWeatherCard(data) {
             };
         } else if (pm25 <= 55) {
             airQuality = {
-                text: 'Dañina para grupos sensibles',
+                text: 'Dañina ciertos grupos',
                 level: 'unhealthy-sensitive',
                 description: 'Grupos sensibles pueden experimentar efectos en la salud.'
             };

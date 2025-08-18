@@ -7,6 +7,7 @@
 	<title>Olvidé mi contraseña</title>
 	<link rel="shortcut icon" href="../imgs/logoSena.svg" type="image/x-icon" />
 	<link rel="stylesheet" href="../css/pages/log.css" />
+	<link rel="stylesheet" href="../css/components/toast.css" />
 </head>
 
 <body>
@@ -38,6 +39,53 @@
 			<img src="../imgs/sgal.jpeg" alt="Logo SGAL" class="aside__logo" />
 		</aside>
 	</div>
+
+	<div id="toast-container" class="toast-container"></div>
+
+	<script>
+		// Función para mostrar notificaciones toast
+		function showToast(message, type = 'info') {
+			const toastContainer = document.getElementById('toast-container');
+			const toast = document.createElement('div');
+			toast.className = `toast ${type}`;
+			
+			// Crear el contenido del toast
+			toast.innerHTML = `
+				<div class="toast-message">${message}</div>
+				<button class="toast-close" aria-label="Cerrar">&times;</button>
+			`;
+
+			// Agregar el toast al contenedor
+			toastContainer.prepend(toast);
+
+			// Forzar el reflow para que la animación funcione
+			void toast.offsetWidth;
+
+			// Mostrar el toast con animación
+			setTimeout(() => {
+				toast.classList.add('show');
+			}, 10);
+
+			// Configurar el cierre automático
+			const autoRemove = setTimeout(() => {
+				toast.classList.add('slide-out');
+				setTimeout(() => toast.remove(), 300);
+			}, 5000);
+
+			// Cerrar al hacer clic en el botón
+			const closeButton = toast.querySelector('.toast-close');
+			closeButton.addEventListener('click', () => {
+				clearTimeout(autoRemove);
+				toast.classList.add('slide-out');
+				setTimeout(() => toast.remove(), 300);
+			});
+
+			return toast;
+		}
+
+		// Hacer la función global para que sea accesible desde otros scripts
+		window.showToast = showToast;
+	</script>
 
 	<script src="../js/validations/passwordRecoveryValidator.js"></script>
 </body>

@@ -5,6 +5,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   const itemsPerPage = insumosConfig.table.itemsPerPage || 10;
   let filteredInsumos = [];
 
+  // Cargar datos iniciales
+  filteredInsumos = await fetchInsumosFromAPI();
+  renderPaginatedTable(filteredInsumos);
+
   // --- Obtener insumos desde la API ---
   async function fetchInsumosFromAPI() {
     try {
@@ -105,7 +109,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const itemsPerPageSpan = document.querySelector('.pagination__items-per-page');
     const totalItemsSpan = document.querySelector('.pagination__total-items');
     if (currentPageSpan) currentPageSpan.textContent = startIdx + 1;
-    if (itemsPerPageSpan) itemsPerPageSpan.textContent = endIdx;
+    // Show actual end index, not the slice end
+    const actualEndIdx = Math.min(endIdx, total);
+    if (itemsPerPageSpan) itemsPerPageSpan.textContent = actualEndIdx;
     if (totalItemsSpan) totalItemsSpan.textContent = total;
   }
 
@@ -302,8 +308,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   function applyFilters() {
+    currentPage = 1; // Reset to first page when filters change
     filteredInsumos = getFilteredInsumos();
-    currentPage = 1;
     renderPaginatedTable(filteredInsumos);
   }
 
