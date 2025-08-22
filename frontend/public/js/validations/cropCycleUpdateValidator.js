@@ -157,7 +157,7 @@ if (form) {
             showToast('Éxito', 'Ciclo de cultivo actualizado correctamente', 'success');
             setTimeout(() => {
                 window.location.href = "listar-ciclos-cultivos.html";
-            }, 1000);
+            }, 2000);
         } catch (err) {
             console.error('Error al actualizar el ciclo de cultivo:', err);
             showToast('Error', "Error al actualizar el ciclo de cultivo: " + (err.message || 'Error desconocido'), 'error');

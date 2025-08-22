@@ -159,7 +159,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             showToast("Éxito", "Cultivo actualizado correctamente.", 'success');
             setTimeout(() => {
                 window.location.href = "listar-cultivos.html";
-            }, 1500);
+            }, 2000);
         } catch (error) {
             console.error("Error actualizando cultivo:", error);
             const errorMessage = error.message || "Hubo un error al actualizar el cultivo.";

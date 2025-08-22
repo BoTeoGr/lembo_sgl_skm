@@ -178,7 +178,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
       if (!res.ok) throw new Error("No se pudo actualizar la producción");
       showToast("Éxito", "Producción actualizada correctamente", "success");
-      setTimeout(() => window.location.href = "listar-producciones.html", 19000);
+      setTimeout(() => window.location.href = "listar-producciones.html", 2000);
     } catch (error) {
       showToast("Error", "Error al actualizar la producción: " + error.message, "error");
     }
@@ -2166,6 +2166,14 @@ document.addEventListener("DOMContentLoaded", () => {
     supplyUsageForm.classList.add("hidden")
   }
 
+  // Manejador simple para redirigir al listado de producciones
+  const productionForm = document.getElementById("productionForm")
+  if (productionForm) {
+    productionForm.addEventListener("submit", (e) => {
+      e.preventDefault()
+      window.location.href = "listar-producciones.html"
+    })
+  }
 
   // Verificar que los botones de los modales estén correctamente configurados
   const modalButtons = {

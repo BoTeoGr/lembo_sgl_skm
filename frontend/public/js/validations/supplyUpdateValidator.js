@@ -141,8 +141,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const errorText = await response.text();
                 throw new Error(errorText || "No se pudo actualizar el insumo");
             }
-
-            window.location.href = "listar-insumos.html";
+            setTimeout(() => window.location.href = "listar-insumos.html", 2000);
         } catch (error) {
             console.error("Error actualizando insumo:", error);
         } finally {
