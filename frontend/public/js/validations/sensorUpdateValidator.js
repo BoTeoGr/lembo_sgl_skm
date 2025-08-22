@@ -45,16 +45,20 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     } catch (error) {
         console.error("Error cargando datos del sensor:", error);
-        alert("No se pudo cargar la información del sensor.");
+        showToast('Error', 'No se pudo cargar la información del sensor.', 'error');
     }
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
         if (!sensorActual) {
-            alert("No se puede actualizar sin datos del sensor cargados.");
+            showToast('Error', 'No se puede actualizar sin datos del sensor cargados.', 'error');
             return;
         }
+        
+        // Mostrar estado de carga
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Actualizando...';
 
         const datosActualizados = {};
 
@@ -81,7 +85,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // Imagen: solo enviar si se selecciona una nueva
         if (imagenInput && imagenInput.files && imagenInput.files.length > 0) {
-            // Aquí deberías manejar la subida de archivos si el backend lo soporta
+            // Aquí se manejar la subida de archivos si el backend lo soporta
             // Por ahora, solo enviamos el nombre del archivo
             datosActualizados.imagen = imagenInput.files[0].name;
         }
@@ -116,11 +120,70 @@ document.addEventListener("DOMContentLoaded", async () => {
                 throw new Error(errorText || "No se pudo actualizar el sensor");
             }
 
-            window.location.href = "listar-sensores.html";
+            showToast('Éxito', 'Sensor actualizado correctamente', 'success');
+            // Redirigir después de mostrar el mensaje de éxito
+            setTimeout(() => {
+                window.location.href = "listar-sensores.html";
+            }, 2000);
         } catch (error) {
             console.error("Error actualizando sensor:", error);
+            showToast('Error', error.message || 'Error al actualizar el sensor', 'error');
         } finally {
-            submitButton.disabled = false;
+            if (submitButton) {
+                submitButton.disabled = false;
+                submitButton.innerHTML = 'Actualizar sensor';
+            }
         }
     });
 });
+
+// Función general para mostrar toasts
+function showToast(title, message, type = 'success') {
+    const toast = document.getElementById('toast');
+    const toastTitle = document.getElementById('toastTitle');
+    const toastDescription = document.getElementById('toastDescription');
+    const toastIcon = document.getElementById('toastIcon');
+    const toastProgress = document.querySelector('.toast-progress');
+
+    // Establecer el contenido del toast
+    toastTitle.textContent = title;
+    toastDescription.textContent = message;
+    
+    // Establecer el icono según el tipo
+    switch(type) {
+        case 'success':
+            toastIcon.className = 'fas fa-check-circle';
+            break;
+        case 'error':
+            toastIcon.className = 'fas fa-exclamation-circle';
+            break;
+        case 'warning':
+            toastIcon.className = 'fas fa-exclamation-triangle';
+            break;
+        case 'info':
+            toastIcon.className = 'fas fa-info-circle';
+            break;
+    }
+
+    // Mostrar el toast
+    toast.classList.remove('hidden');
+    
+    // Animación de la barra de progreso
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+        progress += 2;
+        toastProgress.style.width = `${progress}%`;
+        if (progress >= 100) {
+            clearInterval(progressInterval);
+            // Ocultar el toast después de 5 segundos
+            setTimeout(() => {
+                toast.classList.add('hidden');
+                toastProgress.style.width = '0%';
+            }, 3400);
+        }
+    }, 30);
+}
+
+
+
+

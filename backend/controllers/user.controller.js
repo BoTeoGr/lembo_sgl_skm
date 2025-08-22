@@ -395,15 +395,15 @@ export function actualizarEstadoUsuario(req, res) {
 // Actualizar usuario por id
 export function actualizarUsuario(req, res) {
     const { id } = req.params;
-    const { nombre, correo, rol, estado, password } = req.body;
+    const { tipo_documento, nombre, numero_documento, telefono, correo, rol, estado, password } = req.body;
 
-    if (!id || !nombre || !correo || !rol || !estado) {
+    if (!id || !tipo_documento || !nombre || !numero_documento || !telefono || !correo || !rol || !estado) {
         return res.status(400).json({ error: 'Todos los campos son requeridos' });
     }
 
-    // Construir la consulta dinámicamente basada en los campos proporcionados
-    let query = 'UPDATE usuarios SET nombre = ?, correo = ?, rol = ?, estado = ?';
-    let values = [nombre, correo, rol, estado];
+    // Construir la consulta con todos los campos
+    let query = 'UPDATE usuarios SET tipo_documento = ?, nombre = ?, numero_documento = ?, telefono = ?, correo = ?, rol = ?, estado = ?';
+    let values = [tipo_documento, nombre, numero_documento, telefono, correo, rol, estado];
 
     // Si se proporciona una nueva contraseña, agregarla a la actualización
     if (password) {

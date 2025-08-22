@@ -380,10 +380,9 @@ class Sensors {
                 </td>
                 <td class="table__cell table__cell--actions">
                     <button class="table__action-button table__action-button--view"><span class="material-symbols-outlined">visibility</span></button>
-                <a href="../views/actualizar-sensor.html?id=${sensor.id}" class="table__action-button-wrapper">
-                    <button class="table__action-button table__action-button--edit"><span class="material-symbols-outlined">edit</span></button>
-                </a>
-
+                    <button class="table__action-button table__action-button--edit"onclick="window.location.href='../views/actualizar-sensor.html?id=${sensor.id}'">
+                        <span class="material-symbols-outlined">edit</span>
+                    </button>
                     <button class="table__action-button table__action-button--${sensor.estado === 'habilitado' ? 'disable' : 'enable'}"><span class="material-symbols-outlined">power_settings_new</span></button>
                 </td>
             `;

@@ -22,24 +22,36 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Objeto para almacenar datos del usuario
     const userData = {
-        userTypeId: "",
-        userName: "",
-        userId: "",
-        userTel: "",
-        userEmail: "",
-        userConfirmEmail: "",
-        userRol: "",
+        tipo_documento: "",
+        nombre: "",
+        numero_documento: "",
+        telefono: "",
+        correo: "",
+        confirmar_correo: "",
+        rol: "",
         estado: "habilitado",
         password: ""
     };
 
-    // Agregar eventos para capturar cambios
-    nombreInput.addEventListener("input", readText);
-    telefonoInput.addEventListener("input", readText);
-    correoInput.addEventListener("input", readText);
-    confirmarCorreoInput.addEventListener("input", readText);
-    passwordInput.addEventListener("input", readText);
-    rolInput.addEventListener("change", readText);
+    // Actualizar userData cuando cambian los campos
+    const updateUserData = () => {
+        userData.tipo_documento = tipoDocumentoInput.value;
+        userData.nombre = nombreInput.value.trim();
+        userData.numero_documento = numeroDocumentoInput.value.trim();
+        userData.telefono = telefonoInput.value.trim();
+        userData.correo = correoInput.value.trim();
+        userData.confirmar_correo = confirmarCorreoInput.value.trim();
+        userData.rol = rolInput.value;
+        userData.password = passwordInput.value;
+        
+        // Obtener el estado seleccionado
+        for (const radio of estadoRadios) {
+            if (radio.checked) {
+                userData.estado = radio.value;
+                break;
+            }
+        }
+    };
 
     // Validaciones de teclado
     nombreInput.addEventListener("keydown", function (e) {
@@ -91,44 +103,39 @@ document.addEventListener("DOMContentLoaded", async () => {
         alert("No se pudo cargar la información del usuario.");
     }
 
-    function readText(e) {
-        if (e.target.id === "nombre") {
-            userData.userName = e.target.value;
-        } else if (e.target.id === "telefono") {
-            userData.userTel = e.target.value;
-        } else if (e.target.id === "correo") {
-            userData.userEmail = e.target.value;
-        } else if (e.target.id === "confirmar-correo") {
-            userData.userConfirmEmail = e.target.value;
-        } else if (e.target.id === "password") {
-            userData.password = e.target.value;
-        } else if (e.target.id === "rol") {
-            userData.userRol = e.target.value;
-        }
-        console.log(userData);
-    }
+    // Agregar event listeners para actualizar userData cuando cambien los campos
+    [
+        tipoDocumentoInput, 
+        nombreInput, 
+        numeroDocumentoInput, 
+        telefonoInput, 
+        correoInput, 
+        confirmarCorreoInput, 
+        passwordInput, 
+        rolInput,
+        ...estadoRadios
+    ].forEach(element => {
+        element.addEventListener('change', updateUserData);
+        element.addEventListener('input', updateUserData);
+    });
 
     function validateUserData() {
-        const { userName, userTel, userEmail, userConfirmEmail, userRol, password } = userData;
-
-        // // Validaciones generales
-        // if (userName === "" || userTel === "" || userEmail === "" || userConfirmEmail === "" || userRol === "") {
-        //     showToast("Campos requeridos", "Todos los campos son obligatorios", "error");
-        //     return false;
-        // }
-
         // Validación de correo
-        if (userEmail !== userConfirmEmail) {
+        if (userData.correo !== userData.confirmar_correo) {
             showToast("Correos no coinciden", "Los correos electrónicos no coinciden", "error");
             return false;
         }
 
+        // Validación de número de documento
+        if (userData.numero_documento && !/^\d+$/.test(userData.numero_documento)) {
+            showToast("Error", "El número de documento solo puede contener números", "error");
+            return false;
+        }
+
         // Validación de contraseña si se proporciona una nueva
-        if (password) {
-            if (password.length < 8 || password.length > 18) {
-                showToast("Longitud de contraseña", "La contraseña debe tener entre 8 y 18 caracteres", "error");
-                return false;
-            }
+        if (userData.password && (userData.password.length < 8 || userData.password.length > 18)) {
+            showToast("Longitud de contraseña", "La contraseña debe tener entre 8 y 18 caracteres", "error");
+            return false;
         }
 
         return true;
@@ -203,30 +210,27 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
+        // Actualizar userData antes de validar
+        updateUserData();
+
         if (!validateUserData()) {
             return;
         }
 
-        let estadoSeleccionado = null;
-        for (const radio of estadoRadios) {
-            if (radio.checked) {
-                estadoSeleccionado = radio.value;
-                break;
-            }
-        }
-
-        // Construcción de objeto para PUT
+        // Construir objeto con los datos actualizados
         const datosActualizados = {
-            nombre: nombreInput.value.trim(),
-            correo: correoInput.value.trim(),
-            rol: rolInput.value,
-            estado: estadoSeleccionado
+            tipo_documento: userData.tipo_documento,
+            nombre: userData.nombre,
+            numero_documento: userData.numero_documento,
+            telefono: userData.telefono,
+            correo: userData.correo,
+            rol: userData.rol,
+            estado: userData.estado,
+            // Incluir la contraseña solo si se proporcionó una nueva
+            ...(userData.password && { password: userData.password })
         };
 
-        // Agregar contraseña solo si se proporcionó una nueva
-        if (userData.password) {
-            datosActualizados.password = userData.password;
-        }
+        console.log('Enviando datos al servidor:', datosActualizados);
 
         submitButton.disabled = true;
 
@@ -250,7 +254,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             }, 2000);
         } catch (error) {
             console.error("Error actualizando usuario:", error);
-            showToast("Error", "Hubo un error al actualizar el usuario", "error");
+            showToast("Error", error.message || "Hubo un error al actualizar el usuario", "error");
         } finally {
             submitButton.disabled = false;
         }

@@ -2,10 +2,12 @@ import db from './../db/config.db.js';
 
 // Función para obtener insumos con paginación
 export function VerInsumos(req, res) {
-    db.query('SELECT * FROM insumos', (err, results) => {
+    db.query('SELECT id, nombre, tipo, imagen, unidad_medida, valor_unitario, cantidad, valor_total, descripcion, usuario_id, estado, fecha_creacion FROM insumos', (err, results) => {
         if (err) {
-            return res.status(500).json({ error: 'Error al obtener insumos' });
+            console.error('Error al obtener insumos:', err);
+            return res.status(500).json({ error: 'Error al obtener insumos', details: err.message });
         }
+        console.log('Insumos encontrados:', results);
         res.json(results);
     });
 }

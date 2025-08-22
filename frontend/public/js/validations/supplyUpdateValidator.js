@@ -73,12 +73,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        if (!insumoActual) {
+        if (!insumoActual || !insumoActual.id) {
+            console.error("No se pudo cargar la información del insumo");
+            window.location.href = "listar-insumos.html";
             return;
         }
 
         const datosActualizados = {};
-
+        
         if (nombreInput.value.trim() !== "" && nombreInput.value.trim() !== insumoActual.nombre) {
             datosActualizados.nombre = nombreInput.value.trim();
         }
@@ -118,6 +120,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (estadoSeleccionado && estadoSeleccionado !== insumoActual.estado) {
             datosActualizados.estado = estadoSeleccionado;
         }
+
 
         if (Object.keys(datosActualizados).length === 0) {
             return;

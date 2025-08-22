@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const response = await fetch('http://localhost:5000/insumos');
       if (!response.ok) throw new Error('Error al obtener insumos de la API');
       const data = await response.json();
+      console.log('API Response:', data);
       // Si la respuesta es un array o tiene la clave 'insumos'
       const insumosArr = Array.isArray(data) ? data : (data.insumos || []);
       // Normalizar campos y estado
@@ -82,9 +83,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         </td>
         <td class="table__cell table__cell--actions">
           <button class="table__action-button table__action-button--view"><span class="material-symbols-outlined">visibility</span></button>
-          <a href="../views/actualizar-insumo.html?id=${insumo.id}" class="table__action-button-wrapper">
-            <button class="table__action-button table__action-button--edit"><span class="material-symbols-outlined">edit</span></button>
-          </a>
+          <button class="table__action-button table__action-button--edit" onclick="window.location.href='../views/actualizar-insumo.html?id=${insumo.id}'">
+          <span class="material-symbols-outlined">edit</span>
+        </button>
+
           <button class="table__action-button table__action-button--${insumo.estado === 'habilitado' ? 'disable' : 'enable'}"><span class="material-symbols-outlined">power_settings_new</span></button>
         </td>
       </tr>
@@ -210,12 +212,43 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // --- Mostrar modal de visualizar insumo ---
   function showInsumoModal(insumo) {
-    document.getElementById('modalInsumoId').textContent = insumo.id || '';
-    document.getElementById('modalInsumoNombre').textContent = insumo.nombre || '';
-    document.getElementById('modalInsumoTipo').textContent = insumo.tipo || '';
-    document.getElementById('modalInsumoCantidad').textContent = insumo.cantidad || '';
-    document.getElementById('modalInsumoEstado').textContent = insumo.estado || '';
-    document.getElementById('modalInsumoDescripcion').textContent = insumo.descripcion || '-';
+    console.log('Datos completos del insumo:', insumo);
+    
+    // Formatear valores numéricos
+    const formatter = new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0
+    });
+
+    // Extraer valores del insumo
+    const valorUnitario = parseFloat(insumo.valor_unitario || 0);
+    const valorTotal = parseFloat(insumo.valor_total || 0);
+    const cantidad = insumo.cantidad || 0;
+    const unidadMedida = insumo.unidad_medida || insumo.unidad || '';
+    
+    console.log('Valores extraídos:', { valorUnitario, valorTotal, cantidad, unidadMedida });
+    
+    // Actualizar la interfaz de usuario
+    const updateField = (id, value) => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.textContent = value !== undefined && value !== null ? value : '-';
+        console.log(`Actualizando ${id}:`, element.textContent);
+      } else {
+        console.error(`Elemento no encontrado: ${id}`);
+      }
+    };
+    
+    updateField('modalInsumoId', insumo.id);
+    updateField('modalInsumoNombre', insumo.nombre);
+    updateField('modalInsumoTipo', insumo.tipo);
+    updateField('modalInsumoCantidad', cantidad);
+    updateField('modalInsumoUnidad', unidadMedida);
+    updateField('modalInsumoEstado', insumo.estado);
+    updateField('modalInsumoDescripcion', insumo.descripcion || 'Sin descripción');
+    updateField('modalInsumoValorUnitario', formatter.format(valorUnitario));
+    updateField('modalInsumoValorTotal', formatter.format(valorTotal));
     const imgElem = document.getElementById('modalInsumoImagen');
     if (imgElem) {
       imgElem.src = insumo.imagen || '../imgs/default-insumo.jpg';
@@ -334,11 +367,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     const row = btn.closest('tr');
     const id = row.querySelector('.table__cell--id').textContent;
     if (btn.classList.contains('table__action-button--view')) {
-      const insumo = filteredInsumos.find(i => String(i.id) === String(id));
-      if (insumo) showInsumoModal(insumo);
+      // Fetch complete insumo details from the API
+      try {
+        const response = await fetch(`http://localhost:5000/insumos/${id}`);
+        if (!response.ok) throw new Error('Error al obtener los detalles del insumo');
+        const insumo = await response.json();
+        showInsumoModal(insumo);
+      } catch (error) {
+        console.error('Error al cargar el insumo:', error);
+        alert('No se pudo cargar la información del insumo');
+      }
       return;
     } else if (btn.classList.contains('table__action-button--edit')) {
-      alert(`Editar insumo: ${id}`);
+      // Navegación manejada por el enlace <a> que envuelve el botón
     } else if (btn.classList.contains('table__action-button--enable')) {
       updateInsumoStatus([id], 'habilitado');
       await toggleInsumoStatus(id, 'habilitado');
