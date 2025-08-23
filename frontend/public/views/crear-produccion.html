@@ -62,7 +62,8 @@
                     <textarea id="description" name="description" class="form__textarea" rows="3" required></textarea>
                 </div>
                 <div class="form__group form__group--full-width">
-                    <label for="quantity" class="form__label"><i class="fas fa-weight"></i> Cantidad de Producción</label>
+                    <label for="quantity" class="form__label"><i class="fas fa-weight"></i> Cantidad de
+                        Producción</label>
                     <input type="number" id="quantity" name="quantity" class="form__input" min="0" step="0.01" required>
                     <small class="form__helper-text">Cantidad total de la producción (en kg)</small>
                 </div>
@@ -223,7 +224,8 @@
                                 <input type="number" id="estimatedProfit" name="estimatedProfit" class="form__input"
                                     step="0.01" min="0" required readonly>
                             </div>
-                            <small id="profitHelperText" class="form__helper-text">La meta de ganancias se toma de acuerdo al 30%</small>
+                            <small id="profitHelperText" class="form__helper-text">La meta de ganancias se toma de
+                                acuerdo al 30%</small>
                         </div>
                     </div>
                 </div>
@@ -666,89 +668,21 @@
         </div>
     </div>
 
+    <!-- Toast para notificaciones -->
+    <div id="toast" class="toast hidden">
+        <div class="toast-content">
+            <i id="toastIcon" class="fas fa-check-circle"></i>
+            <div class="toast-message">
+                <span id="toastTitle" class="toast-title"></span>
+                <span id="toastDescription" class="toast-description"></span>
+            </div>
+        </div>
+        <div class="toast-progress"></div>
+    </div>
+
     <!-- Scripts -->
     <script src="../js/validations/productionCreationValidator.js" type="module"></script>
     <script src="../js/validations/supplyUsageValidator.js" type="module"></script>
-</body>
-
-</html>
-
-<style>
-    .loading-indicator {
-        margin-top: 10px;
-        color: #2196F3;
-        font-weight: 500;
-    }
-
-    .hidden {
-        display: none;
-    }
-
-    .toast {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        overflow: hidden;
-        z-index: 9999;
-        min-width: 300px;
-        max-width: 400px;
-    }
-
-    .toast--success .toast-icon {
-        color: var(--green-700);
-    }
-
-    .toast--error .toast-icon {
-        color: #e53935;
-    }
-
-    .toast-content {
-        display: flex;
-        padding: 16px;
-        align-items: flex-start;
-    }
-
-    .toast-icon {
-        font-size: 24px;
-        margin-right: 12px;
-    }
-
-    .toast-message {
-        flex: 1;
-    }
-
-    .toast-title {
-        display: block;
-        font-weight: 600;
-        margin-bottom: 4px;
-        font-size: 16px;
-    }
-
-    .toast-description {
-        font-size: 14px;
-        color: #666;
-    }
-
-    .toast-progress {
-        height: 4px;
-        background-color: var(--green-500);
-        width: 0%;
-        animation: progress 3s linear;
-    }
-
-    @keyframes progress {
-        0% {
-            width: 0%;
-        }
-
-        100% {
-            width: 100%;
-        }
-    }
-</style>
 </body>
 
 </html>

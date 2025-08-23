@@ -3,9 +3,12 @@ const API_URL = "http://localhost:5000"
 
 // --- LÓGICA DE EDICIÓN DE PRODUCCIÓN (GET y PUT) ---
 document.addEventListener("DOMContentLoaded", async () => {
-  // ...existing code...
+  console.log("DOM completamente cargado");
   // Solo ejecutar en la página de actualizar-produccion
-  if (!window.location.pathname.endsWith("actualizar-produccion.html")) return;
+  if (!window.location.pathname.endsWith("actualizar-produccion.html")) {
+    console.log("No es la página de actualización de producción");
+    return;
+  }
 
   const form = document.getElementById("productionForm");
   const urlParams = new URLSearchParams(window.location.search);
@@ -151,40 +154,96 @@ document.addEventListener("DOMContentLoaded", async () => {
       };
     });
 
+    // Validar campos numéricos
+    const usuario_id = parseInt(form.responsible.value);
+    const cantidad = parseFloat(form.quantity.value);
+    const cultivo_id = parseInt(form.crop.value);
+    const ciclo_id = parseInt(form.cropCycle.value);
+    const inversion = parseFloat(form.totalInvestment.value);
+    const meta_ganancia = parseFloat(form.estimatedProfit.value);
+
+    // Validar campos requeridos con mensajes personalizados
+    if (isNaN(cantidad) || cantidad <= 0) {
+      showToast("Error", "Debe ingresar una cantidad válida", "error");
+      return;
+    }
+
+    if (isNaN(cultivo_id) || cultivo_id <= 0) {
+      showToast("Error", "Debe seleccionar un cultivo", "error");
+      return;
+    }
+
+    if (isNaN(ciclo_id) || ciclo_id <= 0) {
+      showToast("Error", "Debe seleccionar un ciclo de cultivo", "error");
+      return;
+    }
+
+    // Validar campos numéricos restantes
+    if (isNaN(usuario_id)) {
+      showToast("Error", "Debe seleccionar un responsable", "error");
+      return;
+    }
+
+    // Validar que haya al menos un insumo seleccionado
+    if (updatedInsumos.length === 0) {
+      showToast("Error", "Debe seleccionar por lo menos un insumo", "error");
+      return;
+    }
+
+    // Validar fechas
+    if (form.startDate.value && form.endDate.value) {
+      const startDate = new Date(form.startDate.value);
+      const endDate = new Date(form.endDate.value);
+      if (startDate > endDate) {
+        showToast("Error", "La fecha de inicio no puede ser posterior a la fecha de finalización", "error");
+        return;
+      }
+    }
+
     const updatedData = {
       nombre: form.productionName.value.trim(),
       tipo: form.productionType.value,
       ubicacion: form.location.value.trim(),
       descripcion: form.description.value.trim(),
-      usuario_id: parseInt(form.responsible.value),
-      cantidad: parseFloat(form.quantity.value),
-      cultivo_id: parseInt(form.crop.value),
-      ciclo_id: parseInt(form.cropCycle.value),
+      usuario_id: usuario_id,
+      cantidad: cantidad,
+      cultivo_id: cultivo_id,
+      ciclo_id: ciclo_id,
       insumos_ids: updatedInsumos,
       sensores_ids: Array.from(selectedSensors).map(id => parseInt(id)),
       fecha_de_inicio: form.startDate.value || null,
       fecha_fin: form.endDate.value || null,
-      inversion: parseFloat(form.totalInvestment.value),
-      meta_ganancia: parseFloat(form.estimatedProfit.value)
+      inversion: inversion,
+      meta_ganancia: meta_ganancia,
     };
 
-    console.log('Payload enviado al backend (PUT produccion):', updatedData);
-
     try {
-      const res = await fetch(`${API_URL}/producciones/${productionId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
+      console.log('Enviando datos al servidor:', updatedData);
+      const response = await fetch(`${API_URL}/producciones/${productionId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(updatedData)
       });
-      if (!res.ok) throw new Error("No se pudo actualizar la producción");
-      showToast("Éxito", "Producción actualizada correctamente", "success");
-      setTimeout(() => window.location.href = "listar-producciones.html", 2000);
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Error al actualizar la producción');
+      }
+
+      showToast('Éxito', 'Producción actualizada correctamente', 'success');
+      setTimeout(() => {
+        window.location.href = 'listar-producciones.html';
+      }, 1500);
+      
     } catch (error) {
-      showToast("Error", "Error al actualizar la producción: " + error.message, "error");
+      console.error('Error al actualizar la producción:', error);
+      showToast('Error', error.message || 'Error al actualizar la producción', 'error');
     }
   });
 });
-
 
 // Mapeo de campos ID para cada tipo de entidad según la estructura de la base de datos
 const ID_FIELDS = {
@@ -727,77 +786,72 @@ function validateInvestmentAndProfit() {
 // Update the validateForm function to include the new validations
 function validateForm() {
   console.log("Validando formulario")
+  let isValid = true
 
   // Validar nombre de producción
-  const nombreProduccion = document.getElementById("productionName").value.trim()
+  const nombreProduccion = document.getElementById("productionName")?.value.trim()
   const validacionNombre = validarNombreProduccion(nombreProduccion)
   if (!validacionNombre.valido) {
     showToast("Error", validacionNombre.mensaje, "error")
-    return false
+    
   }
 
   // Validar campos requeridos básicos
   const requiredFields = [
-    "productionType",
-    "location",
-    "description",
-    "crop",
-    "cropCycle",
-    "responsible",
-    "startDate",
-    "endDate",
-    "totalInvestment",
-    "estimatedProfit",
+    { id: "productionType", name: "Tipo de producción" },
+    { id: "location", name: "Ubicación" },
+    { id: "description", name: "Descripción" },
+    { id: "crop", name: "Cultivo" },
+    { id: "cropCycle", name: "Ciclo de cultivo" },
+    { id: "responsible", name: "Responsable" },
+    { id: "startDate", name: "Fecha de inicio" },
+    { id: "endDate", name: "Fecha de finalización" },
+    { id: "totalInvestment", name: "Inversión total" },
+    { id: "estimatedProfit", name: "Meta de ganancias" },
   ]
 
   // Verificar campos requeridos
-  const basicFieldsValid = requiredFields.every((field) => {
-    const element = document.getElementById(field)
-    const isValid = element && element.value.trim() !== ""
-    if (!isValid) {
-      console.log(`Campo requerido no válido: ${field}`)
-      showToast("Error", `El campo ${field} es requerido`, "error")
+  requiredFields.forEach(field => {
+    const element = document.getElementById(field.id)
+    if (!element || (element.value && element.value.trim() === "")) {
+      console.log(`Campo requerido no válido: ${field.id}`)
+      showToast("Error", `El campo ${field.name} es requerido`, "error")
+      
     }
-    return isValid
   })
+
+  // Verificar que haya al menos un insumo seleccionado
+  if (!productionData.insumos_ids || productionData.insumos_ids.length === 0) {
+    console.log("No hay insumos seleccionados")
+    showToast("Error", "Debe seleccionar al menos un insumo", "error")
+    
+  }
 
   // Verificar máximo de sensores (solo advertencia)
   if (selectedSensors.size > 3) {
     console.log("Advertencia: Se han seleccionado más de 3 sensores")
     showToast("Advertencia", "Se han seleccionado más de 3 sensores", "warning")
   }
-  const hasValidSensors = true
 
   // Validar fechas
-  const datesValid = validateDates()
-  if (!datesValid) {
+  if (!validateDates()) {
     console.log("Fechas no válidas")
+    
   }
 
   // Validar inversión y meta de ganancias
-  const investmentValid = validateInvestmentAndProfit()
-  if (!investmentValid) {
+  if (!validateInvestmentAndProfit()) {
     console.log("Inversión o meta de ganancias no válidas")
+    
   }
 
-  // Verificar que haya al menos un insumo seleccionado
-  const hasSupplies = productionData.insumos_ids.length > 0
-  if (!hasSupplies) {
-    console.log("No hay insumos seleccionados")
-    showToast("Error", "Debe seleccionar al menos un insumo", "error")
-  }
+  // // Deshabilitar el botón de enviar si hay errores
+  // const submitBtn = document.querySelector('button[type="submit"]')
+  // if (submitBtn) {
+  //   submitBtn.disabled = !isValid
+  // }
 
-  // El formulario es válido solo si todos los campos están completos y no se excede el máximo de sensores
-  const isValid = basicFieldsValid && hasValidSensors && datesValid && investmentValid && hasSupplies
   console.log("Formulario válido:", isValid)
-
-  // Habilitar/deshabilitar el botón de crear
-  const createBtn = document.getElementById("createBtn")
-  if (createBtn) {
-    createBtn.disabled = !isValid
-    console.log("Estado del botón de crear:", createBtn.disabled ? "deshabilitado" : "habilitado")
-  }
-
   return isValid
 }
 
@@ -1113,36 +1167,50 @@ function addSelectedSupply() {
 
 
 // Función para mostrar notificaciones
-function showToast(title, message, type = "success") {
-  const toast = document.getElementById("toast")
-  const toastTitle = document.getElementById("toastTitle")
-  const toastDescription = document.getElementById("toastDescription")
-  const toastIcon = document.getElementById("toastIcon")
+function showToast(title, message, type = 'success') {
+  const toast = document.getElementById('toast');
+  const toastTitle = document.getElementById('toastTitle');
+  const toastDescription = document.getElementById('toastDescription');
+  const toastIcon = document.getElementById('toastIcon');
+  const toastProgress = document.querySelector('.toast-progress');
 
-  // Configurar el icono según el tipo
-  toastIcon.className =
-    type === "success" ? "fas fa-check-circle" : type === "error" ? "fas fa-exclamation-circle" : "fas fa-info-circle"
-
-  // Configurar el color según el tipo
-  toast.className = `toast toast--${type}`
-
-  // Establecer el contenido
-  toastTitle.textContent = title
-  toastDescription.textContent = message
+  // Establecer el contenido del toast
+  toastTitle.textContent = title;
+  toastDescription.textContent = message;
+  
+  // Establecer el icono según el tipo
+  switch(type) {
+      case 'success':
+          toastIcon.className = 'fas fa-check-circle';
+          break;
+      case 'error':
+          toastIcon.className = 'fas fa-exclamation-circle';
+          break;
+      case 'warning':
+          toastIcon.className = 'fas fa-exclamation-triangle';
+          break;
+      case 'info':
+          toastIcon.className = 'fas fa-info-circle';
+          break;
+  }
 
   // Mostrar el toast
-  toast.classList.remove("hidden")
-
-  // Reiniciar la animación de la barra de progreso
-  const toastProgress = toast.querySelector(".toast-progress")
-  toastProgress.style.animation = "none"
-  toastProgress.offsetHeight // Trigger reflow
-  toastProgress.style.animation = "progress 3s linear"
-
-  // Ocultar después de 3 segundos
-  setTimeout(() => {
-    toast.classList.add("hidden")
-  }, 3000)
+  toast.classList.remove('hidden');
+  
+  // Animación de la barra de progreso
+  let progress = 0;
+  const progressInterval = setInterval(() => {
+      progress += 2;
+      toastProgress.style.width = `${progress}%`;
+      if (progress >= 100) {
+          clearInterval(progressInterval);
+          // Ocultar el toast después de 5 segundos
+          setTimeout(() => {
+              toast.classList.add('hidden');
+              toastProgress.style.width = '0%';
+          }, 3400);
+      }
+  }, 30);
 }
 
 // Hacer la función removeSelectedItem global para que pueda ser llamada desde el HTML
@@ -2166,13 +2234,11 @@ document.addEventListener("DOMContentLoaded", () => {
     supplyUsageForm.classList.add("hidden")
   }
 
-  // Manejador simple para redirigir al listado de producciones
+  // El manejador de envío del formulario principal ya está definido al inicio del archivo
+  // No es necesario agregar otro manejador aquí
   const productionForm = document.getElementById("productionForm")
   if (productionForm) {
-    productionForm.addEventListener("submit", (e) => {
-      e.preventDefault()
-      window.location.href = "listar-producciones.html"
-    })
+    // No hacer nada aquí, ya que el manejador principal manejará la validación y el envío
   }
 
   // Verificar que los botones de los modales estén correctamente configurados

@@ -1367,22 +1367,90 @@ document.addEventListener("DOMContentLoaded", () => {
 	  if (listaInsumos) {
 		listaInsumos.innerHTML = "";
 		
+		// Mostrar mensaje de carga
+		listaInsumos.innerHTML = '<li class="insumo-item insumo-item--loading">Cargando insumos...</li>';
+		
 		// Mostrar insumos seleccionados
 		if (produccion.insumos && produccion.insumos.length > 0) {
-		  produccion.insumos.forEach(insumo => {
-			const listItem = document.createElement("li");
-			listItem.className = "insumo-item";
-			listItem.innerHTML = `
-			  <div class="insumo-item__header">
-				<span class="insumo-item__name">${insumo.nombre}</span>
-				<span class="insumo-item__type">(${insumo.tipo})</span>
-			  </div>
-			  <div class="insumo-item__details">
-				<span class="insumo-item__value">Valor: $${parseFloat(insumo.valor_total).toFixed(2)}</span>
-				<span class="insumo-item__quantity">Cantidad: ${insumo.cantidad} ${insumo.unidad_medida}</span>
-			  </div>
-			`;
-			listaInsumos.appendChild(listItem);
+		  console.log('Datos de insumos recibidos:', JSON.stringify(produccion.insumos, null, 2));
+		  // Array para almacenar las promesas de las peticiones de insumos
+		  const promesasInsumos = produccion.insumos.map(insumo => {
+			console.log('Insumo original:', JSON.stringify(insumo, null, 2));
+			// Siempre hacemos una petición para obtener los datos completos del insumo
+			// para asegurarnos de tener el tipo
+			
+			console.log('Solicitando datos completos para insumo ID:', insumo.id || insumo.insumo_id);
+			// Si no, hacemos una petición para obtener los datos completos del insumo
+			return fetch(`http://localhost:5000/insumos/${insumo.id || insumo.insumo_id}`)
+			  .then(response => {
+				if (!response.ok) {
+				  throw new Error('Error al cargar el insumo');
+				}
+				return response.json();
+			  })
+			  .then(datosInsumo => {
+				console.log('Respuesta de la API para insumo:', JSON.stringify(datosInsumo, null, 2));
+				const insumoData = datosInsumo.insumo || datosInsumo;
+				console.log('Datos procesados del insumo:', insumoData);
+				const tipo = insumoData.tipo || insumoData.tipo_insumo || 'No especificado';
+				console.log('Tipo detectado:', tipo);
+				return {
+				  ...insumo,
+				  ...insumoData,
+				  tipo: tipo,
+				  cantidad_utilizada: insumo.cantidad || insumo.cantidad_usar || insumo.cantidad_utilizada || 0
+				};
+			  })
+			  .catch(error => {
+				console.error('Error al cargar el insumo:', error);
+				return {
+				  ...insumo,
+				  nombre: insumo.nombre || 'Error al cargar',
+				  tipo: insumo.tipo || 'No especificado',
+				  cantidad_utilizada: insumo.cantidad || insumo.cantidad_usar || insumo.cantidad_utilizada || 0
+				};
+			  });
+		  });
+		  
+		  // Cuando todas las peticiones de insumos se completen
+		  Promise.all(promesasInsumos).then(insumosCompletos => {
+			// Limpiar el mensaje de carga
+			listaInsumos.innerHTML = '';
+			
+			// Mostrar cada insumo
+			insumosCompletos.forEach(insumo => {
+			  const listItem = document.createElement("li");
+			  listItem.className = "insumo-item";
+			  
+			  // Asegurarse de que los valores no sean undefined
+			  const nombre = insumo.nombre || insumo.nombre_insumo || 'Sin nombre';
+			  // Usar el campo tipo del insumo
+			  const tipo = insumo.tipo || insumo.tipo_insumo || insumo.categoria || 'Sin tipo';
+			  const valor = parseFloat(insumo.valor_total || insumo.valor_unitario || 0).toFixed(2);
+			  const cantidad = insumo.cantidad || insumo.cantidad_usar || insumo.cantidad_utilizada || 0;
+			  const unidad = insumo.unidad_medida || insumo.unidad || 'unidades';
+			  
+			  listItem.innerHTML = `
+				<div class="insumo-item__header">
+				  <span class="insumo-item__name">${nombre}</span>
+				</div>
+				<div class="insumo-item__details">
+				  <div class="insumo-detail">
+					<span class="insumo-label">Tipo:${tipo}</span>
+				  </div>
+				  <div class="insumo-detail">
+					<span class="insumo-label">Valor unitario: $${parseFloat(insumo.valor_unitario || 0).toFixed(2)}</span>
+				  </div>
+				  <div class="insumo-detail">
+					<span class="insumo-label">Cantidad usada: ${cantidad} ${unidad}</span>
+				  </div>
+				</div>
+			  `;
+			  listaInsumos.appendChild(listItem);
+			});
+		  }).catch(error => {
+			console.error('Error al cargar los insumos:', error);
+			listaInsumos.innerHTML = '<li class="insumo-item insumo-item--error">Error al cargar los insumos. Intente nuevamente.</li>';
 		  });
 		} else {
 		  const listItem = document.createElement("li");
@@ -1392,66 +1460,144 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 	  }
 
-	  // Obtener y mostrar los insumos utilizados
-	  const insumosUtilizadosContainer = document.createElement('div')
-	  insumosUtilizadosContainer.className = 'card-section'
-	  insumosUtilizadosContainer.innerHTML = `
-		<h3 class='card-section-title'>Insumos Utilizados</h3>
-		<div class='insumos-list'></div>
-	  `
-		modal.querySelector('.modal__content').appendChild(insumosUtilizadosContainer)
-
-	  // Obtener los insumos utilizados para esta producción
-	  fetch(`http://localhost:5000/uso_insumo?produccion_id=${id}`)
-		.then(response => response.json())
-		.then(data => {
-		  const insumosList = insumosUtilizadosContainer.querySelector('.insumos-list')
-		  if (data.usos && data.usos.length > 0) {
-			data.usos.forEach(uso => {
-			  // Obtener el nombre del insumo
-			  fetch(`http://localhost:5000/insumos/${uso.insumo_id}`)
-				.then(response => response.json())
-				.then(insumoData => {
-				  const insumoItem = document.createElement('div')
-				  insumoItem.className = 'insumo-utilizado-item'
-				  insumoItem.innerHTML = `
-					<div class='insumo-info'>
-					  <span class='insumo-name'>${insumoData.insumo.nombre}</span>
-					  <span class='insumo-amount'>Cantidad: ${uso.cantidad_utilizada}</span>
-					  <span class='insumo-date'>Fecha: ${new Date(uso.fecha_registro).toLocaleDateString()}</span>
-					</div>
-				  `
-				  insumosList.appendChild(insumoItem)
-				})
-			})
-		  } else {
-			insumosList.innerHTML = '<p>No se han registrado insumos utilizados para esta producción</p>'
-		  }
-		})
-		.catch(error => {
-		  console.error('Error al cargar los insumos utilizados:', error)
-		  insumosUtilizadosContainer.querySelector('.insumos-list').innerHTML = '<p>Error al cargar los insumos utilizados</p>'
-		})
   
 	  // Actualizar lista de sensores
 	  const listaSensores = document.getElementById("listaSensores");
 	  if (listaSensores) {
 		listaSensores.innerHTML = "";
+		console.log('Datos de sensores recibidos:', JSON.stringify(produccion.sensores, null, 2));
 		if (produccion.sensores && produccion.sensores.length > 0) {
-		  produccion.sensores.forEach(sensor => {
-			const listItem = document.createElement("li");
-			listItem.className = "sensor-item";
-			listItem.innerHTML = `
-			  <div class="sensor-item__header">
-				<span class="sensor-item__name">${sensor.nombre_sensor}</span>
-				<span class="sensor-item__type">(${sensor.tipo_sensor})</span>
-			  </div>
-			  <div class="sensor-item__details">
-				<span class="sensor-item__measure">Unidad: ${sensor.unidad_medida}</span>
-				<span class="sensor-item__scan">Escaneo: ${sensor.tiempo_escaneo}</span>
-			  </div>
-			`;
-			listaSensores.appendChild(listItem);
+		  // Hacer una petición para obtener los datos completos de cada sensor
+		  const promesasSensores = produccion.sensores.map(sensor => {
+			console.log('Procesando sensor:', JSON.stringify(sensor, null, 2));
+			
+			// Si ya tenemos todos los datos necesarios, los usamos directamente
+			if (sensor.id && sensor.nombre_sensor && sensor.tipo_sensor) {
+			  return Promise.resolve({
+				...sensor,
+				nombre: sensor.nombre_sensor || sensor.nombre || 'Sensor sin nombre',
+				tipo: sensor.tipo_sensor || 'Sin tipo',
+				unidad: sensor.unidad_medida || 'N/A',
+				escaneo: sensor.tiempo_escaneo || 'No especificado'
+			  });
+			}
+			
+			// Si no, hacemos una petición para obtener los datos completos del sensor
+			return fetch(`http://localhost:5000/sensor/${sensor.id || sensor.sensor_id}`)
+			  .then(response => {
+				if (!response.ok) {
+				  throw new Error('Error al cargar el sensor');
+				}
+				return response.json();
+			  })
+			  .then(datosSensor => {
+				const sensorData = datosSensor.sensor || datosSensor;
+				console.log('Datos completos del sensor:', sensorData);
+				return {
+				  ...sensor,
+				  ...sensorData,
+				  nombre: sensorData.nombre_sensor || sensorData.nombre || 'Sensor sin nombre',
+				  tipo: sensorData.tipo_sensor || 'Sin tipo',
+				  unidad: sensorData.unidad_medida || 'N/A',
+				  escaneo: sensorData.tiempo_escaneo || 'No especificado'
+				};
+			  })
+			  .catch(error => {
+				console.error('Error al cargar el sensor:', error);
+				return {
+				  ...sensor,
+				  nombre: sensor.nombre_sensor || sensor.nombre || 'Error al cargar',
+				  tipo: 'Error',
+				  unidad: 'N/A',
+				  escaneo: 'No disponible'
+				};
+			  });
+		  });
+		  
+		  // Cuando todas las peticiones de sensores se completen
+		  Promise.all(promesasSensores).then(async (sensoresCompletos) => {
+			// Limpiar el mensaje de carga
+			listaSensores.innerHTML = '';
+			
+			// Función para obtener los detalles completos de un sensor
+			const fetchSensorDetails = async (sensorId) => {
+			  try {
+				const response = await fetch(`http://localhost:5000/sensor/${sensorId}`);
+				if (!response.ok) {
+				  throw new Error('Error al cargar los detalles del sensor');
+				}
+				const data = await response.json();
+				return data.sensor || data; // Asegurarse de manejar ambos formatos de respuesta
+			  } catch (error) {
+				console.error('Error al cargar detalles del sensor:', error);
+				return null;
+			  }
+			};
+
+			// Mostrar cada sensor
+			const loadSensors = async () => {
+			  for (const sensor of sensoresCompletos) {
+				const listItem = document.createElement("li");
+				listItem.className = "sensor-item";
+				
+				// Mostrar mensaje de carga temporal
+				listItem.innerHTML = `
+				  <div class="sensor-item__header">
+					<span class="sensor-item__name">${sensor.nombre_sensor || sensor.nombre || 'Cargando...'}</span>
+				  </div>
+				`;
+				listaSensores.appendChild(listItem);
+
+				try {
+				  // Obtener detalles completos del sensor
+				  const sensorCompleto = await fetchSensorDetails(sensor.id || sensor.sensor_id);
+				  
+				  // Usar los datos completos si están disponibles, de lo contrario usar los datos básicos
+				  const datosSensor = sensorCompleto || sensor;
+				  
+				  // Formatear los valores para mostrar
+				  const tipoSensor = datosSensor.tipo_sensor || 'No especificado';
+				  const unidadMedida = datosSensor.unidad_medida || 'No especificada';
+				  const tiempoEscaneo = datosSensor.tiempo_escaneo || 'No especificado';
+				  
+				  // Actualizar el elemento con los detalles completos
+				  listItem.innerHTML = `
+					<div class="sensor-item__header">
+					  <span class="sensor-item__name">${datosSensor.nombre_sensor || datosSensor.nombre || 'Sensor sin nombre'}</span>
+					</div>
+					<div class="sensor-item__details">
+					  <div class="sensor-detail">
+						<span class="sensor-label">Tipo: ${tipoSensor}</span>
+					  </div>
+					  <div class="sensor-detail">
+						<span class="sensor-label">Unidad de medida: ${unidadMedida}</span>
+					  </div>
+					  <div class="sensor-detail">
+						<span class="sensor-label">Tiempo de escaneo: ${tiempoEscaneo}</span>
+					  </div>
+					</div>
+				  `;
+				} catch (error) {
+				  console.error('Error al cargar el sensor:', error);
+				  listItem.innerHTML = `
+					<div class="sensor-item__header">
+					  <span class="sensor-item__name">${sensor.nombre_sensor || sensor.nombre || 'Error al cargar'}</span>
+					</div>
+					<div class="sensor-item__details">
+					  <div class="sensor-detail sensor-detail--error">
+						Error al cargar los detalles del sensor
+					  </div>
+					</div>
+				  `;
+				}
+			  }
+			};
+
+			// Iniciar la carga de sensores
+			await loadSensors();
+		  }).catch(error => {
+			console.error('Error al cargar los sensores:', error);
+			listaSensores.innerHTML = '<li class="sensor-item sensor-item--error">Error al cargar los sensores. Intente nuevamente.</li>';
 		  });
 		} else {
 		  const listItem = document.createElement("li");
