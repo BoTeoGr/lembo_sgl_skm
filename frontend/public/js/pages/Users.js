@@ -1,10 +1,13 @@
-import { renderUsersTable, updateUserStatus, filterUsers, resetUsers, usersConfig, fetchUsersFromAPI, updateUserStatusAPI } from '../config/usersConfig.js';
+import { usersConfig } from '../config/usersConfig.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   let currentPage = 1;
   const itemsPerPage = usersConfig.table.itemsPerPage || 10;
-  let filteredUsers = null;
-  let allUsers = await fetchUsersFromAPI();
+  let filteredUsers = [];
+
+  // Cargar datos iniciales
+  filteredUsers = await fetchUsersFromAPI();
+  renderPaginatedTable(filteredUsers);
 
   // Filtros
   const searchInput = document.querySelector('.filters__search');
@@ -12,37 +15,110 @@ document.addEventListener('DOMContentLoaded', async () => {
   const estadoSelect = document.querySelector('select[placeholder="Estado"]');
   const clearBtn = document.querySelector('.button--clear');
 
-  function getFilteredUsers() {
-    const search = searchInput.value;
-    const rol = rolSelect.value;
-    const estado = estadoSelect.value;
-    return allUsers.filter(user => {
-      const matchSearch = search === '' || user.nombre.toLowerCase().includes(search.toLowerCase()) || String(user.id).toLowerCase().includes(search.toLowerCase());
-      const matchRol = rol === '' || user.rol === rol;
-      const matchEstado = estado === '' || user.estado === estado;
-      return matchSearch && matchRol && matchEstado;
-    });
+  // --- Obtener usuarios desde la API ---
+  async function fetchUsersFromAPI() {
+    try {
+      const response = await fetch('http://localhost:5000/usuarios?limit=1000');
+      if (!response.ok) throw new Error('Error al obtener usuarios de la API');
+      const data = await response.json();
+      console.log('API Response:', data);
+      // Si la respuesta es un array o tiene la clave 'usuarios'
+      const usuariosArr = data.usuarios || [];
+      // Normalizar campos y estado
+      return usuariosArr.map(user => {
+        let status = user.estado || '';
+        if (typeof status === 'string') {
+          const estadoLower = status.trim().toLowerCase();
+          if (["habilitado", "activo"].includes(estadoLower)) {
+            status = 'Activo';
+          } else if (["deshabilitado", "inactivo"].includes(estadoLower)) {
+            status = 'Inactivo';
+          }
+        }
+        return {
+          id: user.id || user.numero_documento || '',
+          nombre: user.nombre || '',
+          correo: user.correo || user.email || '',
+          tipoDocumento: user.tipoDocumento || user.tipo_doc || user.tipo_documento || '',
+          numeroDocumento: user.numeroDocumento || user.num_doc || user.numero_doc || user.numero_documento || '',
+          telefono: user.telefono || user.celular || '',
+          rol: user.rol || '',
+          estado: status,
+          imagen: user.imagen || '',
+        };
+      });
+    } catch (e) {
+      console.warn('Fallo la carga desde la API:', e.message);
+      return [];
+    }
   }
 
-  function renderPaginatedTable(usersList) {
-    const total = usersList.length;
+  function getFilteredUsers() {
+    const search = document.querySelector('.filters__search')?.value?.toLowerCase() || '';
+    const rol = document.querySelector('select[placeholder="Rol"]')?.value || '';
+    const estado = document.querySelector('select[placeholder="Estado"]')?.value || '';
+    return filteredUsers.filter(u => 
+      (u.nombre.toLowerCase().includes(search) || String(u.id).toLowerCase().includes(search)) &&
+      (rol ? u.rol === rol : true) &&
+      (estado ? u.estado === estado : true)
+    );
+  }
+
+  function renderUsersTable(data) {
+    const tbody = document.querySelector('.table__body');
+    if (!data || data.length === 0) {
+      tbody.innerHTML = `
+        <tr class="table__row">
+          <td class="table__cell" colspan="7" style="text-align: center;">No se encontraron usuarios</td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = data.map(user => `
+      <tr class="table__row">
+        <td class="table__cell table__cell--checkbox">
+          <input type="checkbox" class="table__checkbox" />
+        </td>
+        <td class="table__cell table__cell--id">${user.id}</td>
+        <td class="table__cell table__cell--name">${user.nombre}</td>
+        <td class="table__cell table__cell--role">${user.rol}</td>
+        <td class="table__cell table__cell--phone">${user.telefono}</td>
+        <td class="table__cell table__cell--status">
+          <span class="badge badge--${user.estado === 'Activo' ? 'active' : 'inactive'}">${user.estado}</span>
+        </td>
+        <td class="table__cell table__cell--actions">
+          <button class="table__action-button table__action-button--view"><span class="material-symbols-outlined">visibility</span></button>
+          <button class="table__action-button table__action-button--edit" onclick="window.location.href='actualizar-usuario.html?id=${user.id}'">
+            <span class="material-symbols-outlined">edit</span>
+          </button>
+          <button class="table__action-button table__action-button--${user.estado === 'Activo' ? 'disable' : 'enable'}"><span class="material-symbols-outlined">power_settings_new</span></button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function renderPaginatedTable(list) {
+    const total = list.length;
     const totalPages = Math.max(1, Math.ceil(total / itemsPerPage));
     if (currentPage > totalPages) currentPage = totalPages;
     const startIdx = (currentPage - 1) * itemsPerPage;
     const endIdx = Math.min(startIdx + itemsPerPage, total);
-    const pageUsers = usersList.slice(startIdx, endIdx);
+    const pageUsers = list.slice(startIdx, endIdx);
     renderUsersTable(pageUsers);
-    renderPaginationInfo(startIdx, endIdx, total, totalPages);
+    renderPaginationInfo(startIdx, endIdx, total);
     renderPaginationControls(totalPages);
     updateSelectionCount();
   }
 
-  function renderPaginationInfo(startIdx, endIdx, total, totalPages) {
+  function renderPaginationInfo(startIdx, endIdx, total) {
     const currentPageSpan = document.querySelector('.pagination__current-page');
     const itemsPerPageSpan = document.querySelector('.pagination__items-per-page');
     const totalItemsSpan = document.querySelector('.pagination__total-items');
-    if (currentPageSpan) currentPageSpan.textContent = currentPage;
-    if (itemsPerPageSpan) itemsPerPageSpan.textContent = endIdx;
+    if (currentPageSpan) currentPageSpan.textContent = startIdx + 1;
+    // Show actual end index, not the slice end
+    const actualEndIdx = Math.min(endIdx, total);
+    if (itemsPerPageSpan) itemsPerPageSpan.textContent = actualEndIdx;
     if (totalItemsSpan) totalItemsSpan.textContent = total;
   }
 
@@ -64,27 +140,58 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function applyFilters() {
+    currentPage = 1; // Reset to first page when filters change
     filteredUsers = getFilteredUsers();
-    currentPage = 1;
     renderPaginatedTable(filteredUsers);
   }
 
-  searchInput.addEventListener('input', applyFilters);
-  rolSelect.addEventListener('change', applyFilters);
-  estadoSelect.addEventListener('change', applyFilters);
-  clearBtn.addEventListener('click', () => {
-    searchInput.value = '';
-    rolSelect.value = '';
-    estadoSelect.value = '';
-    resetUsers();
+  searchInput?.addEventListener('input', applyFilters);
+  rolSelect?.addEventListener('change', applyFilters);
+  estadoSelect?.addEventListener('change', applyFilters);
+  clearBtn?.addEventListener('click', () => {
+    if (searchInput) searchInput.value = '';
+    if (rolSelect) rolSelect.value = '';
+    if (estadoSelect) estadoSelect.value = '';
     filteredUsers = getFilteredUsers();
     currentPage = 1;
     renderPaginatedTable(filteredUsers);
   });
 
-  // Inicializar datos
-  filteredUsers = getFilteredUsers();
-  renderPaginatedTable(filteredUsers);
+  // Sincronización de checkbox general y de tabla
+  document.querySelector('.table__body').addEventListener('change', updateSelectionCount);
+
+  document.querySelector('.actions-bar__checkbox').addEventListener('change', function() {
+    const checked = this.checked;
+    document.querySelectorAll('.table__checkbox').forEach(cb => { cb.checked = checked; });
+    const thHeader = document.querySelector('.table__checkbox-header');
+    if (thHeader) thHeader.checked = checked;
+    updateSelectionCount();
+  });
+
+  // Checkbox en header de tabla
+  const initializeHeaderCheckbox = () => {
+    let headerCheckbox = document.querySelector('.table__checkbox-header');
+    if (!headerCheckbox) {
+      // Si no existe, lo agregamos dinámicamente
+      const th = document.createElement('th');
+      th.className = 'table__cell table__cell--checkbox';
+      th.innerHTML = '<input type="checkbox" class="table__checkbox-header" />';
+      const theadRow = document.querySelector('.table__head .table__row');
+      if (theadRow) theadRow.insertBefore(th, theadRow.firstChild);
+      headerCheckbox = document.querySelector('.table__checkbox-header');
+    }
+    if (headerCheckbox) {
+      headerCheckbox.addEventListener('change', function() {
+        const checked = this.checked;
+        document.querySelectorAll('.table__checkbox').forEach(cb => { cb.checked = checked; });
+        const bar = document.querySelector('.actions-bar__checkbox');
+        if (bar) bar.checked = checked;
+        updateSelectionCount();
+      });
+    }
+  };
+  
+  initializeHeaderCheckbox();
 
   // Acciones de habilitar/deshabilitar (por fila)
   document.querySelector('.table__body').addEventListener('click', async (e) => {
@@ -93,20 +200,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     const row = btn.closest('tr');
     const id = row.querySelector('.table__cell--id').textContent;
     if (btn.classList.contains('table__action-button--view')) {
-      const usuario = allUsers.find(u => String(u.id) === String(id));
-      if (usuario) showUsuarioModal(usuario);
+      try {
+        const response = await fetch(`http://localhost:5000/usuarios/${id}`);
+        if (!response.ok) throw new Error('Error al obtener los detalles del usuario');
+        const usuario = await response.json();
+        showUsuarioModal(usuario);
+      } catch (error) {
+        console.error('Error al cargar el usuario:', error);
+        alert('No se pudo cargar la información del usuario');
+      }
       return;
     } else if (btn.classList.contains('table__action-button--edit')) {
       window.location.href = `actualizar-usuario.html?id=${id}`;
     } else if (btn.classList.contains('table__action-button--enable')) {
-      await updateUserStatusAPI([id], 'Activo');
-      allUsers = await fetchUsersFromAPI();
-      filteredUsers = getFilteredUsers();
+      updateUserStatus([id], 'Activo');
+      await toggleUserStatus(id, 'Activo');
       renderPaginatedTable(filteredUsers);
     } else if (btn.classList.contains('table__action-button--disable')) {
-      await updateUserStatusAPI([id], 'Inactivo');
-      allUsers = await fetchUsersFromAPI();
-      filteredUsers = getFilteredUsers();
+      updateUserStatus([id], 'Inactivo');
+      await toggleUserStatus(id, 'Deshabilitado');
       renderPaginatedTable(filteredUsers);
     }
   });
@@ -137,24 +249,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   enableBtn.addEventListener('click', async () => {
     const ids = getSelectedIds();
     if (ids.length === 0) return;
-    await updateUserStatusAPI(ids, 'Activo');
-    allUsers = await fetchUsersFromAPI();
-    filteredUsers = getFilteredUsers();
+    updateUserStatus(ids, 'Activo');
+    await Promise.all(ids.map(id => toggleUserStatus(id, 'Activo')));
     renderPaginatedTable(filteredUsers);
     document.querySelector('.actions-bar__checkbox').checked = false;
     document.querySelector('.table__checkbox-header').checked = false;
-    updateSelectionCount();
   });
   disableBtn.addEventListener('click', async () => {
     const ids = getSelectedIds();
     if (ids.length === 0) return;
-    await updateUserStatusAPI(ids, 'Inactivo');
-    allUsers = await fetchUsersFromAPI();
-    filteredUsers = getFilteredUsers();
+    updateUserStatus(ids, 'Inactivo');
+    await Promise.all(ids.map(id => toggleUserStatus(id, 'Inactivo')));
     renderPaginatedTable(filteredUsers);
     document.querySelector('.actions-bar__checkbox').checked = false;
     document.querySelector('.table__checkbox-header').checked = false;
-    updateSelectionCount();
   });
 
   // Selección masiva (actions-bar)
@@ -178,10 +286,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (bar) bar.checked = checked;
       updateSelectionCount();
     });
-  }
-
-  function updateUserStatus(ids, status) {
-    allUsers = allUsers.map(user => ids.includes(user.id) ? { ...user, estado: status } : user);
   }
 
   // --- Modal Visualizar Usuario ---

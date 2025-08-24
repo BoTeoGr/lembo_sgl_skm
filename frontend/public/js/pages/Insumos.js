@@ -1,4 +1,5 @@
 import { insumosConfig } from '../config/insumosConfig.js';
+import { insumos } from '../data/insumosData.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   let currentPage = 1;

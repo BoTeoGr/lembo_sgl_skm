@@ -3,7 +3,7 @@ import { sensorsConfig } from '../config/sensorsConfig.js';
 // --- Obtener sensores desde la API ---
 async function fetchSensorsFromAPI() {
     try {
-        const response = await fetch('http://localhost:5000/sensor');
+        const response = await fetch('http://localhost:5000/sensor?limit=1000');
         if (!response.ok) throw new Error('Error al obtener sensores de la API');
         const data = await response.json();
         const sensoresArr = Array.isArray(data) ? data : (data.sensores || []);
@@ -413,13 +413,40 @@ class Sensors {
         console.log('Editando sensor:', sensor);
     }
 
+    setupPaginationEvents() {
+        const paginationControls = document.querySelector('.pagination__controls');
+        paginationControls.addEventListener('click', (e) => {
+            const button = e.target.closest('.pagination__button');
+            if (!button) return;
+
+            if (button.classList.contains('pagination__button--prev')) {
+                if (this.currentPage > 1) {
+                    this.currentPage--;
+                }
+            } else if (button.classList.contains('pagination__button--next')) {
+                const totalPages = Math.ceil(this.filteredData.length / this.itemsPerPage);
+                if (this.currentPage < totalPages) {
+                    this.currentPage++;
+                }
+            } else {
+                const pageNum = parseInt(button.textContent);
+                if (!isNaN(pageNum)) {
+                    this.currentPage = pageNum;
+                }
+            }
+            
+            this.renderTable();
+            this.updatePagination();
+        });
+    }
+
     updatePagination() {
         const totalItems = this.filteredData.length;
         const totalPages = Math.ceil(totalItems / this.itemsPerPage);
         
         // Actualizar información de paginación
-        document.querySelector('.pagination__current-page').textContent = this.currentPage;
-        document.querySelector('.pagination__items-per-page').textContent = this.itemsPerPage;
+        document.querySelector('.pagination__current-page').textContent = ((this.currentPage - 1) * this.itemsPerPage) + 1;
+        document.querySelector('.pagination__items-per-page').textContent = Math.min(this.currentPage * this.itemsPerPage, totalItems);
         document.querySelector('.pagination__total-items').textContent = totalItems;
         
         // Actualizar botones de página
@@ -443,9 +470,6 @@ class Sensors {
                 <span class="material-symbols-outlined">navigate_next</span>
             </button>
         `;
-        
-        // Volver a configurar los eventos de paginación
-        this.setupPaginationEvents();
     }
 
     showReportModal() {

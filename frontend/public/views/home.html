@@ -22,6 +22,9 @@
 		<link rel="stylesheet" href="../css/components/navbar.css" />
 		<script type="module" src="../js/pages/componentLoader.js"></script>
 		<script src="../js/pages/suppliesWidget.js"></script>
+		<script src="../js/pages/sensorWidget.js"></script>
+		<script src="../js/pages/userWidget.js"></script>
+		<script src="../js/pages/cropsWidget.js"></script>
 	</head>
 
 	<body>
@@ -160,27 +163,18 @@
 									<span
 										class="status-list__dot status-list__dot--success"
 									></span>
-									<span>Activos</span>
+									<span>Habilitados</span>
 								</div>
-								<span>1,050</span>
-							</div>
-							<div class="status-list__item">
-								<div class="status-list__indicator">
-									<span
-										class="status-list__dot status-list__dot--warning"
-									></span>
-									<span>En mantenimiento</span>
-								</div>
-								<span>98</span>
+								<span>0</span>
 							</div>
 							<div class="status-list__item">
 								<div class="status-list__indicator">
 									<span
 										class="status-list__dot status-list__dot--danger"
 									></span>
-									<span>Inactivos</span>
+									<span>Deshabilitados</span>
 								</div>
-								<span>52</span>
+								<span>0</span>
 							</div>
 						</div>
 					</div>
@@ -206,27 +200,30 @@
 						</a>
 					</div>
 					<div class="card__content">
-						<div class="status-list">
-							<div class="status-list__item">
-								<div class="status-list__indicator">
+						<div class="stats-list">
+							<div class="stats-list__item">
+								<div class="stats-list__indicator">
 									<span class="status-list__dot status-list__dot--warning"></span>
-									<span>Administradores</span>
+									<span class="stats-list__label">Administradores</span>
+									<span class="stats-list__description">(Control total del sistema)</span>
 								</div>
-								<span>8</span>
+								<span class="stats-list__number">0</span>
 							</div>
-							<div class="status-list__item">
-								<div class="status-list__indicator">
+							<div class="stats-list__item">
+								<div class="stats-list__indicator">
 									<span class="status-list__dot status-list__dot--info"></span>
-									<span>Visitantes</span>
+									<span class="stats-list__label">Usuarios Estándar</span>
+									<span class="stats-list__description">(Acceso básico al sistema)</span>
 								</div>
-								<span>900</span>
+								<span class="stats-list__number">0</span>
 							</div>
-							<div class="status-list__item">
-								<div class="status-list__indicator">
+							<div class="stats-list__item">
+								<div class="stats-list__indicator">
 									<span class="status-list__dot status-list__dot--support"></span>
-									<span>Personal de apoyo</span>
+									<span class="stats-list__label">Técnicos</span>
+									<span class="stats-list__description">(Mantenimiento y soporte)</span>
 								</div>
-								<span>292</span>
+								<span class="stats-list__number">0</span>
 							</div>
 						</div>
 					</div>
@@ -256,23 +253,16 @@
 							<div class="status-list__item">
 								<div class="status-list__indicator">
 									<span class="status-list__dot status-list__dot--success"></span>
-									<span>Activos</span>
+									<span>Habilitados</span>
 								</div>
-								<span>8</span>
-							</div>
-							<div class="status-list__item">
-								<div class="status-list__indicator">
-									<span class="status-list__dot status-list__dot--warning"></span>
-									<span>Planificados</span>
-								</div>
-								<span>3</span>
+								<span>0</span>
 							</div>
 							<div class="status-list__item">
 								<div class="status-list__indicator">
 									<span class="status-list__dot status-list__dot--danger"></span>
-									<span>Cosechados</span>
+									<span>Deshabilitados</span>
 								</div>
-								<span>5</span>
+								<span>0</span>
 							</div>
 						</div>
 					</div>
@@ -412,5 +402,6 @@
 		<footer class="footer"></footer>
 		<script src="../js/validations/homeValidator.js"></script>
 		<script src="../js/pages/weatherWidget.js"></script>
+		<script src="../js/pages/userWidget.js"></script>
 	</body>
 </html>

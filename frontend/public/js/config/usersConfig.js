@@ -57,17 +57,27 @@ export async function fetchUsersFromAPI() {
 export function renderUsersTable(filteredUsers = users) {
   const tbody = document.querySelector('.table__body');
   if (!tbody) return;
+  
+  if (!filteredUsers || filteredUsers.length === 0) {
+    tbody.innerHTML = `
+      <tr class="table__row">
+        <td class="table__cell" colspan="7" style="text-align: center;">No se encontraron usuarios</td>
+      </tr>
+    `;
+    return;
+  }
+
   tbody.innerHTML = filteredUsers.map(user => `
     <tr class="table__row">
       <td class="table__cell table__cell--checkbox">
         <input type="checkbox" class="table__checkbox" />
       </td>
-      <td class="table__cell table__cell--id">${user.id}</td>
-      <td class="table__cell table__cell--name">${user.nombre}</td>
-      <td class="table__cell table__cell--role">${user.rol}</td>
-      <td class="table__cell table__cell--phone">${user.telefono}</td>
+      <td class="table__cell table__cell--id">${user.id || ''}</td>
+      <td class="table__cell table__cell--name">${user.nombre || ''}</td>
+      <td class="table__cell table__cell--role">${user.rol || ''}</td>
+      <td class="table__cell table__cell--phone">${user.telefono || ''}</td>
       <td class="table__cell table__cell--status">
-        <span class="badge badge--${user.estado === 'Activo' ? 'active' : 'inactive'}">${user.estado}</span>
+        <span class="badge badge--${user.estado === 'Activo' ? 'active' : 'inactive'}">${user.estado || 'Inactivo'}</span>
       </td>
       <td class="table__cell table__cell--actions">
         <button class="table__action-button table__action-button--view"><span class="material-symbols-outlined">visibility</span></button>

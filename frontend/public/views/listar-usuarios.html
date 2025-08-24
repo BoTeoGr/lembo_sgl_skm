@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 	<head>
-		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Sistema de Gestión Agrícola - Usuarios</title>
 		<link rel="stylesheet" href="../css/pages/listar.css">
@@ -12,10 +11,11 @@
 		/>
 		<link rel="stylesheet" href="../css/components/navbar.css" />
 		<link rel="stylesheet" href="../css/components/modal-list.css" />
+		<link rel="stylesheet" href="../css/pages/roles.css" />
 		<script type="module" src="../js/config/usersConfig.js"></script>
 		<script type="module" src="../js/pages/componentLoader.js"></script>
 		<script type="module" src="../js/pages/Users.js"></script>
-		<script type="module" src="../js/config/usersConfig.js"></script>
+		<script type="module" src="../js/pages/userRoles.js"></script>
 	</head>
 	<body>
 		<nav class="nav-render"></nav>
@@ -48,8 +48,10 @@
 					<input type="text" class="filters__search" placeholder="Buscar por nombre o ID" />
 					<select class="filters__select" placeholder="Rol">
 						<option value="">Todos</option>
+						<option value="Super administrador">Super administrador</option>
 						<option value="Administrador">Administrador</option>
-						<option value="Usuario">Usuario</option>
+						<option value="Personal de Apoyo">Personal de Apoyo</option>
+						<option value="Visitante">Visitante</option>
 					</select>
 					<select class="filters__select" placeholder="Estado">
 						<option value="">Todos</option>
@@ -301,7 +303,7 @@
 				<div class="pagination__info">
 					Mostrando <span class="pagination__current-page">1</span> a
 					<span class="pagination__items-per-page">10</span> de
-					<span class="pagination__total-items">15</span> resultados
+					<span class="pagination__total-items">0</span> resultados
 				</div>
 				<div class="pagination__controls">
 					<button class="pagination__button pagination__button--prev" disabled>

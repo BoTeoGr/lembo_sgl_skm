@@ -3,7 +3,7 @@ import { cropsConfig } from '../config/cropsConfig.js';
 // Nueva función para cargar datos desde la API (si existe)
 async function fetchCropsFromAPI() {
     try {
-        const response = await fetch('http://localhost:5000/cultivos');
+        const response = await fetch('http://localhost:5000/cultivos?limit=1000');
         if (!response.ok) throw new Error('Error al obtener cultivos de la API');
         const data = await response.json();
         // Si la respuesta contiene la clave 'cultivos', usarla; si no, usar el array directamente
@@ -299,11 +299,12 @@ class Crops {
 
     filterData() {
         const searchTerm = document.querySelector('.filters__search').value.toLowerCase();
-        this.filteredData = this.filteredData.filter(crop =>
+        const allCrops = fetchCropsFromAPI(); // Aseguramos tener todos los datos
+        this.filteredData = allCrops.filter(crop =>
             crop.name.toLowerCase().includes(searchTerm) ||
             String(crop.id).toLowerCase().includes(searchTerm)
         );
-        this.currentPage = 1;
+        this.currentPage = 1; // Reset to first page when filtering
         this.renderTable();
         this.updatePagination();
     }
@@ -386,20 +387,67 @@ class Crops {
         document.getElementById('viewCropModal').classList.add('modal--active');
     }
 
+    setupPaginationEvents() {
+        const paginationControls = document.querySelector('.pagination__controls');
+        paginationControls.addEventListener('click', (e) => {
+            const button = e.target.closest('.pagination__button');
+            if (!button) return;
+
+            if (button.classList.contains('pagination__button--prev')) {
+                if (this.currentPage > 1) {
+                    this.currentPage--;
+                }
+            } else if (button.classList.contains('pagination__button--next')) {
+                const totalPages = Math.ceil(this.filteredData.length / this.itemsPerPage);
+                if (this.currentPage < totalPages) {
+                    this.currentPage++;
+                }
+            } else {
+                const pageNum = parseInt(button.textContent);
+                if (!isNaN(pageNum)) {
+                    this.currentPage = pageNum;
+                }
+            }
+            
+            this.renderTable();
+            this.updatePagination();
+        });
+    }
+
     updatePagination() {
         const totalItems = this.filteredData.length;
         const totalPages = Math.ceil(totalItems / this.itemsPerPage);
-        document.querySelector('.pagination__current-page').textContent = this.currentPage;
-        document.querySelector('.pagination__items-per-page').textContent = this.itemsPerPage;
+        
+        // Actualizar información de paginación para mostrar el rango correcto
+        const startItem = ((this.currentPage - 1) * this.itemsPerPage) + 1;
+        const endItem = Math.min(this.currentPage * this.itemsPerPage, totalItems);
+        document.querySelector('.pagination__current-page').textContent = startItem;
+        document.querySelector('.pagination__items-per-page').textContent = endItem;
         document.querySelector('.pagination__total-items').textContent = totalItems;
+        
+        // Actualizar botones de página
         const paginationControls = document.querySelector('.pagination__controls');
-        let controlsHTML = `<button class="pagination__button pagination__button--prev ${this.currentPage === 1 ? 'disabled' : ''}"><span class="material-symbols-outlined">navigate_before</span></button>`;
+        let controlsHTML = `
+            <button class="pagination__button pagination__button--prev ${this.currentPage === 1 ? 'disabled' : ''}">
+                <span class="material-symbols-outlined">navigate_before</span>
+            </button>
+        `;
+        
         for (let i = 1; i <= totalPages; i++) {
-            controlsHTML += `<button class="pagination__button ${i === this.currentPage ? 'pagination__button--active' : ''}">${i}</button>`;
+            controlsHTML += `
+                <button class="pagination__button ${i === this.currentPage ? 'pagination__button--active' : ''}">
+                    ${i}
+                </button>
+            `;
         }
-        controlsHTML += `<button class="pagination__button pagination__button--next ${this.currentPage === totalPages ? 'disabled' : ''}"><span class="material-symbols-outlined">navigate_next</span></button>`;
+        
+        controlsHTML += `
+            <button class="pagination__button pagination__button--next ${this.currentPage === totalPages ? 'disabled' : ''}">
+                <span class="material-symbols-outlined">navigate_next</span>
+            </button>
+        `;
+        
         paginationControls.innerHTML = controlsHTML;
-        this.setupPaginationEvents();
     }
 
     updateSelectedCrops(checkbox, id) {
