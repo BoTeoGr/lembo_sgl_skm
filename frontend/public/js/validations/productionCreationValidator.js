@@ -252,9 +252,39 @@ async function initializeForm() {
   allSuppliesGlobal = suppliesWithStock;
   updateAvailableSuppliesSelect();
 
-  // Filtrar usuarios con rol 'admin' y mostrar solo esos en el selector de responsables
-  const adminUsers = users.filter(u => u.rol && u.rol.toLowerCase() === 'admin');
-  fillSelect("responsible", adminUsers, "Seleccionar responsable", NAME_FIELDS.user, ID_FIELDS.user)
+    console.log("Datos completos de los primeros 2 usuarios:", users.slice(0, 2));
+    
+    // Asegurarse de que los usuarios tengan los campos necesarios
+    const validUsers = users.filter(user => user && (user.id || user._id) && (user.nombre || user.name || user.email || user.correo));
+    console.log("Total de usuarios válidos:", validUsers.length);
+    
+    // Mostrar los roles únicos para depuración
+    const uniqueRoles = [...new Set(validUsers.map(u => {
+      const rol = u.rol || u.role || u.tipo_usuario || u.tipoUsuario || 'no-rol';
+      return rol.toString().toLowerCase();
+    }))];
+    console.log("Roles únicos encontrados:", uniqueRoles);
+    
+    // Mostrar todos los usuarios con sus roles para depuración
+    console.log("Usuarios con sus roles:", validUsers.map(u => ({
+      id: u.id || u._id,
+      nombre: u.nombre || u.name || u.email || u.correo,
+      rol: u.rol || u.role || u.tipo_usuario || u.tipoUsuario
+    })));
+    
+    // Por ahora, mostrar todos los usuarios en lugar de solo administradores
+    const usersToShow = [...validUsers];
+    console.log(`Mostrando ${usersToShow.length} usuarios en el selector`);
+    
+    // Determinar los campos a usar
+    const firstUser = validUsers[0] || {};
+    const nameField = firstUser.nombre ? 'nombre' : 
+                     firstUser.name ? 'name' : 
+                     firstUser.email ? 'email' : 'correo';
+    const idField = firstUser.id ? 'id' : '_id';
+    
+    console.log(`Usando campos: nameField=${nameField}, idField=${idField}`);
+    fillSelect("responsible", usersToShow, "Seleccionar responsable", nameField, idField);
 
     // Inicializar fechas con valores predeterminados
     const startDate = document.getElementById("startDate")
@@ -785,75 +815,84 @@ function handleSupplyUsage(supplyId) {
 
 // Función para registrar el uso del insumo
 function registerSupplyUsage() {
-  console.log('Iniciando registro de uso');
-  console.log('tempSelectedSupply:', tempSelectedSupply);
-  
-  const supply = tempSelectedSupply;
-  if (!supply) {
-    showToast("Error", "No se ha seleccionado ningún insumo", "error");
-    return;
-  }
+  try {
+    console.log('Iniciando registro de uso')
+    console.log('tempSelectedSupply:', tempSelectedSupply)
+    
+    if (!tempSelectedSupply) {
+      showToast('Error', 'No se ha seleccionado ningún insumo')
+      return
+    }
 
-  const quantityInput = document.getElementById("supplyUsageQuantity");
-  const quantity = parseFloat(quantityInput.value);
+    const quantityInput = document.getElementById('supplyUsageQuantity')
+    if (!quantityInput) {
+      showToast('Error', 'No se pudo encontrar el campo de cantidad')
+      return
+    }
 
-  console.log('Cantidad ingresada:', quantity);
-  console.log('Cantidad disponible:', supply.cantidad);
+    const quantity = parseFloat(quantityInput.value)
+    console.log('Cantidad ingresada:', quantity)
+    console.log('Cantidad disponible:', tempSelectedSupply.cantidad)
 
-  if (isNaN(quantity) || quantity <= 0) {
-    showToast("Error", "Por favor ingrese una cantidad válida", "error");
-    return;
-  }
+    if (isNaN(quantity) || quantity <= 0) {
+      showToast('Error', 'Por favor ingrese una cantidad válida')
+      quantityInput.focus()
+      return
+    }
 
-  if (quantity > supply.cantidad) {
-    showToast("Error", "La cantidad excede el stock disponible", "error");
-    return;
-  }
+    if (quantity > tempSelectedSupply.cantidad) {
+      showToast('Error', `La cantidad no puede ser mayor a ${tempSelectedSupply.cantidad}`)
+      quantityInput.focus()
+      return
+    }
 
-  // Encontrar y actualizar el objeto en la lista de insumos seleccionados
-  const supplyIndex = selectedSupplies.findIndex(s => s.id === supply.id);
-  if (supplyIndex !== -1) {
-    // Actualizar el objeto en selectedSupplies
-    selectedSupplies[supplyIndex] = {
-      ...selectedSupplies[supplyIndex],
-      cantidad_usar: quantity,
-      cantidad_usada: quantity
-    };
-
-    // Actualizar o agregar en productionData.insumos_ids
-    const productionIndex = productionData.insumos_ids.findIndex(s => s.id === supply.id);
-    if (productionIndex !== -1) {
-      // Si ya existe, actualizar
-      productionData.insumos_ids[productionIndex] = {
-        id: supply.id,
-        cantidad_usar: quantity
+    // Encontrar y actualizar el objeto en la lista de insumos seleccionados
+    const supplyIndex = selectedSupplies.findIndex(s => s.id === tempSelectedSupply.id);
+    if (supplyIndex !== -1) {
+      // Actualizar el objeto en selectedSupplies
+      selectedSupplies[supplyIndex] = {
+        ...selectedSupplies[supplyIndex],
+        cantidad_usar: quantity,
+        cantidad_usada: quantity
       };
-    } else {
-      // Si no existe, agregar
-      productionData.insumos_ids.push({
-        id: supply.id,
-        cantidad_usar: quantity
-      });
+
+      // Actualizar o agregar en productionData.insumos_ids
+      const productionIndex = productionData.insumos_ids.findIndex(s => s.id === tempSelectedSupply.id);
+      if (productionIndex !== -1) {
+        // Si ya existe, actualizar
+        productionData.insumos_ids[productionIndex] = {
+          id: tempSelectedSupply.id,
+          cantidad_usar: quantity
+        };
+      } else {
+        // Si no existe, agregar
+        productionData.insumos_ids.push({
+          id: tempSelectedSupply.id,
+          cantidad_usar: quantity
+        });
+      }
     }
-  }
 
-  // Actualizar la UI de la tarjeta del insumo
-  const supplyCard = document.querySelector(`[data-supply-id="${supply.id}"]`);
-  if (supplyCard) {
-    const cantidadElement = supplyCard.querySelector(".item-details:last-child");
-    if (cantidadElement) {
-      cantidadElement.textContent = `Cantidad: ${quantity}`;
+    // Actualizar la UI de la tarjeta del insumo
+    const supplyCard = document.querySelector(`[data-supply-id="${tempSelectedSupply.id}"]`);
+    if (supplyCard) {
+      const cantidadElement = supplyCard.querySelector(".item-details:last-child");
+      if (cantidadElement) {
+        cantidadElement.textContent = `Cantidad: ${quantity}`;
+      }
     }
+
+    // Limpiar el campo de cantidad para el siguiente insumo
+    quantityInput.value = '';
+
+    // Recalcular la inversión total
+    calculateTotalInvestment();
+
+    // Mostrar mensaje de éxito
+    showToast("Éxito", "Uso de insumo registrado correctamente", "success");
+  } catch (error) {
+    console.error('Error registering supply usage:', error);
   }
-
-  // Limpiar el campo de cantidad para el siguiente insumo
-  quantityInput.value = '';
-
-  // Recalcular la inversión total
-  calculateTotalInvestment();
-
-  // Mostrar mensaje de éxito
-  showToast("Éxito", "Uso de insumo registrado correctamente", "success");
 }
 
 // Modificar la función addSelectedSupply para incluir la cantidad a usar
@@ -999,49 +1038,115 @@ async function createProduction(e) {
 
 // Función para mostrar notificaciones
 function showToast(title, message, type = 'success') {
-  const toast = document.getElementById('toast');
-  const toastTitle = document.getElementById('toastTitle');
-  const toastDescription = document.getElementById('toastDescription');
-  const toastIcon = document.getElementById('toastIcon');
-  const toastProgress = document.querySelector('.toast-progress');
+  try {
+    // Try to find the toast container, or create it if it doesn't exist
+    let toastContainer = document.getElementById('toast-container');
+    
+    // If toast container doesn't exist, create it
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.style.position = 'fixed';
+        toastContainer.style.top = '20px';
+        toastContainer.style.right = '20px';
+        toastContainer.style.zIndex = '9999';
+        document.body.appendChild(toastContainer);
+    }
 
-  // Establecer el contenido del toast
-  toastTitle.textContent = title;
-  toastDescription.textContent = message;
-  
-  // Establecer el icono según el tipo
-  switch(type) {
-      case 'success':
-          toastIcon.className = 'fas fa-check-circle';
-          break;
-      case 'error':
-          toastIcon.className = 'fas fa-exclamation-circle';
-          break;
-      case 'warning':
-          toastIcon.className = 'fas fa-exclamation-triangle';
-          break;
-      case 'info':
-          toastIcon.className = 'fas fa-info-circle';
-          break;
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.style.padding = '16px';
+    toast.style.marginBottom = '10px';
+    toast.style.borderRadius = '4px';
+    toast.style.color = 'white';
+    toast.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+    toast.style.display = 'flex';
+    toast.style.flexDirection = 'column';
+    toast.style.gap = '8px';
+    toast.style.minWidth = '300px';
+    toast.style.maxWidth = '350px';
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(100%)';
+    toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+
+    // Set background color based on type
+    switch(type) {
+        case 'error':
+            toast.style.backgroundColor = '#ef4444';
+            break;
+        case 'warning':
+            toast.style.backgroundColor = '#f59e0b';
+            break;
+        case 'info':
+            toast.style.backgroundColor = '#3b82f6';
+            break;
+        default: // success
+            toast.style.backgroundColor = '#10b981';
+    }
+
+    // Add title if provided
+    if (title) {
+        const titleElement = document.createElement('div');
+        titleElement.style.fontWeight = 'bold';
+        titleElement.style.fontSize = '1.1em';
+        titleElement.textContent = title;
+        toast.appendChild(titleElement);
+    }
+
+    // Add message if provided
+    if (message) {
+        const messageElement = document.createElement('div');
+        messageElement.textContent = message;
+        toast.appendChild(messageElement);
+    }
+
+    // Add close button
+    const closeButton = document.createElement('button');
+    closeButton.textContent = '×';
+    closeButton.style.position = 'absolute';
+    closeButton.style.top = '5px';
+    closeButton.style.right = '10px';
+    closeButton.style.background = 'none';
+    closeButton.style.border = 'none';
+    closeButton.style.color = 'white';
+    closeButton.style.fontSize = '1.5em';
+    closeButton.style.cursor = 'pointer';
+    closeButton.style.padding = '0';
+    closeButton.style.lineHeight = '1';
+    closeButton.addEventListener('click', () => {
+        toast.style.opacity = '0';
+        setTimeout(() => {
+            if (toast && toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    });
+    toast.appendChild(closeButton);
+
+    // Add to container
+    toastContainer.appendChild(toast);
+
+    // Animate in
+    setTimeout(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateX(0)';
+    }, 10);
+
+    // Auto-remove after delay
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => {
+            if (toast && toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    }, 5000);
+  } catch (error) {
+    console.error('Error showing toast:', error);
+    // Fallback to console if alert is not available
+    console.log(`${title ? title + ': ' : ''}${message || 'An error occurred'}`);
   }
-
-  // Mostrar el toast
-  toast.classList.remove('hidden');
-  
-  // Animación de la barra de progreso
-  let progress = 0;
-  const progressInterval = setInterval(() => {
-      progress += 2;
-      toastProgress.style.width = `${progress}%`;
-      if (progress >= 100) {
-          clearInterval(progressInterval);
-          // Ocultar el toast después de 5 segundos
-          setTimeout(() => {
-              toast.classList.add('hidden');
-              toastProgress.style.width = '0%';
-          }, 3400);
-      }
-  }, 30);
 }
 
 // Hacer la función removeSelectedItem global para que pueda ser llamada desde el HTML
@@ -2042,9 +2147,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Actualizar el título de la sección de insumos
-  const insumosSectionTitle = document.querySelector('.form__section-title:contains("Insumo")')
+  const sectionTitles = document.querySelectorAll('.form__section-title');
+  const insumosSectionTitle = Array.from(sectionTitles).find(el => 
+    el.textContent.includes('Insumo')
+  );
   if (insumosSectionTitle) {
-    insumosSectionTitle.innerHTML = '<i class="fas fa-box-open"></i> Insumos'
+    insumosSectionTitle.innerHTML = '<i class="fas fa-box-open"></i> Insumos';
   }
 
   // Verificar que los botones de los modales estén correctamente configurados

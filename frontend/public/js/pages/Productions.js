@@ -1679,7 +1679,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	listContainer.innerHTML = "";
 	cultivos.forEach((cultivo) => {
 	  // Obtener producciones asociadas a este cultivo
-	  fetch(`http://localhost:5000/producciones/por-cultivo/${cultivo.cultivoId}`)
+	  fetch(`http://localhost:5000/producciones/cultivo/${cultivo.cultivoId}`)
 		.then((response) => response.json())
 		.then((producciones) => {
 		  const listItem = document.createElement("div");
@@ -1813,7 +1813,7 @@ document.addEventListener("DOMContentLoaded", () => {
   
 	  // Fetch producciones asociadas para el sensor
 	  const sensorId = sensoresDelTipo[0].id; 
-	  fetch(`http://localhost:5000/producciones/por-sensor/${sensorId}`)  
+	  fetch(`http://localhost:5000/producciones/sensor/${sensorId}`)  
 		.then(response => {
 		  if (!response.ok) {
 			throw new Error(`Error al obtener producciones: ${response.status}`);
@@ -1887,7 +1887,7 @@ document.addEventListener("DOMContentLoaded", () => {
   
 	insumos.forEach((insumo) => {
 	  // Obtener producciones asociadas a este insumo
-	  fetch(`http://localhost:5000/producciones/por-insumo/${insumo.id}`)
+	  fetch(`http://localhost:5000/producciones/insumo/${insumo.id}`)
 		.then((response) => response.json())
 		.then((producciones) => {
 		  const listItem = document.createElement("div");
@@ -1982,7 +1982,7 @@ document.addEventListener("DOMContentLoaded", () => {
   
 	usuarios.forEach((usuario) => {
 	  // Obtener producciones asociadas a este usuario
-	  fetch(`http://localhost:5000/producciones/por-usuario/${usuario.id}`)
+	  fetch(`http://localhost:5000/producciones/usuario/${usuario.id}`)
 		.then((response) => response.json())
 		.then((producciones) => {
 		  const listItem = document.createElement("div");

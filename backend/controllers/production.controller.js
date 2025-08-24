@@ -796,12 +796,22 @@ export function obtenerProduccionesPorCultivo(req, res) {
 }
 
 export function obtenerProduccionesPorInsumo(req, res) {
-  const insumoId = req.params.id;
-  // Primero, obtén la información del insumo
-  db.query('SELECT id, nombre, descripcion, cantidad, unidad_medida, tipo FROM insumos WHERE id = ?', [insumoId], (error, insumoResult) => {
+  const insumoId = parseInt(req.params.id);
+
+  if (isNaN(insumoId)) {
+    return res.status(400).json({ mensaje: 'ID de insumo no válido' });
+  }
+
+  // Primero obtenemos la información del insumo
+  db.query('SELECT id, nombre, descripcion, cantidad, unidad_medida, tipo FROM insumos WHERE id = ?', 
+  [insumoId], 
+  (error, insumoResult) => {
     if (error) {
       console.error("Error al obtener el insumo:", error);
-      return res.status(500).json({ mensaje: 'Error al obtener el insumo' });
+      return res.status(500).json({ 
+        mensaje: 'Error al obtener el insumo',
+        error: error.message 
+      });
     }
 
     if (insumoResult.length === 0) {
@@ -810,36 +820,56 @@ export function obtenerProduccionesPorInsumo(req, res) {
 
     const insumo = insumoResult[0];
 
-    db.query('SELECT id, nombre FROM producciones WHERE FIND_IN_SET(?, insumos_ids)', [insumoId], (error, produccionesResult) => {
-      if (error) {
-        console.error("Error al obtener las producciones:", error);
-        return res.status(500).json({ mensaje: 'Error al obtener las producciones' });
+    // Obtenemos las producciones que usan este insumo a través de la tabla uso_insumo
+    db.query(`
+      SELECT DISTINCT p.id, p.nombre, p.descripcion, p.ubicacion, p.tipo, p.fecha_creacion
+      FROM producciones p
+      INNER JOIN uso_insumo ui ON p.id = ui.produccion_id
+      WHERE ui.insumo_id = ?
+      ORDER BY p.fecha_creacion DESC`,
+      [insumoId],
+      (error, produccionesResult) => {
+        if (error) {
+          console.error("Error al obtener las producciones:", error);
+          return res.status(500).json({ 
+            mensaje: 'Error al obtener las producciones',
+            error: error.message 
+          });
+        }
+
+        res.status(200).json({
+          insumo: {
+            id: insumo.id,
+            nombre: insumo.nombre,
+            descripcion: insumo.descripcion,
+            cantidad: insumo.cantidad,
+            unidad_medida: insumo.unidad_medida,
+            tipo: insumo.tipo
+          },
+          producciones: produccionesResult || []
+        });
       }
-
-      const producciones = produccionesResult;
-
-      // Envía la respuesta con la información del insumo y sus producciones
-      res.status(200).json({
-        insumo: {
-          id: insumo.id,
-          nombre: insumo.nombre,
-          descripcion: insumo.descripcion,
-          cantidad: insumo.cantidad,
-          unidad_medida: insumo.unidad_medida,
-          tipo: insumo.tipo
-        },
-        producciones: producciones
-      });
-    });
+    );
   });
-} export function obtenerProduccionesPorSensor(req, res) {
-  const sensorId = req.params.id;
+}
 
-  // Primero, obtén la información del sensor (opcional, pero útil)
-  db.query('SELECT id, tipo_sensor, nombre_sensor, unidad_medida FROM sensores WHERE id = ?', [sensorId], (error, sensorResult) => {
+export function obtenerProduccionesPorSensor(req, res) {
+  const sensorId = parseInt(req.params.id);
+
+  if (isNaN(sensorId)) {
+    return res.status(400).json({ mensaje: 'ID de sensor no válido' });
+  }
+
+  // Primero obtenemos la información del sensor
+  db.query('SELECT id, tipo_sensor, nombre_sensor, unidad_medida FROM sensores WHERE id = ?', 
+  [sensorId], 
+  (error, sensorResult) => {
     if (error) {
       console.error("Error al obtener el sensor:", error);
-      return res.status(500).json({ mensaje: 'Error al obtener el sensor' });
+      return res.status(500).json({ 
+        mensaje: 'Error al obtener el sensor',
+        error: error.message 
+      });
     }
 
     if (sensorResult.length === 0) {
@@ -848,22 +878,29 @@ export function obtenerProduccionesPorInsumo(req, res) {
 
     const sensor = sensorResult[0];
 
-    // Luego, obtén las producciones asociadas al sensor
-    // **¡IMPORTANTE: Usamos FIND_IN_SET porque sensores_ids es TEXT con comas!**
-    db.query('SELECT id, nombre FROM producciones WHERE FIND_IN_SET(?, sensores_ids)', [sensorId], (error, produccionesResult) => {
-      if (error) {
-        console.error("Error al obtener las producciones:", error);
-        return res.status(500).json({ mensaje: 'Error al obtener las producciones' });
+    // Obtenemos las producciones que usan este sensor a través de la tabla uso_sensor
+    db.query(`
+      SELECT DISTINCT p.id, p.nombre, p.descripcion, p.ubicacion, p.tipo, p.fecha_creacion
+      FROM producciones p
+      INNER JOIN uso_sensor us ON p.id = us.produccion_id
+      WHERE us.sensor_id = ?
+      ORDER BY p.fecha_creacion DESC`,
+      [sensorId],
+      (error, produccionesResult) => {
+        if (error) {
+          console.error("Error al obtener las producciones:", error);
+          return res.status(500).json({ 
+            mensaje: 'Error al obtener las producciones',
+            error: error.message 
+          });
+        }
+
+        res.status(200).json({
+          sensor: sensor,
+          producciones: produccionesResult || []
+        });
       }
-
-      const producciones = produccionesResult;
-
-      // Envía la respuesta con la información del sensor y sus producciones
-      res.status(200).json({
-        sensor: sensor, // Incluimos la info del sensor (opcional)
-        producciones: producciones
-      });
-    });
+    );
   });
 }
 
