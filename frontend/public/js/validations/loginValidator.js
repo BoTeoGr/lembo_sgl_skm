@@ -32,14 +32,18 @@ form.addEventListener("submit", async function (e) {
 
 	try {
 		const data = await loginUser(email, password);
+		// Guardar el token en localStorage para futuras peticiones
+		if (data.token) {
+			localStorage.setItem('token', data.token);
+		}
 		showAlert("Inicio de sesión exitoso");
 		// Redirigir según el rol
 		setTimeout(() => {
-			if (data.usuario.rol === 'superadmin') {
+			if (data.usuario.rol === 'superadmin'|| data.usuario.rol === 'Super administrador') {
 				window.location.href = 'home.html';
-			} else if (data.usuario.rol === 'admin') {
+			} else if (data.usuario.rol === 'admin' || data.usuario.rol === 'Administrador') {
 				window.location.href = 'home.html';
-			} else if (data.usuario.rol === 'apoyo') {
+			} else if (data.usuario.rol === 'apoyo' || data.usuario.rol === 'Personal de Apoyo') {
 				window.location.href = 'listar-sensores.html';
 			} else {
 				window.location.href = 'visitante.html';
@@ -79,5 +83,18 @@ function readText(e) {
 	} else if (e.target.classList.contains("form__input--password")) {
 		userLogin.password = e.target.value.trim(); // Actualizar el valor de la contraseña
 	}
-	console.log(userLogin);
-}
+}console.log(userLogin);
+
+// FUncion para mostrar u ocultar la contraseña
+document.addEventListener('DOMContentLoaded', function() {
+    const togglePasswordBtn = document.querySelector('.toggle-password-login');
+    const passwordInput = document.getElementById('password');
+    if (togglePasswordBtn && passwordInput) {
+        togglePasswordBtn.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.querySelector('i').classList.toggle('fa-eye');
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+        });
+    }
+});
