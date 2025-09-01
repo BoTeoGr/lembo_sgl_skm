@@ -17,7 +17,41 @@ document.addEventListener("DOMContentLoaded", () => {
 	cargarSensores()
 	cargarInsumos()
 	cargarResponsables()
+	setupProductionStatusCard();
   })
+// Función para actualizar la Production Status Card
+function setupProductionStatusCard() {
+	// IDs de los elementos de la card
+	const mainValue = document.querySelector('.production-status__main .stat__value');
+	const trendValue = document.querySelector('.production-status__main .stat__trend-value');
+	const detailsEnProceso = document.querySelector('.production-status__details .status-item:nth-child(1) .status-item__value');
+	const detailsPorIniciar = document.querySelector('.production-status__details .status-item:nth-child(2) .status-item__value');
+	const detailsCompletadas = document.querySelector('.production-status__details .status-item:nth-child(3) .status-item__value');
+
+	// Actualizar los valores al cargar producciones
+	window.actualizarProductionStatusCard = function (producciones) {
+		let activas = 0, enProceso = 0, porIniciar = 0, completadas = 0;
+		let trend = 0;
+		const mesActual = new Date().getMonth();
+		const añoActual = new Date().getFullYear();
+		let activasMesPasado = 0;
+
+		producciones.forEach(p => {
+			if (p.estado === 'habilitado') activas++;
+			if (p.estado === 'habilitado' && p.progreso > 0 && p.progreso < 100) enProceso++;
+			if (p.estado === 'habilitado' && p.progreso === 0) porIniciar++;
+			if (p.progreso === 100 && new Date(p.fecha_fin).getFullYear() === añoActual) completadas++;
+			// Para tendencia: contar activas del mes pasado
+			if (p.estado === 'habilitado' && new Date(p.fecha_de_inicio).getMonth() === mesActual - 1) activasMesPasado++;
+		});
+		trend = activas - activasMesPasado;
+		if (mainValue) mainValue.textContent = activas;
+		if (trendValue) trendValue.textContent = (trend >= 0 ? '+' : '') + trend;
+		if (detailsEnProceso) detailsEnProceso.textContent = enProceso;
+		if (detailsPorIniciar) detailsPorIniciar.textContent = porIniciar;
+		if (detailsCompletadas) detailsCompletadas.textContent = completadas;
+	}
+}
   
   // Manejo del botón para mostrar/ocultar cards
   document.addEventListener("DOMContentLoaded", () => {
@@ -1158,6 +1192,10 @@ document.addEventListener("DOMContentLoaded", () => {
 	  const totalProduccionesElement = document.querySelector(".stat-card__value")
 	  if (totalProduccionesElement) {
 		totalProduccionesElement.textContent = producciones.length
+	  }
+	  // Actualizar Production Status Card
+	  if (typeof window.actualizarProductionStatusCard === 'function') {
+		window.actualizarProductionStatusCard(produccionesConProgreso);
 	  }
 	} catch (error) {
 	  console.error("Error al cargar producciones:", error)

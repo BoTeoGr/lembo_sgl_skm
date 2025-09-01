@@ -133,7 +133,6 @@
 .form__label {
   font-weight: 600;
   color: var(--gray-700);
-  font-size: 0.95rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -141,7 +140,7 @@
 
 .form__label i {
   color: var(--primary-green);
-  font-size: 0.9rem;
+  font-size: 1.3rem;
 }
 
 .form__input,
@@ -150,7 +149,7 @@
   padding: 0.875rem 1rem;
   border: 2px solid var(--gray-200);
   border-radius: var(--border-radius-sm);
-  font-size: 1rem;
+  font-size: 1.3rem;
   background: var(--white);
   transition: var(--transition);
   font-family: inherit;
@@ -171,7 +170,7 @@
 }
 
 .form__helper-text {
-  font-size: 0.85rem;
+  font-size: 1.2rem;
   color: var(--gray-500);
   margin-top: 0.25rem;
 }
@@ -209,7 +208,6 @@
   padding: 0.875rem 1.25rem;
   border: none;
   border-radius: var(--border-radius-sm);
-  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition);
@@ -638,7 +636,6 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  font-size: 1.1rem;
   font-weight: 600;
   padding-bottom: 0.75rem;
   border-bottom: 1px solid var(--gray-200);
@@ -677,11 +674,15 @@
 
 .supply-info p {
   margin: 0.5rem 0;
-  font-size: 0.95rem;
   color: var(--gray-700);
   display: flex;
+  font-size: 1.2rem;
   align-items: center;
   gap: 0.5rem;
+}
+
+h3{
+  font-size: 1.5rem;
 }
 
 .supply-info p strong {
@@ -697,7 +698,6 @@
   content: '\f05a';
   font-family: 'Font Awesome 5 Free';
   font-weight: 900;
-  font-size: 0.9em;
   opacity: 0.7;
 }
 
@@ -738,7 +738,6 @@
 /* Helper text */
 #supplyUsageForm .form__helper-text {
   margin-top: 0.5rem;
-  font-size: 0.85rem;
   color: var(--gray-600);
   display: block;
 }

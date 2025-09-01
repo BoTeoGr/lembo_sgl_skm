@@ -499,9 +499,9 @@ async function initializeForm() {
     allSuppliesGlobal = suppliesWithStock;
     updateAvailableSuppliesSelect();
 
-    // Filtrar usuarios con rol 'admin' y mostrar solo esos en el selector de responsables
-    const adminUsers = users.filter(u => u.rol && u.rol.toLowerCase() === 'admin');
-    fillSelect("responsible", adminUsers, "Seleccionar responsable", NAME_FIELDS.user, ID_FIELDS.user)
+  // Mostrar todos los usuarios habilitados en el selector de responsables
+  const enabledUsers = users.filter(u => u.estado === 'habilitado');
+  fillSelect("responsible", enabledUsers, "Seleccionar responsable", NAME_FIELDS.user, ID_FIELDS.user);
 
     // Inicializar fechas con valores predeterminados
     const startDate = document.getElementById("startDate")

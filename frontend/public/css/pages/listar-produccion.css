@@ -1692,7 +1692,6 @@ ul {
 .investment-distribution {
   background-color: var(--white);
   border-radius: var(--border-radius);
-  margin-bottom: var(--spacing-lg);
 }
 
 .investment-chart {
@@ -2477,72 +2476,52 @@ header {
     height: 200px;
 }
 
-.sensors-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--spacing-md);
-    overflow-x: hidden;
+.sensores-content {
+  display: flex;
+  flex-wrap: wrap;       /* Si no caben, que bajen a la siguiente línea */
+  gap: var(--spacing-md); /* Espacio entre sensores */
 }
 
-.sensor-card {
-    background-color: var(--white);
-    padding: var(--spacing-md);
-    border-radius: var(--border-radius);
-    overflow: hidden;
-    word-wrap: break-word;
+.sensores-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.sensor-header {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-md);
+.sensores-list li {
+  background-color: var(--gray-20);
+  border: 1px solid var(--gray-40);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--gray-100);
 }
 
-.sensor-header h5 {
-    font-size: 1rem;
-    font-weight: 500;
+
+
+/* Mostrar insumos en horizontal con grid */
+.insumos-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+  padding: 0;
 }
 
-.sensor-header .material-symbols-outlined {
-    font-size: 1.5rem;
-    color: var(--gray-80);
+.insumo-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  padding: 0.5rem 1rem;
+  background: #f6f6f6;
+  border-radius: 0.375rem;
+  box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
 }
-
-.sensor-value {
-    font-size: 2rem;
-    font-weight: 600;
-    margin-bottom: var(--spacing-md);
-    color: var(--green-700);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 100%;
-}
-
-.sensor-chart {
-    height: 150px;
-}
-
-@media (max-width: 768px) {
-    .cultivo-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .sensors-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .cultivo-details {
-        padding: var(--spacing-sm);
-    }
-
-    .modal__body {
-        padding: var(--spacing-sm);
-    }
-}
-
-/* Modal Enhancements */
 .responsable-avatar {
     width: 64px;
     height: 64px;
@@ -3493,4 +3472,8 @@ header {
     align-items: center;
     gap: var(--spacing-md);
     margin-top: var(--spacing-lg);
+}
+
+.cultivo-section--full-width{
+  grid-column: span 2;
 }
