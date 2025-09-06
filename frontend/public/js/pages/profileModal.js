@@ -94,19 +94,67 @@ export default function injectProfileModal() {
       try {
         const userId = localStorage.getItem('userId');
         const token = localStorage.getItem('token');
-        if (!userId || !token) return; // no-op if missing
-        const res = await fetch(`http://localhost:5000/usuarios/${userId}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        // data could be { usuario: {...} } o directamente el objeto
-        const u = data?.usuario || data;
-        if (u && typeof u === 'object') {
-          fillFields(u);
+        
+        console.log('=== INICIO DE DEPURACIÓN ===');
+        console.log('ID de usuario del localStorage:', userId);
+        console.log('Token del localStorage:', token ? 'Token presente' : 'Token no encontrado');
+        
+        if (!userId || !token) {
+          console.error('Faltan credenciales: userId o token');
+          return;
         }
-      } catch (_) {
-        // Silencio: si falla, mantenemos los datos de localStorage
+        
+        console.log('Solicitando datos del usuario al servidor...');
+        const res = await fetch(`http://localhost:5000/usuarios/${userId}`, {
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        console.log('Respuesta del servidor - Estado:', res.status, res.statusText);
+        
+        if (!res.ok) {
+          console.error('Error en la respuesta del servidor:', res.status, res.statusText);
+          const errorText = await res.text();
+          console.error('Detalles del error:', errorText);
+          return;
+        }
+        
+        const data = await res.json();
+        console.log('Datos recibidos del servidor:', data);
+        
+        // Verificar diferentes formatos de respuesta
+        let userData = data;
+        if (data && typeof data === 'object') {
+          userData = data.usuario || data.user || data.data || data;
+          console.log('Datos del usuario extraídos:', userData);
+        }
+        
+        if (userData && typeof userData === 'object') {
+          console.log('Campos disponibles en userData:', Object.keys(userData));
+          console.log('Valores completos:', JSON.stringify(userData, null, 2));
+          
+          // Mostrar datos específicos en la consola
+          console.log('=== DATOS DEL USUARIO ===');
+          console.log('ID:', userData.id);
+          console.log('Nombre:', userData.nombre);
+          console.log('Correo:', userData.correo || userData.email);
+          console.log('Teléfono:', userData.telefono || userData.celular);
+          console.log('Tipo Documento:', userData.tipo_documento);
+          console.log('Número Documento:', userData.numero_documento || userData.documento);
+          console.log('Rol:', userData.rol);
+          console.log('Estado:', userData.estado);
+          console.log('==========================');
+          
+          fillFields(userData);
+        } else {
+          console.error('Formato de datos de usuario no válido:', userData);
+        }
+      } catch (error) {
+        console.error('Error al obtener el perfil del usuario:', error);
+        console.error('Mensaje de error:', error.message);
+        console.error('Stack trace:', error.stack);
       }
     };
   

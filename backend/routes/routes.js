@@ -6,7 +6,7 @@ import {crearInsumo,VerInsumos,actualizarEstadoInsumo, actualizarInsumo, obtener
 import {crearCultivo,VerCultivos,actualizarEstadoCultivo, actualizarCultivo, obtenerCultivoPorId} from '../controllers/cultivo.controller.js'
 import {VerCiclosCultivo, crearCicloCultivo, actualizarEstadoCicloCultivo, obtenerCicloCultivoPorId, actualizarCicloCultivo} from '../controllers/ciclo-cultivo.controller.js'
 import {actualizarProduccion,crearProduccion,eliminarProduccion,obtenerProduccionPorId,verProducciones,actualizarEstadoProduccion, obtenerProduccionesPorInsumo, obtenerProduccionesPorCultivo, obtenerProduccionesPorUsuario, obtenerProduccionesPorSensor, actualizarEstadosProduccionHabilitado, deshabilitarProducciones} from '../controllers/production.controller.js'
-import { verificarRol } from '../middleware/authRole.js';
+import { verificarRol, verificarUsuarioPropioOAdmin } from '../middleware/authRole.js';
 
 const router = express.Router()
 
@@ -23,7 +23,8 @@ router.get('/usuarios', verificarRol(['admin', 'Administrador', 'superadmin', 'S
 router.post('/users', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), crearUsuario);
 router.put('/usuarios/:id/estado', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), actualizarEstadoUsuario);
 router.put('/usuarios/:id', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), actualizarUsuario);
-router.get('/usuarios/:id', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), obtenerUsuarioPorId);
+// Allow users to view their own profile or admins to view any profile
+router.get('/usuarios/:id', verificarUsuarioPropioOAdmin(['admin', 'Administrador', 'superadmin', 'Super Administrador']), obtenerUsuarioPorId);
 // Rutas para sensores
 router.get('/sensor', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador', 'Personal de Apoyo', 'apoyo']), VerSensores);
 router.post('/sensor', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador', 'Personal de Apoyo', 'apoyo']), crearSensor);

@@ -246,11 +246,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const id = row.querySelector('.table__cell--id').textContent;
     if (btn.classList.contains('table__action-button--view')) {
       try {
-        // const token = localStorage.getItem('token');
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('No se encontró el token de autenticación');
+        }
         const response = await fetch(`http://localhost:5000/usuarios/${id}`,
           {
             headers: {
-              'Authorization': `Bearer ${token}`
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
             }
           }
         );
