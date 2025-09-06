@@ -226,7 +226,9 @@ submitButton.addEventListener("click", async () => {
 
 		if (response.ok) {
 			showToast("Insumo creado", "El insumo ha sido creado correctamente", "success");
-			// Redirigir a listar-usuarios.html
+			// Limpiar el formulario
+			resetForm();
+			// Redirigir a la lista de insumos
             setTimeout(() => {
                 window.location.href = "listar-insumos.html";
             }, 2000); // Espera 2 segundos para mostrar el toast antes de redirigir
@@ -243,6 +245,38 @@ submitButton.addEventListener("click", async () => {
 	}
 });
 
+
+// Función para limpiar el formulario
+function resetForm() {
+    // Limpiar los valores del objeto insumoData
+    Object.keys(insumoData).forEach(key => {
+        if (key !== 'insumeId' && key !== 'estado') {
+            insumoData[key] = '';
+        }
+    });
+    
+    // Restablecer el estado a 'habilitado'
+    insumoData.estado = 'habilitado';
+    
+    // Limpiar los campos del formulario
+    const formElements = document.querySelectorAll('input[type="text"], input[type="file"], textarea, select');
+    formElements.forEach(input => {
+        input.value = '';
+    });
+    
+    // Marcar el radio button de habilitado como seleccionado
+    const enabledRadio = document.querySelector('input[value="habilitado"]');
+    if (enabledRadio) {
+        enabledRadio.checked = true;
+    }
+    
+    // Restablecer el select de unidad de medida
+    if (insumeExtent) {
+        insumeExtent.selectedIndex = 0;
+    }
+    
+    console.log('Formulario de insumo limpiado');
+}
 
 // Función general para mostrar toasts
 function showToast(title, message, type = 'success') {

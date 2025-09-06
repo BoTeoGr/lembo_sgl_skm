@@ -162,7 +162,9 @@ submitButton.addEventListener("click", async () => {
 
 		if (response.ok) {
 			showToast("Ciclo de cultivo creado", "El ciclo de cultivo ha sido creado correctamente", "success");
-			// Redirigir a listar-usuarios.html
+			// Limpiar el formulario
+			resetForm();
+			// Redirigir a la lista de ciclos de cultivo
             setTimeout(() => {
                 window.location.href = "listar-ciclos-cultivos.html";
             }, 2000); // Espera 2 segundos para mostrar el toast antes de redirigir
@@ -178,6 +180,33 @@ submitButton.addEventListener("click", async () => {
 		submitButton.textContent = "Crear Ciclo de Cultivo";
 	}
 });
+
+// Función para limpiar el formulario
+function resetForm() {
+    // Limpiar los valores del objeto cycleData
+    Object.keys(cycleData).forEach(key => {
+        if (key !== 'usuario_id' && key !== 'estado') {
+            cycleData[key] = '';
+        }
+    });
+    
+    // Restablecer el estado a 'habilitado'
+    cycleData.estado = 'habilitado';
+    
+    // Limpiar los campos del formulario
+    const formElements = document.querySelectorAll('input[type="text"], input[type="date"], textarea');
+    formElements.forEach(input => {
+        input.value = '';
+    });
+    
+    // Marcar el radio button de habilitado como seleccionado
+    const enabledRadio = document.querySelector('input[value="habilitado"]');
+    if (enabledRadio) {
+        enabledRadio.checked = true;
+    }
+    
+    console.log('Formulario de ciclo de cultivo limpiado');
+}
 
 // Función general para mostrar toasts
 function showToast(title, message, type = "success") {

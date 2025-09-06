@@ -147,10 +147,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 async function getAllItems(endpoint, limit = 100) {
   try {
     console.log(`Solicitando datos de ${endpoint}...`)
-    const response = await fetch(`${API_URL}${endpoint}?page=1&limit=${limit}`)
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}${endpoint}?page=1&limit=${limit}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
+      const errorData = await response.json();
+      console.error('Error en la respuesta:', errorData);
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json()
@@ -1005,6 +1013,11 @@ async function createProduction(e) {
   try {
     // Enviar la producción al backend
     const token = localStorage.getItem('token');
+    if (!token) {
+      showToast("Error", "No se encontró el token de autenticación", "error");
+      return;
+    }
+    
     const response = await fetch(`${API_URL}/producciones`, {
       method: "POST",
       headers: {
@@ -1023,7 +1036,27 @@ async function createProduction(e) {
       // Mostrar mensaje de éxito
       showToast("Éxito", "Producción creada y uso de insumos registrado correctamente", "success");
       
-      // Redirigir a la lista de producciones
+      // Limpiar el formulario
+      const form = document.querySelector('form');
+      if (form) form.reset();
+      
+      // Limpiar listas de insumos y sensores seleccionados
+      selectedSupplies = [];
+      selectedSensors.clear();
+      
+      // Limpiar las listas visuales de insumos y sensores
+      const selectedSuppliesList = document.getElementById('selectedSupplies');
+      const selectedSensorsList = document.getElementById('selectedSensors');
+      if (selectedSuppliesList) selectedSuppliesList.innerHTML = '';
+      if (selectedSensorsList) selectedSensorsList.innerHTML = '';
+      
+      // Limpiar campos adicionales si existen
+      const totalInvestment = document.getElementById('totalInvestment');
+      const estimatedProfit = document.getElementById('estimatedProfit');
+      if (totalInvestment) totalInvestment.value = '';
+      if (estimatedProfit) estimatedProfit.value = '';
+      
+      // Redirigir a la lista de producciones después de 2 segundos
       setTimeout(() => window.location.href = "listar-producciones.html", 2000);
     }
   } catch (error) {
@@ -1446,10 +1479,17 @@ createUserForm.addEventListener("submit", async (e) => {
       estado: modalUserData.estado
     };
     
-    const response = await fetch("http://localhost:5000/users", {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      showToast("Error", "No se encontró el token de autenticación", "error");
+      return;
+    }
+  
+    const response = await fetch(`${API_URL}/users`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
       },
       body: JSON.stringify(userData)
     });
@@ -1480,97 +1520,6 @@ createUserForm.addEventListener("submit", async (e) => {
   }
 })
 
-// Event listeners para el modal de sensor
-createSensorBtn.addEventListener("click", () => {
-  createSensorModal.classList.remove("hidden")
-})
-
-closeCreateSensorModal.addEventListener("click", () => {
-  createSensorModal.classList.add("hidden")
-})
-
-// Event listeners para el formulario del modal de sensor
-document.getElementById("modal-tipo-sensor").addEventListener("change", (e) => {
-  modalSensorData.sensorType = e.target.value
-})
-
-// Bloquear números en el campo de nombre del sensor
-document.getElementById("modal-nombre-sensor").addEventListener("keydown", (e) => {
-  if (e.key >= "0" && e.key <= "9") {
-    e.preventDefault()
-    console.log("Número bloqueado")
-  }
-})
-
-document.getElementById("modal-nombre-sensor").addEventListener("input", (e) => {
-  modalSensorData.sensorName = e.target.value
-})
-
-document.getElementById("modal-unidad-medida").addEventListener("change", (e) => {
-  modalSensorData.sensorUnit = e.target.value
-})
-
-document.getElementById("modal-descripcion").addEventListener("input", (e) => {
-  modalSensorData.sensorDescription = e.target.value
-})
-
-document.getElementById("modal-tiempo-escaneo").addEventListener("change", (e) => {
-  modalSensorData.sensorScan = e.target.value
-})
-
-document.querySelectorAll('input[name="modal-estado-sensor"]').forEach((radio) => {
-  radio.addEventListener("change", (e) => {
-    modalSensorData.estado = e.target.value
-  })
-})
-
-// Función para validar los datos del sensor en el modal
-function validateModalSensorData() {
-  const requiredFields = [
-    { field: "sensorType", label: "Tipo de sensor" },
-    { field: "sensorName", label: "Nombre del sensor" },
-    { field: "sensorUnit", label: "Unidad de medida" },
-    { field: "sensorDescription", label: "Descripción" },
-    { field: "sensorScan", label: "Tiempo de escaneo" },
-    { field: "estado", label: "Estado" },
-  ]
-
-  for (const field of requiredFields) {
-    if (!modalSensorData[field.field]) {
-      showToast(`Por favor, complete el campo ${field.label}`, "", "error")
-      return false
-    }
-  }
-
-  // Validar que el tipo de sensor sea válido según la base de datos
-  const validSensorTypes = ["Sensor de contacto", "Sensor de distancia", "Sensores de luz"]
-  if (!validSensorTypes.includes(modalSensorData.sensorType)) {
-    showToast("Error", "Tipo de sensor no válido", "error")
-    return false
-  }
-
-  // Validar que la unidad de medida sea válida según la base de datos
-  const validUnits = ["Temperatura", "Distancia", "Presión"]
-  if (!validUnits.includes(modalSensorData.sensorUnit)) {
-    showToast("Error", "Unidad de medida no válida", "error")
-    return false
-  }
-
-  // Validar que el tiempo de escaneo sea válido según la base de datos
-  const validScanTimes = ["Sensores lentos", "Sensores de velocidad media", "Sensores rápidos"]
-  if (!validScanTimes.includes(modalSensorData.sensorScan)) {
-    showToast("Error", "Tiempo de escaneo no válido", "error")
-    return false
-  }
-
-  if (modalSensorData.estado === "deshabilitado") {
-    showToast("Error", "Cambia el estado para crear el sensor", "error")
-    return false
-  }
-
-  return true
-}
-
 // Manejar el envío del formulario del modal de sensor
 createSensorForm.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -1594,10 +1543,17 @@ createSensorForm.addEventListener("submit", async (e) => {
       estado: modalSensorData.estado
     };
     
-    const response = await fetch("http://localhost:5000/sensor", {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      showToast("Error", "No se encontró el token de autenticación", "error");
+      return;
+    }
+  
+    const response = await fetch(`${API_URL}/sensor`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
       },
       body: JSON.stringify(sensorData)
     });
@@ -1627,156 +1583,6 @@ createSensorForm.addEventListener("submit", async (e) => {
     showToast("Error", error.message || "No se pudo crear el sensor", "error");
   }
 })
-
-// Event listeners para el modal de insumo
-createSupplyBtn.addEventListener("click", () => {
-  createSupplyModal.classList.remove("hidden")
-})
-
-closeCreateSupplyModal.addEventListener("click", () => {
-  createSupplyModal.classList.add("hidden")
-})
-
-// Bloquear números en el campo de nombre
-document.getElementById("modal-nombre-insumo").addEventListener("keydown", (e) => {
-  if (e.key >= "0" && e.key <= "9") {
-    e.preventDefault()
-    console.log("Número bloqueado")
-  }
-})
-
-// Solo permitir números en el campo de valor unitario
-document.getElementById("modal-valor-unitario").addEventListener("keydown", (e) => {
-  if (
-    e.key === "Backspace" ||
-    e.key === "Tab" ||
-    e.key === "Enter" ||
-    e.key === "ArrowLeft" ||
-    e.key === "ArrowRight" ||
-    e.key === "."
-  ) {
-    return
-  }
-  if (e.key < "0" || e.key > "9") {
-    e.preventDefault()
-    console.log("Solo se permite números")
-  }
-})
-
-// Solo permitir números en el campo de cantidad
-document.getElementById("modal-cantidad").addEventListener("keydown", (e) => {
-  if (
-    e.key === "Backspace" ||
-    e.key === "Tab" ||
-    e.key === "Enter" ||
-    e.key === "ArrowLeft" ||
-    e.key === "ArrowRight"
-  ) {
-    return
-  }
-  if (e.key < "0" || e.key > "9") {
-    e.preventDefault()
-    console.log("Solo se permite números")
-  }
-})
-
-// Event listeners para el formulario del modal de insumo
-document.getElementById("modal-nombre-insumo").addEventListener("input", (e) => {
-  modalSupplyData.insumeName = e.target.value
-  console.log("Nombre actualizado:", modalSupplyData.insumeName)
-})
-
-document.getElementById("modal-tipo-insumo").addEventListener("input", (e) => {
-  modalSupplyData.insumeType = e.target.value
-  console.log("Tipo actualizado:", modalSupplyData.insumeType)
-})
-
-document.getElementById("modal-medida-insumo").addEventListener("change", (e) => {
-  modalSupplyData.insumeExtent = e.target.value
-  console.log("Unidad de medida actualizada:", modalSupplyData.insumeExtent)
-})
-
-document.getElementById("modal-valor-unitario").addEventListener("input", (e) => {
-  modalSupplyData.insumePrice = e.target.value
-  console.log("Valor unitario actualizado:", modalSupplyData.insumePrice)
-  calculateTotal()
-})
-
-document.getElementById("modal-cantidad").addEventListener("input", (e) => {
-  modalSupplyData.insumeAmount = e.target.value
-  console.log("Cantidad actualizada:", modalSupplyData.insumeAmount)
-  calculateTotal()
-})
-
-document.getElementById("modal-descripcion-insumo").addEventListener("input", (e) => {
-  modalSupplyData.insumeDescription = e.target.value
-  console.log("Descripción actualizada:", modalSupplyData.insumeDescription)
-})
-
-document.querySelectorAll('input[name="modal-estado-insumo"]').forEach((radio) => {
-  radio.addEventListener("change", (e) => {
-    modalSupplyData.estado = e.target.value
-    console.log("Estado actualizado:", modalSupplyData.estado)
-  })
-})
-
-// Función para calcular el valor total
-function calculateTotal() {
-  const price = Number.parseFloat(modalSupplyData.insumePrice) || 0
-  const amount = Number.parseInt(modalSupplyData.insumeAmount) || 0
-  const total = price * amount
-  modalSupplyData.totalValue = total.toString()
-  document.getElementById("modal-valor-total").value = total
-}
-
-// Función para validar los datos del insumo en el modal
-function validateModalSupplyData() {
-  console.log("Validando datos:", modalSupplyData)
-
-  const requiredFields = [
-    { field: "insumeName", label: "Nombre" },
-    { field: "insumeType", label: "Tipo de insumo" },
-    { field: "insumeExtent", label: "Unidad de medida" },
-    { field: "insumeDescription", label: "Descripción" },
-    { field: "insumePrice", label: "Valor unitario" },
-    { field: "insumeAmount", label: "Cantidad" },
-    { field: "totalValue", label: "Valor total" },
-    { field: "estado", label: "Estado" },
-  ]
-
-  for (const field of requiredFields) {
-    if (!modalSupplyData[field.field]) {
-      console.log(`Campo vacío: ${field.field}`)
-      showToast(`Por favor, complete el campo ${field.label}`, "", "error")
-      return false
-    }
-  }
-
-  // Validar que la unidad de medida sea válida según la base de datos
-  const validUnits = ["peso", "volumen", "superficie", "concentración", "litro", "kilo"]
-  if (!validUnits.includes(modalSupplyData.insumeExtent)) {
-    showToast("Error", "Unidad de medida no válida", "error")
-    return false
-  }
-
-  // Validar que los valores numéricos sean válidos
-  if (isNaN(Number.parseFloat(modalSupplyData.insumePrice)) || Number.parseFloat(modalSupplyData.insumePrice) <= 0) {
-    showToast("Error", "El valor unitario debe ser un número mayor a 0", "error")
-    return false
-  }
-
-  if (isNaN(Number.parseInt(modalSupplyData.insumeAmount)) || Number.parseInt(modalSupplyData.insumeAmount) <= 0) {
-    showToast("Error", "La cantidad debe ser un número mayor a 0", "error")
-    return false
-  }
-
-  if (modalSupplyData.estado === "deshabilitado") {
-    showToast("Error", "Cambia el estado para crear el insumo", "error")
-    return false
-  }
-
-  return true
-}
 
 // Manejar el envío del formulario del modal de insumo
 createSupplyForm.addEventListener("submit", async (e) => {
@@ -1817,10 +1623,17 @@ createSupplyForm.addEventListener("submit", async (e) => {
       estado: modalSupplyData.estado
     };
     
-    const response = await fetch("http://localhost:5000/insumos", {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      showToast("Error", "No se encontró el token de autenticación", "error");
+      return;
+    }
+  
+    const response = await fetch(`${API_URL}/insumos`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
       },
       body: JSON.stringify(insumoData)
     });
@@ -1851,82 +1664,6 @@ createSupplyForm.addEventListener("submit", async (e) => {
   }
 })
 
-// Event listeners para el modal de cultivo
-createCropBtn.addEventListener("click", () => {
-  createCropModal.classList.remove("hidden")
-})
-
-closeCreateCropModal.addEventListener("click", () => {
-  createCropModal.classList.add("hidden")
-})
-
-// Bloquear números en el campo de nombre
-document.getElementById("modal-nombre-cultivo").addEventListener("keydown", (e) => {
-  if (e.key >= "0" && e.key <= "9") {
-    e.preventDefault()
-    console.log("Número bloqueado")
-  }
-})
-
-// Event listeners para el formulario del modal de cultivo
-document.getElementById("modal-nombre-cultivo").addEventListener("input", (e) => {
-  modalCropData.cultiveName = e.target.value
-})
-
-document.getElementById("modal-tipo-cultivo").addEventListener("input", (e) => {
-  modalCropData.cultiveType = e.target.value
-})
-
-document.getElementById("modal-ubicacion-cultivo").addEventListener("input", (e) => {
-  modalCropData.cultiveLocation = e.target.value
-})
-
-document.getElementById("modal-tamano-cultivo").addEventListener("input", (e) => {
-  modalCropData.cultiveSize = e.target.value
-})
-
-document.getElementById("modal-descripcion-cultivo").addEventListener("input", (e) => {
-  modalCropData.cultiveDescription = e.target.value
-})
-
-document.querySelectorAll('input[name="modal-estado-cultivo"]').forEach((radio) => {
-  radio.addEventListener("change", (e) => {
-    modalCropData.estado = e.target.value
-  })
-})
-
-// Función para validar los datos del cultivo en el modal
-function validateModalCropData() {
-  const requiredFields = [
-    { field: "cultiveName", label: "Nombre" },
-    { field: "cultiveType", label: "Tipo de cultivo" },
-    { field: "cultiveLocation", label: "Ubicación" },
-    { field: "cultiveDescription", label: "Descripción" },
-    { field: "cultiveSize", label: "Tamaño" },
-    { field: "estado", label: "Estado" },
-  ]
-
-  for (const field of requiredFields) {
-    if (!modalCropData[field.field]) {
-      showToast(`Por favor, complete el campo ${field.label}`, "", "error")
-      return false
-    }
-  }
-
-  // Validar que el tamaño sea un número válido
-  if (isNaN(Number.parseFloat(modalCropData.cultiveSize)) || Number.parseFloat(modalCropData.cultiveSize) <= 0) {
-    showToast("Error", "El tamaño debe ser un número mayor a 0", "error")
-    return false
-  }
-
-  if (modalCropData.estado === "deshabilitado") {
-    showToast("Error", "Cambia el estado para crear el cultivo", "error")
-    return false
-  }
-
-  return true
-}
-
 // Manejar el envío del formulario del modal de cultivo
 createCropForm.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -1951,10 +1688,17 @@ createCropForm.addEventListener("submit", async (e) => {
       estado: modalCropData.estado
     };
     
-    const response = await fetch("http://localhost:5000/cultivos", {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      showToast("Error", "No se encontró el token de autenticación", "error");
+      return;
+    }
+  
+    const response = await fetch(`${API_URL}/cultivos`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
       },
       body: JSON.stringify(cultivoData)
     });
@@ -1985,84 +1729,6 @@ createCropForm.addEventListener("submit", async (e) => {
   }
 })
 
-// Event listeners para el modal de ciclo de cultivo
-createCropCycleBtn.addEventListener("click", () => {
-  createCropCycleModal.classList.remove("hidden")
-})
-
-closeCreateCropCycleModal.addEventListener("click", () => {
-  createCropCycleModal.classList.add("hidden")
-})
-
-// Bloquear números en el campo de nombre
-document.getElementById("modal-nombre-ciclo").addEventListener("keydown", (e) => {
-  if (e.key >= "0" && e.key <= "9") {
-    e.preventDefault()
-    console.log("Número bloqueado")
-  }
-})
-
-// Event listeners para el formulario del modal de ciclo de cultivo
-document.getElementById("modal-nombre-ciclo").addEventListener("input", (e) => {
-  modalCropCycleData.cycleName = e.target.value
-})
-
-document.getElementById("modal-descripcion-ciclo").addEventListener("input", (e) => {
-  modalCropCycleData.cycleDescription = e.target.value
-})
-
-document.getElementById("modal-periodo-inicio").addEventListener("input", (e) => {
-  modalCropCycleData.cycleStartDate = e.target.value
-})
-
-document.getElementById("modal-periodo-final").addEventListener("input", (e) => {
-  modalCropCycleData.cycleEndDate = e.target.value
-})
-
-document.getElementById("modal-novedades-ciclo").addEventListener("input", (e) => {
-  modalCropCycleData.cycleUpdates = e.target.value
-})
-
-document.querySelectorAll('input[name="modal-estado-ciclo"]').forEach((radio) => {
-  radio.addEventListener("change", (e) => {
-    modalCropCycleData.estado = e.target.value
-  })
-})
-
-// Función para validar los datos del ciclo de cultivo en el modal
-function validateModalCropCycleData() {
-  const requiredFields = [
-    { field: "cycleName", label: "Nombre" },
-    { field: "cycleDescription", label: "Descripción" },
-    { field: "cycleStartDate", label: "Periodo de inicio" },
-    { field: "cycleEndDate", label: "Periodo final" },
-    { field: "cycleUpdates", label: "Novedades" },
-    { field: "estado", label: "Estado" },
-  ]
-
-  for (const field of requiredFields) {
-    if (!modalCropCycleData[field.field]) {
-      showToast(`Por favor, complete el campo ${field.label}`, "", "error")
-      return false
-    }
-  }
-
-  // Validar que la fecha de inicio sea anterior a la fecha final
-  const startDate = new Date(modalCropCycleData.cycleStartDate)
-  const endDate = new Date(modalCropCycleData.cycleEndDate)
-  if (startDate >= endDate) {
-    showToast("Error", "La fecha de inicio debe ser anterior a la fecha final", "error")
-    return false
-  }
-
-  if (modalCropCycleData.estado === "deshabilitado") {
-    showToast("Error", "Cambia el estado para crear el ciclo de cultivo", "error")
-    return false
-  }
-
-  return true
-}
-
 // Manejar el envío del formulario del modal de ciclo de cultivo
 createCropCycleForm.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -2086,10 +1752,17 @@ createCropCycleForm.addEventListener("submit", async (e) => {
       estado: modalCropCycleData.estado
     };
     
-    const response = await fetch("http://localhost:5000/ciclo_cultivo", {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      showToast("Error", "No se encontró el token de autenticación", "error");
+      return;
+    }
+  
+    const response = await fetch(`${API_URL}/ciclo_cultivo`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
       },
       body: JSON.stringify(cicloData)
     });

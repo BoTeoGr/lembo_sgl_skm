@@ -170,7 +170,9 @@ submitButton.addEventListener("click", async () => {
 
 		if (response.ok) {
 			showToast("Cultivo creado", "El cultivo ha sido creado correctamente", "success");
-			// Redirigir a listar-usuarios.html
+			// Limpiar el formulario
+			resetForm();
+			// Redirigir a la lista de cultivos
             setTimeout(() => {
                 window.location.href = "listar-cultivos.html";
             }, 2000); // Espera 2 segundos para mostrar el toast antes de redirigir
@@ -187,6 +189,32 @@ submitButton.addEventListener("click", async () => {
 	}
 });
 
+
+// Función para limpiar el formulario
+function resetForm() {
+    // Limpiar los valores del objeto cultiveData
+    Object.keys(cultiveData).forEach(key => {
+        if (key !== 'usuario_id' && key !== 'estado') {
+            cultiveData[key] = '';
+        }
+    });
+    
+    // Restablecer el estado a 'habilitado'
+    cultiveData.estado = 'habilitado';
+    
+    // Limpiar los campos del formulario
+    document.querySelectorAll('input[type="text"], input[type="file"], textarea').forEach(input => {
+        input.value = '';
+    });
+    
+    // Marcar el radio button de habilitado como seleccionado
+    const enabledRadio = document.querySelector('input[value="habilitado"]');
+    if (enabledRadio) {
+        enabledRadio.checked = true;
+    }
+    
+    console.log('Formulario limpiado');
+}
 
 // Función general para mostrar toasts
 function showToast(title, message, type = 'success') {

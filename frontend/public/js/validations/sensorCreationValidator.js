@@ -69,7 +69,6 @@ function readText(e) {
 	} else if (e.target.classList.contains("form__select--sensor-scan")) {
 		sensorData.sensorScan = e.target.value;
 	}
-	console.log(sensorData); // Ver los valores almacenados en sensorData
 }
 
 // Función para mostrar alertas en el formulario
@@ -187,10 +186,16 @@ submitButton.addEventListener("click", async () => {
 
 		if (response.ok) {
 			showToast("Sensor creado", "El sensor ha sido creado correctamente", "success");
-			// Redirigir a listar-usuarios.html
-            setTimeout(() => {
-                window.location.href = "listar-sensores.html";
-            }, 2000); // Espera 2 segundos para mostrar el toast antes de redirigir
+			// Limpiar el formulario
+			sensorForm.reset();
+			// Limpiar también el objeto sensorData
+			Object.keys(sensorData).forEach(key => {
+				sensorData[key] = '';
+			});
+			// Redirigir después de 2 segundos
+			setTimeout(() => {
+				window.location.href = "listar-sensores.html";
+			}, 2000); // Espera 2 segundos para mostrar el toast antes de redirigir
 		} else {
 			showToast("Error", data.error || "Error al crear el sensor", "error");
 		}
