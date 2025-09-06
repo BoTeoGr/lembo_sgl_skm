@@ -147,11 +147,13 @@ submitButton.addEventListener("click", async () => {
 		submitButton.disabled = true;
 		submitButton.textContent = "Creando...";
 
-		// Cambia la URL para que coincida con la ruta backend
+		const token = localStorage.getItem('token');
+		// Se envian los datos a la url
         const response = await fetch("http://localhost:5000/ciclo_cultivo", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
+				"Authorization": `Bearer ${token}`
 			},
 			body: JSON.stringify(cycleData),
 		});

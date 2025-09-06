@@ -210,7 +210,7 @@ export function loginUsuario(req, res) {
                 return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
             }
             // Generar JWT
-            const token = jwt.sign({ id: usuario.id, correo: usuario.correo, rol: usuario.rol }, 'tu_clave_secreta', { expiresIn: '2h' });
+            const token = jwt.sign({ id: usuario.id, correo: usuario.correo, rol: usuario.rol }, process.env.JWT_SECRET, { expiresIn: '2h' });
             res.status(200).json({ token, usuario: { id: usuario.id, nombre: usuario.nombre, correo: usuario.correo, rol: usuario.rol } });
         });
     });

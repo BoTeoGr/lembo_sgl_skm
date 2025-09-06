@@ -70,7 +70,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     let cultivoActual = null;
 
     try {
-        const response = await fetch(`http://localhost:5000/cultivos/${cropId}`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`http://localhost:5000/cultivos/${cropId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         if (!response.ok) throw new Error("No se pudo obtener el cultivo");
 
         cultivoActual = await response.json();
@@ -143,10 +148,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         submitButton.disabled = true;
 
         try {
+            const token = localStorage.getItem('token');
             const response = await fetch(`http://localhost:5000/cultivos/${cropId}`, {
                 method: "PUT",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
                 },
                 body: JSON.stringify(datosActualizados)
             });

@@ -1004,10 +1004,12 @@ async function createProduction(e) {
 
   try {
     // Enviar la producción al backend
+    const token = localStorage.getItem('token');
     const response = await fetch(`${API_URL}/producciones`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
       },
       body: JSON.stringify(productionData),
     });

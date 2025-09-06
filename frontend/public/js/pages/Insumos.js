@@ -8,12 +8,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Cargar datos iniciales
   filteredInsumos = await fetchInsumosFromAPI();
+  // Si fetchInsumosFromAPI retorna null, significa que no hay permiso y ya se mostró el mensaje
+  if (filteredInsumos === null) return;
   renderPaginatedTable(filteredInsumos);
 
   // --- Obtener insumos desde la API ---
   async function fetchInsumosFromAPI() {
     try {
-      const response = await fetch('http://localhost:5000/insumos');
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/insumos', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.status === 403) {
+        renderNoPermissionTable();
+        return null;
+      }
       if (!response.ok) throw new Error('Error al obtener insumos de la API');
       const data = await response.json();
       console.log('API Response:', data);
@@ -45,8 +56,42 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
       });
     } catch (e) {
-      console.warn('Fallo la carga desde la API, usando datos locales:', e.message);
-      return insumos;
+      // Si el error es de permisos, mostrar mensaje y no datos locales
+      if (e.message && e.message.toLowerCase().includes('permiso')) {
+        renderNoPermissionTable();
+        return [];
+      }
+      // Otro error: mostrar mensaje genérico
+      renderErrorTable(e.message);
+      return [];
+    }
+  }
+
+  function renderNoPermissionTable() {
+    const tbody = document.querySelector('.table__body');
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr class="table__row">
+          <td class="table__cell" colspan="8" style="text-align: center; color: rgb(253,195,0);">
+            <span style="font-size:2rem;vertical-align:middle;">&#9888;</span><br>
+            No tienes permisos para realizar esta acción
+          </td>
+        </tr>
+      `;
+    }
+  }
+
+  function renderErrorTable(msg) {
+    const tbody = document.querySelector('.table__body');
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr class="table__row">
+          <td class="table__cell" colspan="8" style="text-align: center; color: rgb(253,195,0);">
+            <span style="font-size:2rem;vertical-align:middle;">&#9888;</span><br>
+            ${msg || 'Error al cargar los datos'}
+          </td>
+        </tr>
+      `;
     }
   }
 
@@ -204,9 +249,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // --- Nueva función para actualizar estado en backend ---
   async function toggleInsumoStatus(id, nuevoEstado) {
+    const token = localStorage.getItem('token');
     await fetch(`http://localhost:5000/insumos/${id}/estado`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify({ estado: nuevoEstado })
     });
   }
@@ -370,7 +419,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btn.classList.contains('table__action-button--view')) {
       // Fetch complete insumo details from the API
       try {
-        const response = await fetch(`http://localhost:5000/insumos/${id}`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`http://localhost:5000/insumos/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
         if (!response.ok) throw new Error('Error al obtener los detalles del insumo');
         const insumo = await response.json();
         showInsumoModal(insumo);

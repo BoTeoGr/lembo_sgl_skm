@@ -41,7 +41,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Cargar datos del insumo actual
     try {
-        const response = await fetch(`http://localhost:5000/insumos/${insumoId}`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`http://localhost:5000/insumos/${insumoId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         if (!response.ok) throw new Error("No se pudo obtener el insumo");
 
         insumoActual = await response.json();
@@ -129,23 +134,77 @@ document.addEventListener("DOMContentLoaded", async () => {
         submitButton.disabled = true;
 
         try {
+            const token = localStorage.getItem('token');
             const response = await fetch(`http://localhost:5000/insumos/${insumoId}`, {
                 method: "PUT",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
                 },
                 body: JSON.stringify(datosActualizados)
             });
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(errorText || "No se pudo actualizar el insumo");
+            if (response.ok) {
+                showToast("Insumo actualizado", "El insumo ha sido actualizado correctamente", "success");
+                setTimeout(() => {
+                    window.location.href = "listar-insumos.html";
+                }, 2000);
+            } else {
+                showToast("Error", data.error || "Error al actualizar el insumo", "error");
             }
-            setTimeout(() => window.location.href = "listar-insumos.html", 2000);
+            
         } catch (error) {
             console.error("Error actualizando insumo:", error);
+            showToast("Error", "Error al comunicarse con el servidor", "error")
         } finally {
             submitButton.disabled = false;
         }
     });
 });
+
+// Función general para mostrar toasts
+function showToast(title, message, type = 'success') {
+    const toast = document.getElementById('toast');
+    const toastTitle = document.getElementById('toastTitle');
+    const toastDescription = document.getElementById('toastDescription');
+    const toastIcon = document.getElementById('toastIcon');
+    const toastProgress = document.querySelector('.toast-progress');
+
+    // Establecer el contenido del toast
+    toastTitle.textContent = title;
+    toastDescription.textContent = message;
+    
+    // Establecer el icono según el tipo
+    switch(type) {
+        case 'success':
+            toastIcon.className = 'fas fa-check-circle';
+            break;
+        case 'error':
+            toastIcon.className = 'fas fa-exclamation-circle';
+            break;
+        case 'warning':
+            toastIcon.className = 'fas fa-exclamation-triangle';
+            break;
+        case 'info':
+            toastIcon.className = 'fas fa-info-circle';
+            break;
+    }
+
+    // Mostrar el toast
+    toast.classList.remove('hidden');
+    
+    // Animación de la barra de progreso
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+        progress += 2;
+        toastProgress.style.width = `${progress}%`;
+        if (progress >= 100) {
+            clearInterval(progressInterval);
+            // Ocultar el toast después de 5 segundos
+            setTimeout(() => {
+                toast.classList.add('hidden');
+                toastProgress.style.width = '0%';
+            }, 3400);
+        }
+    }, 30);
+}

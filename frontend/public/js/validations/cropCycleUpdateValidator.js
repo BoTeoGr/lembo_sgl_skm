@@ -29,7 +29,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     try {
-        const response = await fetch(`http://localhost:5000/ciclo_cultivo/${cicloId}`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`http://localhost:5000/ciclo_cultivo/${cicloId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         if (!response.ok) throw new Error('No se pudo cargar el ciclo de cultivo');
         
         const data = await response.json();
@@ -136,9 +141,13 @@ if (form) {
 
         // Enviar datos actualizados al backend
         try {
+            const token = localStorage.getItem('token');
             const res = await fetch(`http://localhost:5000/ciclo_cultivo/${cicloId}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'Authorization': `Bearer ${token}` 
+                },
                 body: JSON.stringify({
                     nombre: cicloCultivo.nombre,
                     descripcion: cicloCultivo.descripcion,

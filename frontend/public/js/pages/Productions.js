@@ -1116,73 +1116,100 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   
   // Función para cargar producciones desde la API
-  async function cargarProducciones() {
-	try {
-	  const response = await fetch("http://localhost:5000/producciones")
-	  const producciones = await response.json()
+	async function cargarProducciones() {
+				try {
+						const token = localStorage.getItem('token');
+						const response = await fetch("http://localhost:5000/producciones", {
+								headers: {
+										"Authorization": `Bearer ${token}`
+								}
+						});
+						if (response.status === 403) {
+								renderNoPermissionTableProducciones();
+								return;
+						}
+						const producciones = await response.json()
   
-	  if (!response.ok) {
-		throw new Error(producciones.error || "Error al cargar producciones")
-	  }
+			if (!response.ok) {
+				throw new Error(producciones.error || "Error al cargar producciones")
+			}
   
-	  const fechaActual = new Date().toISOString().slice(0, 10)
+			const fechaActual = new Date().toISOString().slice(0, 10)
   
-	  const produccionesConProgreso = producciones.map((produccion) => {
-		// Calcular progreso basado en fechas
-		let progreso = 0
-		if (produccion.fecha_de_inicio && produccion.fecha_fin) {
-		  const fechaInicio = new Date(produccion.fecha_de_inicio)
-		  const fechaFin = new Date(produccion.fecha_fin)
-		  const tiempoTotal = fechaFin.getTime() - fechaInicio.getTime()
-		  const tiempoTranscurrido = new Date(fechaActual).getTime() - fechaInicio.getTime()
+			const produccionesConProgreso = producciones.map((produccion) => {
+				// Calcular progreso basado en fechas
+				let progreso = 0
+				if (produccion.fecha_de_inicio && produccion.fecha_fin) {
+					const fechaInicio = new Date(produccion.fecha_de_inicio)
+					const fechaFin = new Date(produccion.fecha_fin)
+					const tiempoTotal = fechaFin.getTime() - fechaInicio.getTime()
+					const tiempoTranscurrido = new Date(fechaActual).getTime() - fechaInicio.getTime()
   
-		  if (tiempoTotal <= 0) {
-			progreso = 100
-		  } else if (tiempoTranscurrido < 0) {
-			progreso = 0
-		  } else {
-			progreso = Math.min(100, Math.round((tiempoTranscurrido / tiempoTotal) * 100))
-		  }
+					if (tiempoTotal <= 0) {
+						progreso = 100
+					} else if (tiempoTranscurrido < 0) {
+						progreso = 0
+					} else {
+						progreso = Math.min(100, Math.round((tiempoTranscurrido / tiempoTotal) * 100))
+					}
+				}
+  
+				return {
+					...produccion,
+					progreso: progreso,
+				}
+			})
+  
+			actualizarTablaProducciones(produccionesConProgreso)
+			setupSeleccionMultiple()
+  
+			// Actualizar contador en el dashboard si existe
+			const totalProduccionesElement = document.querySelector(".stat-card__value")
+			if (totalProduccionesElement) {
+				totalProduccionesElement.textContent = producciones.length
+			}
+		} catch (error) {
+			if (error.message && error.message.toLowerCase().includes('permiso')) {
+				renderNoPermissionTableProducciones();
+				return;
+			}
+			console.error("Error al cargar producciones:", error)
+			mostrarError("Error al cargar producciones: " + error.message)
+  
+			// Mostrar mensaje en la tabla
+			const tbody = document.querySelector(".table__body")
+			if (tbody) {
+				tbody.innerHTML = `
+					<tr class="table__row">
+						<td colspan="9" class="table__cell table__cell--error">
+							<div class="error-message">
+								<span class="material-symbols-outlined">error</span>
+								<p>${error.message}</p>
+								<button class="button button--retry" onclick="cargarProducciones()">
+									<span class="material-symbols-outlined">refresh</span>
+									Reintentar
+								</button>
+							</div>
+						</td>
+					</tr>
+				`
+			}
 		}
-  
-		return {
-		  ...produccion,
-		  progreso: progreso,
-		}
-	  })
-  
-	  actualizarTablaProducciones(produccionesConProgreso)
-	  setupSeleccionMultiple()
-  
-	  // Actualizar contador en el dashboard si existe
-	  const totalProduccionesElement = document.querySelector(".stat-card__value")
-	  if (totalProduccionesElement) {
-		totalProduccionesElement.textContent = producciones.length
-	  }
-	} catch (error) {
-	  console.error("Error al cargar producciones:", error)
-	  mostrarError("Error al cargar producciones: " + error.message)
-  
-	  // Mostrar mensaje en la tabla
-	  const tbody = document.querySelector(".table__body")
-	  if (tbody) {
-		tbody.innerHTML = `
-		  <tr class="table__row">
-			<td colspan="9" class="table__cell table__cell--error">
-			  <div class="error-message">
-				<span class="material-symbols-outlined">error</span>
-				<p>${error.message}</p>
-				<button class="button button--retry" onclick="cargarProducciones()">
-				  <span class="material-symbols-outlined">refresh</span>
-				  Reintentar
-				</button>
-			  </div>
-			</td>
-		  </tr>
-		`
-	  }
 	}
-  }
+
+	function renderNoPermissionTableProducciones() {
+		const tbody = document.querySelector('.table__body');
+		if (tbody) {
+			tbody.innerHTML = `
+				<tr class="table__row">
+					<td class="table__cell" colspan="9" style="text-align: center; color: rgb(253,195,0);">
+						<span style="font-size:2rem;vertical-align:middle;">&#9888;</span><br>
+						No tienes permisos para realizar esta acción
+					</td>
+				</tr>
+			`;
+		}
+	}
   
   // Función para actualizar la tabla con los datos de las producciones
   function actualizarTablaProducciones(producciones) {
@@ -1261,9 +1288,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   
   // Función para ver detalles de una producción
-  async function verDetallesProduccion(id) {
-	try {
-	  const response = await fetch(`http://localhost:5000/producciones/${id}`);
+	async function verDetallesProduccion(id) {
+		try {
+			const token = localStorage.getItem('token');
+			const response = await fetch(`http://localhost:5000/producciones/${id}`, {
+				headers: {
+					"Authorization": `Bearer ${token}`
+				}
+			});
 	  const produccion = await response.json();
   
 	  if (!response.ok) {
@@ -1381,13 +1413,20 @@ document.addEventListener("DOMContentLoaded", () => {
 			
 			console.log('Solicitando datos completos para insumo ID:', insumo.id || insumo.insumo_id);
 			// Si no, hacemos una petición para obtener los datos completos del insumo
-			return fetch(`http://localhost:5000/insumos/${insumo.id || insumo.insumo_id}`)
-			  .then(response => {
-				if (!response.ok) {
-				  throw new Error('Error al cargar el insumo');
-				}
-				return response.json();
-			  })
+						const token = localStorage.getItem('token');
+						return fetch(`http://localhost:5000/insumos/${insumo.id || insumo.insumo_id}`,
+							{
+								headers: {
+									"Authorization": `Bearer ${token}`
+								}
+							}
+						)
+							.then(response => {
+								if (!response.ok) {
+									throw new Error('Error al cargar el insumo');
+								}
+								return response.json();
+							})
 			  .then(datosInsumo => {
 				console.log('Respuesta de la API para insumo:', JSON.stringify(datosInsumo, null, 2));
 				const insumoData = datosInsumo.insumo || datosInsumo;
@@ -1483,13 +1522,20 @@ document.addEventListener("DOMContentLoaded", () => {
 			}
 			
 			// Si no, hacemos una petición para obtener los datos completos del sensor
-			return fetch(`http://localhost:5000/sensor/${sensor.id || sensor.sensor_id}`)
-			  .then(response => {
-				if (!response.ok) {
-				  throw new Error('Error al cargar el sensor');
-				}
-				return response.json();
-			  })
+						const token = localStorage.getItem('token');
+						return fetch(`http://localhost:5000/sensor/${sensor.id || sensor.sensor_id}`,
+							{
+								headers: {
+									"Authorization": `Bearer ${token}`
+								}
+							}
+						)
+							.then(response => {
+								if (!response.ok) {
+									throw new Error('Error al cargar el sensor');
+								}
+								return response.json();
+							})
 			  .then(datosSensor => {
 				const sensorData = datosSensor.sensor || datosSensor;
 				console.log('Datos completos del sensor:', sensorData);
@@ -1520,19 +1566,26 @@ document.addEventListener("DOMContentLoaded", () => {
 			listaSensores.innerHTML = '';
 			
 			// Función para obtener los detalles completos de un sensor
-			const fetchSensorDetails = async (sensorId) => {
-			  try {
-				const response = await fetch(`http://localhost:5000/sensor/${sensorId}`);
-				if (!response.ok) {
-				  throw new Error('Error al cargar los detalles del sensor');
-				}
-				const data = await response.json();
-				return data.sensor || data; // Asegurarse de manejar ambos formatos de respuesta
-			  } catch (error) {
-				console.error('Error al cargar detalles del sensor:', error);
-				return null;
-			  }
-			};
+						const fetchSensorDetails = async (sensorId) => {
+							try {
+								const token = localStorage.getItem('token');
+								const response = await fetch(`http://localhost:5000/sensor/${sensorId}`,
+									{
+										headers: {
+											"Authorization": `Bearer ${token}`
+										}
+									}
+								);
+								if (!response.ok) {
+									throw new Error('Error al cargar los detalles del sensor');
+								}
+								const data = await response.json();
+								return data.sensor || data; // Asegurarse de manejar ambos formatos de respuesta
+							} catch (error) {
+								console.error('Error al cargar detalles del sensor:', error);
+								return null;
+							}
+						};
 
 			// Mostrar cada sensor
 			const loadSensors = async () => {
@@ -1640,10 +1693,15 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   
   // Función para cargar cultivos desde la API
-  async function cargarCultivos() {
-	try {
-	  const response = await fetch("http://localhost:5000/cultivos");
-	  const cultivos = await response.json();
+	async function cargarCultivos() {
+		try {
+			const token = localStorage.getItem('token');
+			const response = await fetch("http://localhost:5000/cultivos", {
+				headers: {
+					"Authorization": `Bearer ${token}`
+				}
+			});
+			const cultivos = await response.json()
   
 	  if (!response.ok) {
 		throw new Error(cultivos.error || "Error al cargar cultivos");
@@ -1735,10 +1793,15 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   
   // Función para cargar sensores desde la API
-  async function cargarSensores() {
-	try {
-	  const response = await fetch("http://localhost:5000/sensor");
-	  const sensores = await response.json();
+	async function cargarSensores() {
+		try {
+			const token = localStorage.getItem('token');
+			const response = await fetch("http://localhost:5000/sensor", {
+				headers: {
+					"Authorization": `Bearer ${token}`
+				}
+			});
+			const sensores = await response.json()
   
 	  if (!response.ok) {
 		throw new Error(sensores.error || "Error al cargar sensores");
@@ -1849,10 +1912,15 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   
   // Función para cargar insumos desde la API
-  async function cargarInsumos() {
-	try {
-	  const response = await fetch("http://localhost:5000/insumos");
-	  const insumos = await response.json();
+	async function cargarInsumos() {
+		try {
+			const token = localStorage.getItem('token');
+			const response = await fetch("http://localhost:5000/insumos", {
+				headers: {
+					"Authorization": `Bearer ${token}`
+				}
+			});
+			const insumos = await response.json()
 	  if (!response.ok) {
 		throw new Error(insumos.error || "Error al cargar insumos");
 	  }
@@ -1942,10 +2010,15 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   
   // Función para cargar responsables desde la API
-  async function cargarResponsables() {
-	try {
-	  const response = await fetch("http://localhost:5000/usuarios");
-	  const usuarios = await response.json();
+	async function cargarResponsables() {
+		try {
+			const token = localStorage.getItem('token');
+			const response = await fetch("http://localhost:5000/usuarios", {
+				headers: {
+					"Authorization": `Bearer ${token}`
+				}
+			});
+			const usuarios = await response.json()
   
 	  if (!response.ok) {
 		throw new Error(usuarios.error || "Error al cargar responsables");

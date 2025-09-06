@@ -1,14 +1,14 @@
 // loginService.js
 // Servicio para manejar el login y guardar el token JWT
 
-export async function loginUser(email, password, rol) {
+export async function loginUser(email, password) {
     try {
         const response = await fetch('http://localhost:5000/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ userEmail: email, password, rol })
+            body: JSON.stringify({ userEmail: email, password })
         });
         const data = await response.json();
         if (!response.ok) {

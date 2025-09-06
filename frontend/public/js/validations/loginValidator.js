@@ -18,20 +18,23 @@ import { loginUser } from '../services/loginService.js';
 //Evento submit
 form.addEventListener("submit", async function (e) {
 	e.preventDefault();
-	const { email, password } = userLogin;
+	// Captura los valores actuales de los inputs
+	const emailValue = email.value.trim();
+	const passwordValue = password.value.trim();
 
-	if (email === "" || password === "") {
+	if (emailValue === "" || passwordValue === "") {
 		showAlert("Todos los campos son obligatorios", true);
 		return;
 	}
 
-	if (!validarEmail(email)) {
+	if (!validarEmail(emailValue)) {
 		showAlert("El correo no es válido", true);
 		return;
 	}
 
 	try {
-		const data = await loginUser(email, password);
+		// Enviar el email como userEmail para el backend
+		const data = await loginUser(emailValue, passwordValue);
 		// Guardar el token en localStorage para futuras peticiones
 		if (data.token) {
 			localStorage.setItem('token', data.token);
@@ -83,7 +86,7 @@ function readText(e) {
 	} else if (e.target.classList.contains("form__input--password")) {
 		userLogin.password = e.target.value.trim(); // Actualizar el valor de la contraseña
 	}
-}console.log(userLogin);
+}
 
 // FUncion para mostrar u ocultar la contraseña
 document.addEventListener('DOMContentLoaded', function() {

@@ -3,16 +3,21 @@ import { cropsConfig } from '../config/cropsConfig.js';
 // Nueva función para cargar datos desde la API (si existe)
 async function fetchCropsFromAPI() {
     try {
-        const response = await fetch('http://localhost:5000/cultivos?limit=1000');
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:5000/cultivos?limit=1000', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        if (response.status === 403) {
+            renderNoPermissionTable();
+            return null;
+        }
         if (!response.ok) throw new Error('Error al obtener cultivos de la API');
         const data = await response.json();
-        // Si la respuesta contiene la clave 'cultivos', usarla; si no, usar el array directamente
         const cultivos = Array.isArray(data) ? data : (data.cultivos || []);
-        // Mapear campos del backend a los del frontend
         return cultivos.map(cultivo => {
-            // Normalizar estado para estilos
             let status = cultivo.estado || cultivo.status || '';
-            // Acepta variantes comunes
             if (typeof status === 'string') {
                 const estadoLower = status.trim().toLowerCase();
                 if (["habilitado", "activo", "enabled"].includes(estadoLower)) {
@@ -21,33 +26,66 @@ async function fetchCropsFromAPI() {
                     status = 'Inhabilitado';
                 }
             }
-            // Usar id numérico real para operaciones backend
             return {
-                id: cultivo.cultivoId || cultivo.id || '', // id numérico para backend
-                idLabel: cultivo.id || cultivo.cultivoId || '', // id string para mostrar si lo tienes
+                id: cultivo.cultivoId || cultivo.id || '',
+                idLabel: cultivo.id || cultivo.cultivoId || '',
                 name: cultivo.nombre || cultivo.name || '',
                 type: cultivo.tipo || cultivo.type || '',
                 location: cultivo.ubicacion || cultivo.location || '',
                 area: cultivo.tamano || cultivo.area || '',
                 status,
-                // image: cultivo.imagen || cultivo.image || '',
                 description: cultivo.descripcion || cultivo.description || '',
                 createdAt: cultivo.fecha_creacion || cultivo.fechaCreacion || cultivo.createdAt || '',
             };
         });
     } catch (e) {
-        // Si falla la API, usar cropsData local
-        console.warn('Fallo la carga desde la API, usando datos locales:', e.message);
-        const { cropsData } = await import('../data/cropsData.js');
-        return cropsData;
+        // Si el error es de permisos, mostrar mensaje y no datos locales
+        if (e.message && e.message.toLowerCase().includes('permiso')) {
+            renderNoPermissionTable();
+            return null;
+        }
+        // Otro error: mostrar mensaje genérico
+        renderErrorTable(e.message);
+        return [];
     }
 }
 
+function renderNoPermissionTable() {
+    const tbody = document.querySelector('.table__body');
+    if (tbody) {
+        tbody.innerHTML = `
+            <tr class="table__row">
+                <td class="table__cell" colspan="8" style="text-align: center; color: rgb(253,195,0);">
+                    <span style="font-size:2rem;vertical-align:middle;">&#9888;</span><br>
+                    No tienes permisos para realizar esta acción
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function renderErrorTable(msg) {
+    const tbody = document.querySelector('.table__body');
+    if (tbody) {
+        tbody.innerHTML = `
+            <tr class="table__row">
+                <td class="table__cell" colspan="8" style="text-align: center; color: rgb(253,195,0);">
+                    <span style="font-size:2rem;vertical-align:middle;">&#9888;</span><br>
+                    ${msg || 'Error al cargar los datos'}
+                </td>
+            </tr>
+        `;
+    }
+}
 // --- Función para actualizar estado en backend ---
 async function toggleCultivoStatus(id, nuevoEstado) {
+    const token = localStorage.getItem('token');
     await fetch(`http://localhost:5000/cultivos/${id}/estado`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ estado: nuevoEstado })
     });
 }
@@ -64,6 +102,8 @@ class Crops {
 
     async loadData() {
         const data = await fetchCropsFromAPI();
+        // Si fetchCropsFromAPI retorna null, significa que no hay permiso y ya se mostró el mensaje
+        if (data === null) return;
         this.filteredData = [...data];
         this.renderTable();
         this.updatePagination();

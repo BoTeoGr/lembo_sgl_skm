@@ -3,7 +3,12 @@ import { sensorsConfig } from '../config/sensorsConfig.js';
 // --- Obtener sensores desde la API ---
 async function fetchSensorsFromAPI() {
     try {
-        const response = await fetch('http://localhost:5000/sensor?limit=1000');
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:5000/sensor?limit=1000', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         if (!response.ok) throw new Error('Error al obtener sensores de la API');
         const data = await response.json();
         const sensoresArr = Array.isArray(data) ? data : (data.sensores || []);
@@ -38,9 +43,13 @@ async function fetchSensorsFromAPI() {
 
 // --- Función para actualizar estado en backend ---
 async function toggleSensorStatus(id, nuevoEstado) {
+     const token = localStorage.getItem('token');
     await fetch(`http://localhost:5000/sensor/${id}/estado`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ estado: nuevoEstado })
     });
 }

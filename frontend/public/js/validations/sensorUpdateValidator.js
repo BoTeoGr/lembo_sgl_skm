@@ -21,7 +21,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     let sensorActual = null;
 
     try {
-        const response = await fetch(`http://localhost:5000/sensor/${sensorId}`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`http://localhost:5000/sensor/${sensorId}`, {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
         if (!response.ok) throw new Error("No se pudo obtener el sensor");
 
         sensorActual = await response.json();
@@ -107,10 +112,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         submitButton.disabled = true;
         try {
+            const token = localStorage.getItem('token');
             const response = await fetch(`http://localhost:5000/sensor/${sensorId}`, {
                 method: "PUT",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
                 },
                 body: JSON.stringify(datosActualizados)
             });
