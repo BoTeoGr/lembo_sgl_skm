@@ -1,0 +1,146 @@
+/* Reusable Profile Modal Styles */
+:root {
+    --white: #ffffff;
+    --gray-50: #fafafa;
+    --gray-200: #e0e0e0;
+    --gray-500: #9e9e9e;
+    --gray-700: #616161;
+    --green-600: #54b854;
+    --green-700: #38ac38;
+    --z-modal: 1050;
+    --radius-md: 0.5rem;
+    --radius-xl: 1rem;
+    --transition-normal: 0.3s ease;
+  }
+  
+  #profileModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--z-modal);
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--transition-normal);
+    backdrop-filter: blur(4px);
+  }
+  
+  #profileModal.active {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  #profileModal .modal__content {
+    background: var(--white);
+    border-radius: var(--radius-xl);
+    width: 90%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    transform: translateY(20px) scale(0.96);
+    transition: transform var(--transition-normal);
+    border: 1px solid var(--gray-200);
+  }
+  
+  #profileModal.active .modal__content {
+    transform: translateY(0) scale(1);
+  }
+  
+  #profileModal .modal__header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(90deg, var(--green-700) 60%, var(--green-600) 100%);
+    color: white;
+  }
+  
+  #profileModal .modal__title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0;
+  }
+  
+  #profileModal .modal__close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #ffffff;
+    cursor: pointer;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+  }
+  
+  #profileModal .modal__close:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+  
+  #profileModal .modal__body {
+    padding: 1.25rem 1.5rem 1.5rem 1.5rem;
+    background: var(--gray-50);
+  }
+  
+  #profileModal .modal__footer {
+    padding: 0.85rem 1.25rem;
+    border-top: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    background: #f7f7f7;
+  }
+  
+  #profileModal .modal__logout-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    text-decoration: none;
+    background: var(--gray-700);
+    color: #fff;
+    padding: 0.55rem 0.9rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    border: 1px solid rgba(0,0,0,0.06);
+    box-shadow: 0 2px 6px var(--gray-700);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  
+  #profileModal .modal__logout-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px var(--gray-700);
+  }
+  
+  #profileModal .modal__logout-btn .material-symbols-outlined {
+    font-size: 20px;
+  }
+  
+  #profileModal .profile-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  #profileModal .profile-list li {
+    background: #fff;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    padding: 0.75rem 0.9rem;
+    font-size: 0.95rem;
+  }
+  
+  #profileModal .profile-list strong {
+    color: var(--gray-700);
+  }
+  

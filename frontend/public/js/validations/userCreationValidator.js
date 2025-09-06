@@ -188,10 +188,12 @@ submitButton.addEventListener("click", async () => {
 		// Deshabilitar el botón durante el envío
 		submitButton.disabled = true;
 		submitButton.textContent = "Creando...";
+		const token = localStorage.getItem('token');
 		const response = await fetch("http://localhost:5000/users", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
+				"Authorization": `Bearer ${token}`
 			},
 			body: JSON.stringify(userData),
 		});

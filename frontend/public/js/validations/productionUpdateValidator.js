@@ -17,7 +17,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // 1. GET: Cargar datos de la producción
   try {
-    const res = await fetch(`${API_URL}/producciones/${productionId}`);
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_URL}/producciones/${productionId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
     if (!res.ok) throw new Error("No se pudo obtener la producción");
     const data = await res.json();
 
@@ -219,10 +224,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
       console.log('Enviando datos al servidor:', updatedData);
+      const token = localStorage.getItem('token');
       const response = await fetch(`${API_URL}/producciones/${productionId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(updatedData)
       });

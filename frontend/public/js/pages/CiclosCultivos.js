@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   let currentPage = 1;
   const itemsPerPage = ciclosCultivosConfig.table.itemsPerPage || 10;
   let allCiclos = await fetchCiclosCultivoFromAPI();
+  // Si fetchCiclosCultivoFromAPI retorna null, significa que no hay permiso y ya se mostró el mensaje
+  if (allCiclos === null) return;
   let filteredCiclos = allCiclos;
   let selectedIds = [];
 

@@ -14,10 +14,38 @@ export async function loginUser(email, password) {
         if (!response.ok) {
             throw new Error(data.error || 'Error al iniciar sesión');
         }
-        // Guardar el token y el rol en localStorage
+        // Guardar el token y datos básicos del usuario en localStorage
         localStorage.setItem('token', data.token);
         localStorage.setItem('userRol', data.usuario.rol);
         localStorage.setItem('userName', data.usuario.nombre);
+        // Intentar guardar el id/código del usuario para consultas posteriores
+        try {
+            if (data.usuario) {
+                const u = data.usuario;
+                const possibleId = u.id || u._id || u.usuario_id || u.userId || u.codigo;
+                if (possibleId) {
+                    localStorage.setItem('userId', possibleId);
+                }
+            }
+        } catch (_) { /* noop */ }
+        // Guardar campos adicionales usados por el modal de perfil (si el backend los entrega)
+        try {
+            if (data.usuario) {
+                const u = data.usuario;
+                if (u.correo || u.email || u.userEmail) {
+                    localStorage.setItem('userEmail', u.correo || u.email || u.userEmail);
+                }
+                if (u.telefono || u.phone) {
+                    localStorage.setItem('userTelefono', u.telefono || u.phone);
+                }
+                if (u.tipo_documento || u.tipoDoc || u.tipoDocumento) {
+                    localStorage.setItem('userTipoDoc', u.tipo_documento || u.tipoDoc || u.tipoDocumento);
+                }
+                if (u.numero_documento || u.numDoc || u.documento) {
+                    localStorage.setItem('userNumDoc', u.numero_documento || u.numDoc || u.documento);
+                }
+            }
+        } catch (_) { /* noop */ }
         return data;
     } catch (error) {
         throw error;

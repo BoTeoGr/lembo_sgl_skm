@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Cargar datos iniciales
   filteredUsers = await fetchUsersFromAPI();
+  // Si fetchUsersFromAPI retorna null, significa que no hay permiso y ya se mostró el mensaje
+  if (filteredUsers === null) return;
   renderPaginatedTable(filteredUsers);
 
   // Filtros
@@ -18,7 +20,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   // --- Obtener usuarios desde la API ---
   async function fetchUsersFromAPI() {
     try {
-      const response = await fetch('http://localhost:5000/usuarios?limit=1000');
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/usuarios?limit=1000', {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      if (response.status === 403) {
+        renderNoPermissionTable();
+        return null;
+      }
       if (!response.ok) throw new Error('Error al obtener usuarios de la API');
       const data = await response.json();
       console.log('API Response:', data);
@@ -48,8 +59,42 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
       });
     } catch (e) {
-      console.warn('Fallo la carga desde la API:', e.message);
+      // Si el error es de permisos, mostrar mensaje y no datos locales
+      if (e.message && e.message.toLowerCase().includes('permiso')) {
+        renderNoPermissionTable();
+        return null;
+      }
+      // Otro error: mostrar mensaje genérico
+      renderErrorTable(e.message);
       return [];
+    }
+  }
+
+  function renderNoPermissionTable() {
+    const tbody = document.querySelector('.table__body');
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr class="table__row">
+          <td class="table__cell" colspan="7" style="text-align: center; color: rgb(253,195,0);">
+            <span style="font-size:2rem;vertical-align:middle;">&#9888;</span><br>
+            No tienes permisos para realizar esta acción
+          </td>
+        </tr>
+      `;
+    }
+  }
+
+  function renderErrorTable(msg) {
+    const tbody = document.querySelector('.table__body');
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr class="table__row">
+          <td class="table__cell" colspan="7" style="text-align: center; color: rgb(253,195,0);">
+            <span style="font-size:2rem;vertical-align:middle;">&#9888;</span><br>
+            ${msg || 'Error al cargar los datos'}
+          </td>
+        </tr>
+      `;
     }
   }
 
@@ -201,7 +246,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const id = row.querySelector('.table__cell--id').textContent;
     if (btn.classList.contains('table__action-button--view')) {
       try {
-        const response = await fetch(`http://localhost:5000/usuarios/${id}`);
+        // const token = localStorage.getItem('token');
+        const response = await fetch(`http://localhost:5000/usuarios/${id}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
         if (!response.ok) throw new Error('Error al obtener los detalles del usuario');
         const usuario = await response.json();
         showUsuarioModal(usuario);
@@ -213,11 +265,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else if (btn.classList.contains('table__action-button--edit')) {
       window.location.href = `actualizar-usuario.html?id=${id}`;
     } else if (btn.classList.contains('table__action-button--enable')) {
-      updateUserStatus([id], 'Activo');
       await toggleUserStatus(id, 'Activo');
       renderPaginatedTable(filteredUsers);
     } else if (btn.classList.contains('table__action-button--disable')) {
-      updateUserStatus([id], 'Inactivo');
       await toggleUserStatus(id, 'Deshabilitado');
       renderPaginatedTable(filteredUsers);
     }

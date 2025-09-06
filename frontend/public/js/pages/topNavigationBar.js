@@ -100,14 +100,10 @@ export default function Navbar() {
                 <div class="nav__user">
                     <img src="../imgs/profile-img.jpg" alt="Usuario" class="nav__user-image" />
                     <div class="nav__user-dropdown">
-                        <a href="perfil.html" class="nav__dropdown-link">
+                        <a href="#" id="openProfileModalLink" class="nav__dropdown-link">
                             <span class="material-symbols-outlined">person</span>
                             <span>Perfil</span>
-                        </a>
-                        <a href="index.html" class="nav__dropdown-link">
-                            <span class="material-symbols-outlined">logout</span>
-                            <span>Cerrar Sesión</span>
-                        </a>
+                        </a>                        
                     </div>
                 </div>
                 

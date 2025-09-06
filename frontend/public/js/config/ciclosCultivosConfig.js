@@ -16,7 +16,16 @@ let ciclosCultivo = [];
 
 export async function fetchCiclosCultivoFromAPI() {
   try {
-    const response = await fetch('http://localhost:5000/ciclo_cultivo');
+    const token = localStorage.getItem('token');
+    const response = await fetch('http://localhost:5000/ciclo_cultivo', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (response.status === 403) {
+      renderNoPermissionTableCiclos();
+      return null;
+    }
     if (!response.ok) throw new Error('Error al obtener ciclos de cultivo de la API');
     const data = await response.json();
     const arr = Array.isArray(data) ? data : (data.ciclos || data.ciclosCultivo || []);
@@ -32,9 +41,41 @@ export async function fetchCiclosCultivoFromAPI() {
     }));
     return ciclosCultivo;
   } catch (e) {
-    console.warn('Fallo la carga desde la API, usando datos locales:', e.message);
-    return ciclosCultivo;
+    if (e.message && e.message.toLowerCase().includes('permiso')) {
+      renderNoPermissionTableCiclos();
+      return null;
+    }
+    renderErrorTableCiclos(e.message);
+    return [];
   }
+
+function renderNoPermissionTableCiclos() {
+  const tbody = document.querySelector('.table__body');
+  if (tbody) {
+    tbody.innerHTML = `
+      <tr class="table__row">
+        <td class="table__cell" colspan="8" style="text-align: center; color: rgb(253,195,0);">
+          <span style="font-size:2rem;vertical-align:middle;">&#9888;</span><br>
+          No tienes permisos para realizar esta acción
+        </td>
+      </tr>
+    `;
+  }
+}
+
+function renderErrorTableCiclos(msg) {
+  const tbody = document.querySelector('.table__body');
+  if (tbody) {
+    tbody.innerHTML = `
+      <tr class="table__row">
+        <td class="table__cell" colspan="8" style="text-align: center; color: rgb(253,195,0);">
+          <span style="font-size:2rem;vertical-align:middle;">&#9888;</span><br>
+          ${msg || 'Error al cargar los datos'}
+        </td>
+      </tr>
+    `;
+  }
+}
 }
 
 export function renderCiclosCultivoTable(filtered = ciclosCultivo) {
@@ -66,9 +107,13 @@ export async function updateCicloCultivoEstadoAPI(ids, status) {
   // Backend espera 'habilitado' o 'deshabilitado'
   const estadoDB = status === 'Activo' ? 'habilitado' : 'deshabilitado';
   for (const id of ids) {
+    const token = localStorage.getItem('token');
     await fetch(`http://localhost:5000/ciclo_cultivo/${id}/estado`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify({ estado: estadoDB })
     });
   }

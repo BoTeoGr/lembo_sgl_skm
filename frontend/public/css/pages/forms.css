@@ -301,6 +301,7 @@ body {
 	margin-bottom: 4rem;
 	width: 100%;
 	max-width: 60rem;
+	position: relative;
 }
 
 /* Enlaces */
@@ -447,7 +448,7 @@ body {
 }
 
 /* Boton para mostrar/ocultar contraseña (formulario de registro de usuario) */
-.toggle-password {
+.toggle-password, .toggle-password-login {
     position: absolute;
     right: 10px;
     top: 50%;
@@ -458,8 +459,13 @@ body {
     cursor: pointer;
     padding: 5px;
 }
+.toggle-password-login {
+	right: -10px;
+    top: 36%;
+}
 
-.toggle-password:hover {
+
+.toggle-password:hover, .toggle-password-login:hover {
     color: #333;
 }
 

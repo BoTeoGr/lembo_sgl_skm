@@ -80,7 +80,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     let usuarioActual = null;
 
     try {
-        const response = await fetch(`http://localhost:5000/usuarios/${userId}`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`http://localhost:5000/usuarios/${userId}`,
+            {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            }
+        );
         if (!response.ok) throw new Error("No se pudo obtener el usuario");
 
         usuarioActual = await response.json();
@@ -235,10 +242,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         submitButton.disabled = true;
 
         try {
+            const token = localStorage.getItem('token');
             const response = await fetch(`http://localhost:5000/usuarios/${userId}`, {
                 method: "PUT",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
                 },
                 body: JSON.stringify(datosActualizados)
             });
