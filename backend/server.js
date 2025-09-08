@@ -2,6 +2,7 @@ import express from 'express';
 import db from './db/config.db.js'
 import cors from 'cors';
 import dataRoutes from './routes/routes.js'
+import publicWidgetsRoutes from './routes/publicWidgets.routes.js'
 import dotenv from 'dotenv';
 
 // Load environment variables
@@ -31,6 +32,7 @@ app.use(cors({
 
 // Routes
 app.use('/', dataRoutes);
+app.use('/api', publicWidgetsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

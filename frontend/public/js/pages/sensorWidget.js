@@ -1,32 +1,35 @@
 async function fetchSensorsStats() {
     try {
-        // Obtener todos los sensores
-        const response = await fetch('http://localhost:5000/sensor?limit=1000');
-        if (!response.ok) throw new Error('Error al obtener sensores');
-        const data = await response.json();
-        const sensores = Array.isArray(data) ? data : (data.sensores || []);
-
-        // Contar sensores por estado
-        const stats = {
-            habilitados: 0,
-            deshabilitados: 0,
-            total: sensores.length
+        // Obtener estadísticas de sensores desde la API pública
+        const response = await fetch('http://localhost:5000/api/widgets/sensors');
+        if (!response.ok) throw new Error('Error al obtener estadísticas de sensores');
+        
+        const stats = await response.json();
+        
+        // Formatear los datos para la interfaz
+        const formattedStats = {
+            total: stats.total || 0,
+            habilitados: stats.enabled || 0,
+            deshabilitados: stats.disabled || 0
         };
 
-        sensores.forEach(sensor => {
-            const estado = (sensor.estado || '').toLowerCase().trim();
-            if (estado === 'habilitado') {
-                stats.habilitados++;
-            } else if (estado === 'deshabilitado') {
-                stats.deshabilitados++;
-            }
-            // Si no es ninguno de los dos estados, no se cuenta
-        });
-
         // Actualizar la tarjeta con las estadísticas
-        updateSensorCard(stats);
+        updateSensorCard(formattedStats);
     } catch (error) {
         console.error('Error al cargar estadísticas de sensores:', error);
+        // Mostrar mensaje de error en la interfaz
+        const sensorCard = Array.from(document.querySelectorAll('.card__title'))
+            .find(el => el.textContent.includes('Sensores'))
+            ?.closest('.card');
+            
+        if (sensorCard) {
+            const errorElement = document.createElement('div');
+            errorElement.className = 'error-message';
+            errorElement.textContent = 'No se pudieron cargar los datos de sensores';
+            errorElement.style.color = '#dc3545';
+            errorElement.style.padding = '10px';
+            sensorCard.querySelector('.card__content').prepend(errorElement);
+        }
     }
 }
 
