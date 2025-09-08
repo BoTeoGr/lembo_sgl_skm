@@ -165,6 +165,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   function showCicloCultivoDetails(ciclo) {
+    document.getElementById('modalCicloCultivoId').textContent = ciclo.id || '';
     document.getElementById('modalCicloCultivoNombre').textContent = ciclo.nombre || '';
     document.getElementById('modalCicloCultivoDescripcion').textContent = ciclo.descripcion || '';
     document.getElementById('modalCicloCultivoNovedades').textContent = ciclo.novedades || '';

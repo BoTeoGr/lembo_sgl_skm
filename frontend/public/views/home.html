@@ -25,6 +25,25 @@
 		<script src="../js/pages/sensorWidget.js"></script>
 		<script src="../js/pages/userWidget.js"></script>
 		<script src="../js/pages/cropsWidget.js"></script>
+		<script>
+			document.addEventListener('DOMContentLoaded', function() {
+				// Check if user is admin
+				const userRole = localStorage.getItem('userRol') || '';
+				const normalizedRole = String(userRole).toLowerCase().trim();
+				const isAdmin = ['administrador', 'super administrador', 'admin', 'superadmin'].includes(normalizedRole);
+
+				// Hide buttons if not admin
+				if (!isAdmin) {
+					// Hide 'Ir a Insumos' button
+					const insumosButton = document.querySelector('a[href="listar-insumos.html"]');
+					if (insumosButton) insumosButton.style.display = 'none';
+
+					// Hide 'Ir a Cultivos' button
+					const cultivosButton = document.querySelector('a[href*="listar-cultivos.html"]');
+					if (cultivosButton) cultivosButton.style.display = 'none';
+				}
+			});
+		</script>
 	</head>
 
 	<body>
@@ -279,42 +298,6 @@
 						</div>
 					</div>
 				</div>
-
-				<!-- Alerts Card
-				<div class="card card-animated">
-					<div class="card__header">
-						<h2 class="card__title">Alertas y Notificaciones</h2>
-						<div class="card__subtitle">Últimas 24 horas</div>
-					</div>
-					<div class="card__content">
-						<div class="alerts">
-							<div class="alerts__item">
-								<div class="alerts__icon alerts__icon--danger">
-									<i class="fas fa-tint"></i>
-								</div>
-								<div class="alerts__content">
-									<div class="alerts__title">Nivel de agua bajo</div>
-									<div class="alerts__description">
-										Tanque principal al 15% de capacidad
-									</div>
-									<div class="alerts__time">Hace 35 minutos</div>
-								</div>
-							</div>
-							<div class="alerts__item">
-								<div class="alerts__icon alerts__icon--warning">
-									<i class="fas fa-tint"></i>
-								</div>
-								<div class="alerts__content">
-									<div class="alerts__title">Humedad baja en sector 3</div>
-									<div class="alerts__description">
-										Niveles por debajo del 30% recomendado
-									</div>
-									<div class="alerts__time">Hace 2 horas</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div> -->
 
 				<!-- Tasks Card -->
 				<div class="card card--wide card-animated">
