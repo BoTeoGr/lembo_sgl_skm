@@ -25,6 +25,25 @@
 		<script src="../js/pages/sensorWidget.js"></script>
 		<script src="../js/pages/userWidget.js"></script>
 		<script src="../js/pages/cropsWidget.js"></script>
+		<script>
+			document.addEventListener('DOMContentLoaded', function() {
+				// Check if user is admin
+				const userRole = localStorage.getItem('userRol') || '';
+				const normalizedRole = String(userRole).toLowerCase().trim();
+				const isAdmin = ['administrador', 'super administrador', 'admin', 'superadmin'].includes(normalizedRole);
+
+				// Hide buttons if not admin
+				if (!isAdmin) {
+					// Hide 'Ir a Insumos' button
+					const insumosButton = document.querySelector('a[href="listar-insumos.html"]');
+					if (insumosButton) insumosButton.style.display = 'none';
+
+					// Hide 'Ir a Cultivos' button
+					const cultivosButton = document.querySelector('a[href*="listar-cultivos.html"]');
+					if (cultivosButton) cultivosButton.style.display = 'none';
+				}
+			});
+		</script>
 	</head>
 
 	<body>
@@ -180,7 +199,6 @@
 					</div>
 					<div class="card__footer">
 						<div class="footer-actions">
-							<span class="badge badge--warning">+15 alertas esta semana</span>
 							<span class="badge">1,200 items</span>
 						</div>
 					</div>
@@ -247,7 +265,7 @@
 					<div class="card__header">
 						<div>
 							<h2 class="card__title">Vista de Cultivos</h2>
-							<div class="card__subtitle">Estado actual de los cultivos</div>
+							<div class="card__subtitle">Cargando datos...</div>
 						</div>
 						<a href="../views/listar-cultivos.html">
 							<button class="button button--outline button--sm">
@@ -262,57 +280,21 @@
 									<span class="status-list__dot status-list__dot--success"></span>
 									<span>Habilitados</span>
 								</div>
-								<span>0</span>
+								<span class="enabled-count">0</span>
 							</div>
 							<div class="status-list__item">
 								<div class="status-list__indicator">
 									<span class="status-list__dot status-list__dot--danger"></span>
 									<span>Deshabilitados</span>
 								</div>
-								<span>0</span>
+								<span class="disabled-count">0</span>
 							</div>
 						</div>
 					</div>
 					<div class="card__footer">
 						<div class="footer-actions">
-							<span class="badge badge--success">+10 agregados esta semana</span>
-							<span class="badge">16 cultivos</span>
-						</div>
-					</div>
-				</div>
-
-				<!-- Alerts Card -->
-				<div class="card card-animated">
-					<div class="card__header">
-						<h2 class="card__title">Alertas y Notificaciones</h2>
-						<div class="card__subtitle">Últimas 24 horas</div>
-					</div>
-					<div class="card__content">
-						<div class="alerts">
-							<div class="alerts__item">
-								<div class="alerts__icon alerts__icon--danger">
-									<i class="fas fa-tint"></i>
-								</div>
-								<div class="alerts__content">
-									<div class="alerts__title">Nivel de agua bajo</div>
-									<div class="alerts__description">
-										Tanque principal al 15% de capacidad
-									</div>
-									<div class="alerts__time">Hace 35 minutos</div>
-								</div>
-							</div>
-							<div class="alerts__item">
-								<div class="alerts__icon alerts__icon--warning">
-									<i class="fas fa-tint"></i>
-								</div>
-								<div class="alerts__content">
-									<div class="alerts__title">Humedad baja en sector 3</div>
-									<div class="alerts__description">
-										Niveles por debajo del 30% recomendado
-									</div>
-									<div class="alerts__time">Hace 2 horas</div>
-								</div>
-							</div>
+							<span class="badge badge--success new-this-week">+0 nuevos esta semana</span>
+							<span class="badge total-crops">0 cultivos</span>
 						</div>
 					</div>
 				</div>

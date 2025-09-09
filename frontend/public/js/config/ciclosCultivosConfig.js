@@ -35,8 +35,8 @@ export async function fetchCiclosCultivoFromAPI() {
       descripcion: ciclo.descripcion || '',
       novedades: ciclo.novedades || '',
       imagen: ciclo.imagen || '',
-      periodoInicio: ciclo.periodo_inicio || ciclo.periodoInicio || '',
-      periodoFinal: ciclo.periodo_final || ciclo.periodoFinal || '',
+      periodoInicio: ciclo.periodo_inicio ? new Date(ciclo.periodo_inicio).toLocaleDateString('es-ES') : (ciclo.periodoInicio ? new Date(ciclo.periodoInicio).toLocaleDateString('es-ES') : ''),
+      periodoFinal: ciclo.periodo_final ? new Date(ciclo.periodo_final).toLocaleDateString('es-ES') : (ciclo.periodoFinal ? new Date(ciclo.periodoFinal).toLocaleDateString('es-ES') : ''),
       estado: (ciclo.estado && (ciclo.estado.toLowerCase() === 'habilitado' || ciclo.estado.toLowerCase() === 'activo')) ? 'Activo' : 'Inactivo'
     }));
     return ciclosCultivo;

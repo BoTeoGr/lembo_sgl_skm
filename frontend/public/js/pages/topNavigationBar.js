@@ -1,6 +1,13 @@
 export default function Navbar() {
 	const currentPath = window.location.pathname.split("/").pop();
 
+	// Obtener el rol del usuario desde localStorage
+	const userRole = localStorage.getItem('userRol') || '';  // Note: 'userRol' is the correct key used in the app
+	console.log('User role from localStorage:', userRole);
+	const normalizedRole = String(userRole).toLowerCase().trim();
+	const isAdmin = ['administrador', 'super administrador', 'admin', 'superadmin'].includes(normalizedRole);
+	console.log('Is admin?', isAdmin, 'for role:', `'${userRole}'`);
+
 	const isSelected = (linkPath) => {
 		return currentPath === linkPath ? "nav__link--selected" : "";
 	};
@@ -35,10 +42,11 @@ export default function Navbar() {
                             </div>
                         </li>
 
+                        ${isAdmin ? `
                         <li class="nav__item nav__item--dropdown">
                             <button class="nav__dropdown-btn ${isSelected(
-															"listar-usuarios.html"
-														)}">
+													"listar-usuarios.html"
+												)}">
                                 <span class="material-symbols-outlined">group</span>
                                 <span>Usuarios</span>
                                 <span class="material-symbols-outlined nav__arrow">expand_more</span>
@@ -51,8 +59,8 @@ export default function Navbar() {
 
                         <li class="nav__item nav__item--dropdown">
                             <button class="nav__dropdown-btn ${isSelected(
-															"listar-insumos.html"
-														)}">
+													"listar-insumos.html"
+												)}">
                                 <span class="material-symbols-outlined">inventory</span>
                                 <span>Insumos</span>
                                 <span class="material-symbols-outlined nav__arrow">expand_more</span>
@@ -65,8 +73,8 @@ export default function Navbar() {
 
                         <li class="nav__item nav__item--dropdown">
                             <button class="nav__dropdown-btn ${isSelected(
-															"listar-cultivos.html"
-														)}">
+													"listar-cultivos.html"
+												)}">
                                 <span class="material-symbols-outlined">agriculture</span>
                                 <span>Cultivos</span>
                                 <span class="material-symbols-outlined nav__arrow">expand_more</span>
@@ -81,8 +89,8 @@ export default function Navbar() {
 
                         <li class="nav__item nav__item--dropdown">
                             <button class="nav__dropdown-btn ${isSelected(
-															"listar-producciones.html"
-														)}">
+													"listar-producciones.html"
+												)}">
                                 <span class="material-symbols-outlined">manufacturing</span>
                                 <span>Producciones</span>
                                 <span class="material-symbols-outlined nav__arrow">expand_more</span>
@@ -92,6 +100,7 @@ export default function Navbar() {
                                 <a href="crear-produccion.html" class="nav__dropdown-link">Agregar Producción</a>
                             </div>
                         </li>
+                        ` : ''}
                     </ul>
                 </nav>
             </div>
@@ -131,6 +140,7 @@ export default function Navbar() {
                     <span class="material-symbols-outlined">add_circle</span>
                     <span>Agregar Sensor</span>
                 </a>
+                ${isAdmin ? `
                 <a href="listar-usuarios.html" class="nav__mobile-link">
                     <span class="material-symbols-outlined">group</span>
                     <span>Lista de Usuarios</span>
@@ -171,6 +181,7 @@ export default function Navbar() {
                     <span class="material-symbols-outlined">add_circle</span>
                     <span>Agregar Producción</span>
                 </a>
+                ` : ''}
 
                 <a href="index.html" class="nav__mobile-link">
                     <span class="material-symbols-outlined">logout</span>

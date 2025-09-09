@@ -80,34 +80,33 @@ async function isServerAvailable() {
 }
 
 /**
- * Fetches supplies summary data from the API or uses mock data if server is not available
+ * Fetches supplies summary data from the public API
  */
 async function fetchSuppliesData() {
-    clearError();
-    
-    // First check if server is available
-    const serverAvailable = await isServerAvailable();
-    
-    if (serverAvailable) {
-        try {
-            const response = await fetch('http://localhost:3000/insumos-resumen/resumen');
-            
-            if (!response.ok) {
-                throw new Error(`Error HTTP: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            updateSuppliesUI(data);
-            return data;
-        } catch (error) {
-            console.warn('Error fetching supplies data, using mock data instead');
+    try {
+        console.log('Fetching supplies data from API...');
+        const response = await fetch('http://localhost:5000/api/widgets/supplies');
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('API Error Response:', errorText);
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+
+        const data = await response.json();
+        console.log('Received supplies data:', data);
+        
+        if (!Array.isArray(data)) {
+            throw new Error('Invalid data format: expected array');
+        }
+        
+        updateSuppliesUI(data);
+        return data;
+    } catch (error) {
+        console.error('Error fetching supplies data:', error);
+        showError('No se pudieron cargar los datos de insumos');
+        return [];
     }
-    
-    // If we get here, either server is not available or there was an error
-    const mockData = getMockData();
-    updateSuppliesUI(mockData);
-    return mockData;
 }
 
 // Mock data for development/testing
@@ -141,30 +140,53 @@ function updateSuppliesUI(suppliesData) {
     // Map supply types to their Spanish names and colors
     const supplyTypeMap = {
         'Químico': { name: 'Químicos', color: '#4CAF50' },
-        'Semilla': { name: 'Semillas', color: '#2196F3' },
-        'Equipo': { name: 'Equipos', color: '#9C27B0' },
         'Orgánico': { name: 'Orgánicos', color: '#FF9800' },
+        'Semillas': { name: 'Semillas', color: '#2196F3' },
         'default': { name: 'Otros', color: '#607D8B' }
     };
 
+    // Group supplies by type, combining 'Sustrato' and 'Biológico' into 'Otros'
+    const groupedSupplies = suppliesData.reduce((acc, item) => {
+        const type = ['Químico', 'Orgánico', 'Semillas'].includes(item.type) ? item.type : 'default';
+        const existing = acc.find(s => s.type === type);
+        
+        if (existing) {
+            existing.count += parseInt(item.count) || 0;
+            existing.enabled = (parseInt(existing.enabled) || 0) + (parseInt(item.enabled) || 0);
+        } else {
+            acc.push({
+                type: type,
+                count: parseInt(item.count) || 0,
+                enabled: parseInt(item.enabled) || 0
+            });
+        }
+        return acc;
+    }, []);
+
     // Calculate total items for percentage calculation
-    const totalItems = suppliesData.reduce((sum, item) => sum + (item.cantidad || 0), 0);
+    const totalItems = groupedSupplies.reduce((sum, item) => sum + (item.count || 0), 0);
     
     // Create a progress item for each supply type
-    suppliesData.forEach(supply => {
-        const supplyType = supplyTypeMap[supply.tipo] || supplyTypeMap['default'];
-        const percentage = totalItems > 0 ? Math.round((supply.cantidad / totalItems) * 100) : 0;
+    groupedSupplies.forEach((supply, index) => {
+        const supplyType = supplyTypeMap[supply.type] || supplyTypeMap['default'];
+        const enabledCount = parseInt(supply.enabled) || 0;
+        const percentage = totalItems > 0 ? Math.round((supply.count / totalItems) * 100) : 0;
         
         const progressItem = document.createElement('div');
         progressItem.className = 'progress-item';
+        progressItem.style.animationDelay = `${index * 100}ms`;
         
         progressItem.innerHTML = `
             <div class="progress-item__header">
-                <span>${supplyType.name}</span>
+                <span>${supplyType.name} <small>(${enabledCount})</small></span>
                 <span>${percentage}%</span>
             </div>
             <div class="progress-item__bar">
-                <div class="progress-item__fill" style="width: ${percentage}%; background-color: ${supplyType.color};"></div>
+                <div class="progress-item__fill" 
+                     style="--progress-width: ${percentage}%; 
+                            background-color: ${supplyType.color};
+                            width: var(--progress-width);">
+                </div>
             </div>
         `;
         
