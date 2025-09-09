@@ -98,15 +98,38 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  function getFilteredUsers() {
-    const search = document.querySelector('.filters__search')?.value?.toLowerCase() || '';
-    const rol = document.querySelector('select[placeholder="Rol"]')?.value || '';
-    const estado = document.querySelector('select[placeholder="Estado"]')?.value || '';
-    return filteredUsers.filter(u => 
-      (u.nombre.toLowerCase().includes(search) || String(u.id).toLowerCase().includes(search)) &&
-      (rol ? u.rol === rol : true) &&
-      (estado ? u.estado === estado : true)
-    );
+  async function getFilteredUsers() {
+    try {
+      // Obtener los valores actuales de los filtros
+      const search = searchInput?.value?.toLowerCase() || '';
+      const rol = rolSelect?.value || '';
+      const estado = estadoSelect?.value || '';
+      
+      // Si no hay filtros aplicados, devolver todos los usuarios
+      if (!search && !rol && !estado) {
+        return filteredUsers;
+      }
+
+      // Aplicar filtros
+      return filteredUsers.filter(user => {
+        // Filtrar por búsqueda (nombre o ID)
+        const matchesSearch = !search || 
+          (user.nombre && user.nombre.toLowerCase().includes(search)) || 
+          (user.id && String(user.id).toLowerCase().includes(search)) ||
+          (user.numeroDocumento && String(user.numeroDocumento).toLowerCase().includes(search));
+        
+        // Filtrar por rol
+        const matchesRol = !rol || (user.rol && user.rol === rol);
+        
+        // Filtrar por estado
+        const matchesEstado = !estado || (user.estado && user.estado === estado);
+        
+        return matchesSearch && matchesRol && matchesEstado;
+      });
+    } catch (error) {
+      console.error('Error al filtrar usuarios:', error);
+      return [];
+    }
   }
 
   function renderUsersTable(data) {
@@ -184,20 +207,64 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  function applyFilters() {
-    currentPage = 1; // Reset to first page when filters change
-    filteredUsers = getFilteredUsers();
-    renderPaginatedTable(filteredUsers);
+  async function applyFilters() {
+    try {
+      currentPage = 1; // Reset to first page when filters change
+      const filtered = await getFilteredUsers();
+      renderPaginatedTable(filtered);
+      
+      // Actualizar el contador de resultados
+      const resultCount = document.querySelector('.pagination__total-items');
+      if (resultCount) {
+        const total = filtered.length;
+        resultCount.textContent = total;
+        
+        // Actualizar el rango mostrado
+        const startIdx = (currentPage - 1) * itemsPerPage + 1;
+        const endIdx = Math.min(startIdx + itemsPerPage - 1, total);
+        const currentPageSpan = document.querySelector('.pagination__current-page');
+        const itemsPerPageSpan = document.querySelector('.pagination__items-per-page');
+        
+        if (currentPageSpan) currentPageSpan.textContent = startIdx;
+        if (itemsPerPageSpan) itemsPerPageSpan.textContent = endIdx;
+      }
+    } catch (error) {
+      console.error('Error al aplicar filtros:', error);
+      renderErrorTable('Error al aplicar los filtros');
+    }
   }
 
-  searchInput?.addEventListener('input', applyFilters);
+  // Función debounce para el input de búsqueda
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  // Aplicar filtros con debounce
+  const debouncedApplyFilters = debounce(applyFilters, 300);
+
+  // Event listeners para los filtros
+  searchInput?.addEventListener('input', debouncedApplyFilters);
   rolSelect?.addEventListener('change', applyFilters);
   estadoSelect?.addEventListener('change', applyFilters);
+  
+  // Limpiar filtros
   clearBtn?.addEventListener('click', () => {
     if (searchInput) searchInput.value = '';
     if (rolSelect) rolSelect.value = '';
     if (estadoSelect) estadoSelect.value = '';
-    filteredUsers = getFilteredUsers();
+    filteredUsers = fetchUsersFromAPI().then(users => {
+      if (users !== null) {
+        renderPaginatedTable(users);
+      }
+    });
     currentPage = 1;
     renderPaginatedTable(filteredUsers);
   });

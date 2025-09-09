@@ -251,11 +251,6 @@
 										<option value="Activo">Activo</option>
 										<option value="Inactivo">Inactivo</option>
 									</select>
-									<select class="filters__select" placeholder="Ciclo">
-										<option value="">Todos</option>
-										<option value="Primavera-Verano">Primavera - Verano</option>
-										<option value="Otoño-Invierno">Otoño - Invierno</option>
-									</select>
 									<button class="button button--clear">Limpiar filtros</button>
 								</div>
 							</div>
@@ -353,6 +348,15 @@
 													</div>
 												</div>
 
+												<div class="meta-row">
+													<div class="meta-item"><span class="meta-label">Cultivo</span><span class="meta-value" id="nombreCultivo"></span></div>
+													<div class="meta-item"><span class="meta-label">Responsable</span><span class="meta-value" id="cultivoResponsable"></span></div>
+													<div class="meta-item"><span class="meta-label">Ciclo</span><span class="meta-value" id="nombreCiclo"></span></div>
+													<div class="meta-item"><span class="meta-label">Tipo</span><span class="meta-value" id="cultivoTipo"></span></div>
+													<div class="meta-item"><span class="meta-label">Ubicación</span><span class="meta-value" id="cultivoUbicacion"></span></div>
+													<div class="meta-item" style="grid-column: 1 / -1;"><span class="meta-label">Descripción</span><span class="meta-value" id="cultivoDescripcion"></span></div>
+												</div>
+
 												<div class="cultivo-progress">
 													<div class="progress-header">
 														<h4>Progreso del Ciclo</h4>
@@ -364,6 +368,9 @@
 													<div class="progress progress--large">
 														<div class="progress__bar" style="width: 0%"></div>
 													</div>
+													<div class="progress-chart" style="display:flex; justify-content:center; margin-bottom: 12px;">
+														<canvas id="progressDoughnutChart" width="140" height="140"></canvas>
+													</div>
 													<div class="progress-dates">
 														<span
 															>Inicio: <span id="cultivoFechaInicio"></span
@@ -371,54 +378,14 @@
 														<span
 															>Fin estimado: <span id="cultivoFechaFin"></span
 														></span>
+														<span
+															>Restantes: <span id="cultivoDiasRestantes"></span>
+														</span>
 													</div>
 												</div>
 
 												<div class="cultivo-grid">
-													<!-- Información básica -->
-													<div class="cultivo-section">
-														<div class="section-header">
-															<h4>Información Básica</h4>
-														</div>
-														<div class="info-content">
-															<div class="info-item">
-																<span class="info-label">Tipo:</span>
-																<span
-																	id="cultivoTipo"
-																	class="info-value"
-																></span>
-															</div>
-															<div class="info-item">
-																<span class="info-label">Ubicación:</span>
-																<span
-																	id="cultivoUbicacion"
-																	class="info-value"
-																></span>
-															</div>
-															<div class="info-item">
-																<span class="info-label">Cultivo:</span>
-																<span
-																	id="nombreCultivo"
-																	class="info-value"
-																></span>
-															</div>
-															<div class="info-item">
-																<span class="info-label">Ciclo:</span>
-																<span
-																	id="nombreCiclo"
-																	class="info-value"
-																></span>
-															</div>
-															<div class="info-item">
-																<span class="info-label">Descripción:</span>
-																<span
-																	id="cultivoDescripcion"
-																	class="info-value"
-																></span>
-															</div>
-														</div>
-													</div>
-
+													
 													<!-- Inversión y Rendimiento -->
 													<div class="cultivo-section">
 														<div class="section-header">
@@ -475,27 +442,6 @@
 															</div>
 														</div>
 													</div>
-
-													<!-- Responsable (abajo de inversión, horizontal) -->
-													<div class="cultivo-section responsable-horizontal">
-														<div class="section-header">
-															<h4>Responsable</h4>
-														</div>
-														<div class="responsable-content">
-															<div class="responsable-avatar">
-																<span class="material-symbols-outlined"
-																	>person</span
-																>
-															</div>
-															<div class="responsable-info">
-																<span
-																	id="cultivoResponsable"
-																	class="responsable-name"
-																></span>
-															</div>
-														</div>
-													</div>
-
 													<!-- Insumos Utilizados (abajo de responsable, horizontal) -->
 													<div class="cultivo-section insumos-horizontal">
 														<div class="section-header">

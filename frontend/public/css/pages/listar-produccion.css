@@ -430,8 +430,7 @@ ul {
     height: 100%;
     background: linear-gradient(90deg, var(--green-700), var(--green-500));
     border-radius: 4px;
-    transition: width var(--transition-speed), background-color var(--transition-speed);
-    animation: progressFill 1.5s ease-out forwards;
+    transition: width 0.6s ease, background-color var(--transition-speed);
 }
 
 .progress__bar--warning {
@@ -2340,10 +2339,10 @@ header {
 }
 
 .cultivo-header {
-    background-color: var(--white);
+    background: linear-gradient(90deg, var(--green-50), var(--white));
     padding: var(--spacing-md) var(--spacing-lg);
     border-radius: var(--border-radius);
-    border: 1px solid var(--gray-40);
+    border: 1px solid var(--green-100);
     margin-bottom: var(--spacing-lg);
 }
 
@@ -2351,6 +2350,7 @@ header {
     display: flex;
     align-items: center;
     gap: var(--spacing-md);
+    justify-content: space-between;
 }
 
 .cultivo-title h3 {
@@ -2359,16 +2359,36 @@ header {
     color: var(--gray-100);
 }
 
+/* Meta compacta */
+.meta-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-md);
+  margin: var(--spacing-md) 0 var(--spacing-lg);
+}
+.meta-item {
+  background-color: var(--white);
+  border: 1px solid var(--green-100);
+  border-radius: var(--border-radius);
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  justify-content: space-between;
+}
+.meta-label { color: var(--gray-80); }
+.meta-value { font-weight: 600; color: var(--gray-100); }
+
 .cultivo-id {
     font-size: 0.875rem;
     color: var(--gray-80);
 }
 
 .cultivo-progress {
-    background-color: var(--gray-20);
+    background-color: var(--white);
     padding: var(--spacing-lg);
     border-radius: var(--border-radius);
     margin-bottom: var(--spacing-lg);
+    border: 1px solid var(--green-100);
+    box-shadow: var(--shadow-sm);
 }
 
 .progress-header {
@@ -2380,7 +2400,7 @@ header {
 
 .progress-header h4 {
     font-size: 1rem;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .progress-percentage {
@@ -2395,23 +2415,24 @@ header {
 }
 
 .progress-dates {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.875rem;
-    color: var(--gray-80);
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    gap: var(--spacing-lg);
+    font-size: 0.9rem;
+    color: var(--gray-100);
 }
 
 .cultivo-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    flex-wrap: wrap;
     gap: var(--spacing-lg);
 }
 
 .cultivo-section {
     background-color: var(--white);
-    padding: var(--spacing-lg);
+    padding: var(--spacing-md);
     border-radius: var(--border-radius);
-    border: 1px solid var(--gray-40);
+    border: 1px solid var(--green-100);
     box-shadow: var(--shadow-sm);
     transition: all 0.3s ease;
 }
@@ -2477,14 +2498,12 @@ header {
 }
 
 .sensores-content {
-  display: flex;
-  flex-wrap: wrap;       /* Si no caben, que bajen a la siguiente línea */
-  gap: var(--spacing-md); /* Espacio entre sensores */
+  display: block;
 }
 
 .sensores-list {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: var(--spacing-md);
   margin: 0;
   padding: 0;
@@ -2492,13 +2511,78 @@ header {
 }
 
 .sensores-list li {
-  background-color: var(--gray-20);
-  border: 1px solid var(--gray-40);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--spacing-sm);
+  background: linear-gradient(180deg, var(--white), var(--gray-20));
+  border: 1px solid var(--green-100);
   border-radius: var(--border-radius);
   padding: var(--spacing-sm) var(--spacing-md);
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--gray-100);
+  box-shadow: var(--shadow-sm);
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+.sensores-list li:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--green-700);
+}
+
+.sensor-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background-color: var(--green-50);
+  color: var(--green-700);
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.sensor-icon {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--green-100);
+  color: var(--green-700);
+}
+
+/* Estructura interna del item de sensor */
+.sensor-item__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sensor-item__name {
+  font-weight: 600;
+  color: var(--gray-100);
+}
+
+.sensor-item__details {
+  display: grid;
+  grid-template-columns: 1fr;
+  row-gap: var(--spacing-xs);
+}
+
+.sensor-detail {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--gray-80);
+}
+
+.sensor-label {
+  color: var(--gray-80);
 }
 
 
@@ -2506,21 +2590,66 @@ header {
 /* Mostrar insumos en horizontal con grid */
 .insumos-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--spacing-md);
+  margin: 0;
   padding: 0;
+  list-style: none;
 }
 
-.insumo-card {
+/* Estilo de tarjeta para cada insumo (igual a sensores) */
+.insumos-list li,
+.insumo-item {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
+  gap: var(--spacing-sm);
+  background: linear-gradient(180deg, var(--white), var(--gray-20));
+  border: 1px solid var(--green-100);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--gray-100);
+  box-shadow: var(--shadow-sm);
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+.insumos-list li:hover,
+.insumo-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--green-700);
+}
+
+/* Estructura interna del insumo (par con sensor) */
+.insumo-item__header {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  min-width: 120px;
-  padding: 0.5rem 1rem;
-  background: #f6f6f6;
-  border-radius: 0.375rem;
-  box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+  justify-content: space-between;
+}
+
+.insumo-item__name {
+  font-weight: 600;
+  color: var(--gray-100);
+}
+
+.insumo-item__details {
+  display: grid;
+  grid-template-columns: 1fr;
+  row-gap: var(--spacing-xs);
+}
+
+.insumo-detail {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--gray-80);
+}
+
+.insumo-label {
+  color: var(--gray-80);
 }
 .responsable-avatar {
     width: 64px;
@@ -3012,6 +3141,42 @@ header {
     padding: var(--spacing-md) var(--spacing-lg);
     border-radius: var(--border-radius);
 }
+/* Mejoras de estilos del modal de visualización */
+.cultivo-section .info-content {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-md);
+}
+.cultivo-section .info-item {
+  background-color: var(--gray-20);
+  border: 1px solid var(--green-100);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--border-radius);
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+}
+.cultivo-section .info-label {
+  color: var(--gray-80);
+}
+.cultivo-section .info-value {
+  font-weight: 600;
+  color: var(--gray-100);
+}
+
+/* Lista de insumos y sensores más visual */
+.insumos-list, .sensores-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--spacing-md);
+}
+.insumos-list li, .sensores-list li {
+  background-color: var(--white);
+  border: 1px solid var(--green-100);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-sm) var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+}
 
 .section-header h4 {
     color: var(--green-950);
@@ -3236,7 +3401,7 @@ header {
 
 .inversion-stats-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: var(--spacing-md);
     margin-bottom: var(--spacing-lg);
 }
@@ -3474,6 +3639,10 @@ header {
     margin-top: var(--spacing-lg);
 }
 
+.cultivo-section {
+    flex: 1 1 320px;
+}
+
 .cultivo-section--full-width{
-  grid-column: span 2;
+  flex: 1 1 100%;
 }

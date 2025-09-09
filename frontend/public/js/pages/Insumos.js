@@ -106,11 +106,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     const search = document.querySelector('.filters__search')?.value?.toLowerCase() || '';
     const tipo = document.querySelector('select[placeholder="Tipo de Insumo"]')?.value || '';
     const estado = document.querySelector('select[placeholder="Estado"]')?.value || '';
-    return filteredInsumos.filter(i =>
-      (i.nombre.toLowerCase().includes(search) || i.id.toLowerCase().includes(search)) &&
-      (tipo ? i.tipo === tipo : true) &&
-      (estado ? i.estado === estado : true)
-    );
+    const ubicacion = document.querySelector('select[placeholder="Ubicación"]')?.value || '';
+    
+    return filteredInsumos.filter(insumo => {
+      // Buscar por nombre o ID
+      const matchesSearch = !search || 
+        (insumo.nombre && typeof insumo.nombre === 'string' && insumo.nombre.toLowerCase().includes(search)) || 
+        (insumo.id !== undefined && String(insumo.id).toLowerCase().includes(search));
+      
+      // Filtrar por tipo si está seleccionado
+      const matchesTipo = !tipo || (insumo.tipo && insumo.tipo === tipo);
+      
+      // Filtrar por estado si está seleccionado
+      let matchesEstado = true;
+      if (estado) {
+        if (estado === 'Activo') {
+          matchesEstado = insumo.estado === 'habilitado';
+        } else if (estado === 'Inactivo') {
+          matchesEstado = insumo.estado !== 'habilitado';
+        }
+      }
+      
+      // Filtrar por ubicación si está seleccionado
+      const matchesUbicacion = !ubicacion || 
+        (insumo.ubicacion && insumo.ubicacion === ubicacion);
+      
+      return matchesSearch && matchesTipo && matchesEstado && matchesUbicacion;
+    });
   }
 
   function renderInsumosTable(data) {
@@ -378,46 +400,66 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  document.querySelector('.filters__search')?.addEventListener('input', applyFilters);
-  document.querySelector('select[placeholder="Tipo de Insumo"]')?.addEventListener('change', applyFilters);
-  document.querySelector('select[placeholder="Estado"]')?.addEventListener('change', applyFilters);
-  document.querySelector('.button--clear')?.addEventListener('click', () => {
-    document.querySelector('.filters__search').value = '';
-    document.querySelector('select[placeholder="Tipo de Insumo"]').value = '';
-    document.querySelector('select[placeholder="Estado"]').value = '';
-    filteredInsumos = getFilteredInsumos();
-    currentPage = 1;
-    renderPaginatedTable(filteredInsumos);
-  });
-
+  // Aplicar filtros
   function applyFilters() {
-    currentPage = 1; // Reset to first page when filters change
-    filteredInsumos = getFilteredInsumos();
-    renderPaginatedTable(filteredInsumos);
+    currentPage = 1; // Resetear a la primera página al aplicar filtros
+    const filteredData = getFilteredInsumos();
+    renderPaginatedTable(filteredData);
   }
 
-  // Mostrar y ocultar filtros
+  // Limpiar filtros
+  function clearFilters() {
+    const searchInput = document.querySelector('.filters__search');
+    const selectElements = document.querySelectorAll('.filters__select');
+    
+    if (searchInput) searchInput.value = '';
+    selectElements.forEach(select => {
+      select.selectedIndex = 0; // Seleccionar la primera opción (Todas)
+    });
+    
+    applyFilters();
+  }
+
+  // Event listeners para los filtros
+  const searchInput = document.querySelector('.filters__search');
+  const tipoSelect = document.querySelector('select[placeholder="Tipo de Insumo"]');
+  const estadoSelect = document.querySelector('select[placeholder="Estado"]');
+  const ubicacionSelect = document.querySelector('select[placeholder="Ubicación"]');
+  const clearButton = document.querySelector('.button--clear');
   const filterBtn = document.querySelector('.button--filter');
   const filtersDiv = document.querySelector('.filters');
   const closeFilter = document.querySelector('.filters__close');
+
+  // Aplicar filtros al cambiar los valores
+  if (searchInput) searchInput.addEventListener('input', applyFilters);
+  if (tipoSelect) tipoSelect.addEventListener('change', applyFilters);
+  if (estadoSelect) estadoSelect.addEventListener('change', applyFilters);
+  if (ubicacionSelect) ubicacionSelect.addEventListener('change', applyFilters);
+  if (clearButton) clearButton.addEventListener('click', clearFilters);
+  
+  // Mostrar/ocultar panel de filtros
   if (filterBtn && filtersDiv) {
     filterBtn.addEventListener('click', () => {
-      filtersDiv.classList.remove('hidden');
+      filtersDiv.classList.toggle('hidden');
     });
   }
-  if (closeFilter && filtersDiv) {
+  
+  if (closeFilter) {
     closeFilter.addEventListener('click', () => {
       filtersDiv.classList.add('hidden');
     });
   }
 
-  document.querySelector('.table__body').addEventListener('click', async (e) => {
-    const btn = e.target.closest('button');
+  // Manejar clics en los botones de acción de la tabla
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.table__action-button');
     if (!btn) return;
+
     const row = btn.closest('tr');
     const id = row.querySelector('.table__cell--id').textContent;
+
     if (btn.classList.contains('table__action-button--view')) {
-      // Fetch complete insumo details from the API
+      // Mostrar modal de visualización
       try {
         const token = localStorage.getItem('token');
         const response = await fetch(`http://localhost:5000/insumos/${id}`, {
@@ -432,7 +474,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('Error al cargar el insumo:', error);
         alert('No se pudo cargar la información del insumo');
       }
-      return;
     } else if (btn.classList.contains('table__action-button--edit')) {
       // Navegación manejada por el enlace <a> que envuelve el botón
     } else if (btn.classList.contains('table__action-button--enable')) {

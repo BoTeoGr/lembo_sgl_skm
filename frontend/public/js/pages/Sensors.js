@@ -1,5 +1,27 @@
 import { sensorsConfig } from '../config/sensorsConfig.js';
 
+// Determina la categoría basada en el tipo de sensor
+function determineCategory(tipo) {
+    if (!tipo) return 'Otros';
+    const tipoLower = String(tipo).toLowerCase().trim();
+    
+    if (tipoLower.includes('temperatura') || tipoLower.includes('humedad') || 
+        tipoLower.includes('luz') || tipoLower.includes('presion') || 
+        tipoLower.includes('viento')) {
+        return 'Ambiental';
+    } else if (tipoLower.includes('suelo') || tipoLower.includes('ph') || 
+              tipoLower.includes('nutriente')) {
+        return 'Suelo';
+    } else if (tipoLower.includes('riego') || tipoLower.includes('agua') || 
+              tipoLower.includes('flujo')) {
+        return 'Riego';
+    } else if (tipoLower.includes('calidad') || tipoLower.includes('co2') || 
+              tipoLower.includes('tvoc')) {
+        return 'Calidad';
+    }
+    return 'Otros';
+}
+
 // --- Obtener sensores desde la API ---
 async function fetchSensorsFromAPI() {
     try {
@@ -22,17 +44,19 @@ async function fetchSensorsFromAPI() {
                     status = 'deshabilitado';
                 }
             }
+            const tipo = sensor.tipo_sensor || sensor.tipo || '';
             return {
                 id: sensor.sensorId || sensor.id || '',
                 nombre: sensor.nombre_sensor || sensor.nombre || '',
-                tipo: sensor.tipo_sensor || sensor.tipo || '',
+                tipo: tipo,
+                categoria: sensor.categoria || determineCategory(tipo),
                 descripcion: sensor.descripcion || '',
                 ubicacion: sensor.ubicacion || '',
                 estado: status,
                 unidad_medida: sensor.unidad_medida || '',
                 tiempo_escaneo: sensor.tiempo_escaneo || '',
                 fecha_creacion: sensor.fecha_creacion || sensor.createdAt || '',
-                imagen: sensor.imagen || '',
+                imagen: sensor.imagen || ''
             };
         });
     } catch (e) {
@@ -58,13 +82,15 @@ class Sensors {
     constructor() {
         this.currentPage = 1;
         this.itemsPerPage = 10;
+        this.originalData = [];
         this.filteredData = [];
         this.selectedSensors = new Set();
         this.init();
     }
 
     async init() {
-        this.filteredData = await fetchSensorsFromAPI();
+        this.originalData = await fetchSensorsFromAPI();
+        this.filteredData = [...this.originalData];
         this.renderTable();
         this.updatePagination();
         this.initializeEventListeners();
@@ -268,29 +294,74 @@ class Sensors {
         const searchTerm = document.querySelector('.filters__search').value.toLowerCase();
         const statusFilter = document.querySelector('.filters__select[placeholder="Estado"]').value;
         const typeFilter = document.querySelector('.filters__select[placeholder="Tipo de Sensor"]').value;
-        const locationFilter = document.querySelector('.filters__select[placeholder="Ubicación"]').value;
 
+        // Reset filtered data to original data before applying filters
+        this.filteredData = [...this.originalData];
+
+        // Apply filters
+        console.log('Aplicando filtros con valores:', {
+            searchTerm,
+            statusFilter,
+            typeFilter
+        });
         this.filteredData = this.filteredData.filter(sensor => {
-            const matchesSearch = sensor.nombre.toLowerCase().includes(searchTerm) || 
-                                sensor.id.toLowerCase().includes(searchTerm);
-            const matchesStatus = !statusFilter || sensor.estado === statusFilter;
-            const matchesType = !typeFilter || sensor.tipo === typeFilter;
-            const matchesLocation = !locationFilter || sensor.ubicacion === locationFilter;
+            // Ensure all values are strings before calling toLowerCase()
+            const searchFields = [
+                String(sensor.nombre || '').toLowerCase(),
+                String(sensor.id || '').toLowerCase(),
+                String(sensor.descripcion || '').toLowerCase(),
+                String(sensor.categoria || '').toLowerCase(),
+                String(sensor.tipo || '').toLowerCase() // Include sensor type in search
+            ];
+            
+            const matchesSearch = !searchTerm || 
+                searchFields.some(field => field.includes(searchTerm));
+                
+            const matchesStatus = !statusFilter || 
+                (sensor.estado && String(sensor.estado).toLowerCase() === statusFilter.toLowerCase());
+                
+            const sensorType = String(sensor.tipo || sensor.tipo_sensor || '').toLowerCase().trim();
+            const filterType = typeFilter.toLowerCase().trim();
+            let matchesType = !typeFilter;
+            
+            if (typeFilter) {
+                // Mapear los valores del select a los valores en la base de datos
+                if (filterType === 'contacto') {
+                    matchesType = sensorType.includes('contacto');
+                } else if (filterType === 'distancia') {
+                    matchesType = sensorType.includes('distancia');
+                } else if (filterType === 'luz') {
+                    matchesType = sensorType.includes('luz');
+                }
+            }
 
-            return matchesSearch && matchesStatus && matchesType && matchesLocation;
+            return matchesSearch && matchesStatus && matchesType;
         });
 
         this.currentPage = 1;
         this.renderTable();
         this.updatePagination();
+        this.updateActionsBar(); // Update actions bar to reflect filtered selection
     }
 
     clearFilters() {
+        // Reset all filter inputs
         document.querySelector('.filters__search').value = '';
         document.querySelectorAll('.filters__select').forEach(select => {
             select.value = '';
         });
-        this.filterData();
+        
+        // Reset filtered data to original data
+        this.filteredData = [...this.originalData];
+        this.currentPage = 1;
+        
+        // Update UI
+        this.renderTable();
+        this.updatePagination();
+        this.updateActionsBar();
+        
+        // Close filters panel
+        document.querySelector('.filters').classList.add('hidden');
     }
 
     updateSelectedSensors(checkbox) {

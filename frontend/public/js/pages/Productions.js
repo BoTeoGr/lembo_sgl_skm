@@ -569,24 +569,29 @@ function setupProductionStatusCard() {
 	const updateIntervals = {
 	  humidity: 300000, // 5 minutos
 	  temperature: 120000, // 2 minutos
-	  production: 600000, // 10 minutos
+	  production: 60000, // 1 minuto para progreso dinámico
 	}
   
 	// Actualizar sensores
 	setInterval(() => {
 	  updateSensorData("humidity", generateRandomData(60, 75))
-	  updateProgressBars()
+	  actualizarProgresosPorTiempo()
 	}, updateIntervals.humidity)
   
 	setInterval(() => {
 	  updateSensorData("temperature", generateRandomData(20, 28))
-	  updateProgressBars()
+	  actualizarProgresosPorTiempo()
 	}, updateIntervals.temperature)
   
 	// Primera actualización inmediata
 	updateSensorData("humidity", generateRandomData(60, 75))
 	updateSensorData("temperature", generateRandomData(20, 28))
-	updateProgressBars()
+	actualizarProgresosPorTiempo()
+
+	// Actualizaciones periódicas de progreso basadas en fechas reales
+	setInterval(() => {
+	  actualizarProgresosPorTiempo()
+	}, updateIntervals.production)
   }
   
   // Generar datos aleatorios para simulación
@@ -653,6 +658,39 @@ function setupProductionStatusCard() {
 	  chart.update("none") // Actualizar sin animación
 	}
   }
+
+  // Recalcular progreso real basado en fechas por cada fila de la tabla
+  function calcularProgresoPorFechas(fechaInicioStr, fechaFinStr) {
+    if (!fechaInicioStr || !fechaFinStr) return 0
+    const ahora = new Date()
+    const inicio = new Date(fechaInicioStr)
+    const fin = new Date(fechaFinStr)
+    const total = fin.getTime() - inicio.getTime()
+    const transcurrido = ahora.getTime() - inicio.getTime()
+    if (total <= 0) return 100
+    if (transcurrido <= 0) return 0
+    return Math.min(100, Math.round((transcurrido / total) * 100))
+  }
+
+  function actualizarProgresosPorTiempo() {
+    const rows = document.querySelectorAll('.table__row')
+    rows.forEach(row => {
+      const inicio = row.dataset.startDate || ''
+      const fin = row.dataset.endDate || ''
+      const progreso = calcularProgresoPorFechas(inicio, fin)
+      const bar = row.querySelector('.progress__bar')
+      const text = row.querySelector('.progress__text')
+      if (bar) {
+        bar.style.width = `${progreso}%`
+        if (progreso > 80) {
+          bar.classList.add('progress__bar--warning')
+        } else {
+          bar.classList.remove('progress__bar--warning')
+        }
+      }
+      if (text) text.textContent = `${progreso}%`
+    })
+  }
   
   // Manejo de tabs
   function setupTabs() {
@@ -683,9 +721,9 @@ function setupProductionStatusCard() {
 	const closeButton = document.querySelector(".filters__close")
 	const searchInput = document.querySelector(".filters__search")
 	const stateSelect = document.querySelector('.filters__select[placeholder="Estado"]')
-	const cycleSelect = document.querySelector('.filters__select[placeholder="Ciclo"]')
 	const clearButton = document.querySelector(".button--clear")
-	const tableRows = document.querySelectorAll(".table__row")
+	// Acceso dinámico a las filas, ya que se renderizan tras cargar datos
+	const getRows = () => Array.from(document.querySelectorAll(".table__row"))
   
 	// Mostrar/ocultar panel de filtros
 	filterButton?.addEventListener("click", () => {
@@ -698,111 +736,130 @@ function setupProductionStatusCard() {
   
 	// Función de filtrado
 	function filterTable() {
-	  const searchTerm = searchInput?.value.toLowerCase()
-	  const selectedState = stateSelect?.value
-	  const selectedCycle = cycleSelect?.value
-  
-	  tableRows.forEach((row) => {
-		const id = row.querySelector("td:nth-child(2)")?.textContent.toLowerCase()
-		const name = row.querySelector("td:nth-child(3)")?.textContent.toLowerCase()
-		const state = row.querySelector(".badge--status")?.textContent.trim()
-  
+	  const searchTerm = (searchInput?.value || "").trim().toLowerCase()
+	  // Normalizar estado del select (UI) a valores reales en datos (habilitado/deshabilitado)
+	  const selectedStateRaw = (stateSelect?.value || "").trim()
+	  const selectedState = selectedStateRaw === "Activo" ? "habilitado" : selectedStateRaw === "Inactivo" ? "deshabilitado" : ""
+	  // Ciclo removido
+	
+	  getRows().forEach((row) => {
+		const id = row.querySelector("td:nth-child(2)")?.textContent.toLowerCase() || ""
+		const name = row.querySelector("td:nth-child(3)")?.textContent.toLowerCase() || ""
+		const stateText = (row.querySelector(".badge--status")?.textContent || "").trim().toLowerCase()
+		// Ciclo removido
+	
 		// Aplicar filtros
 		const matchesSearch = !searchTerm || id.includes(searchTerm) || name.includes(searchTerm)
-  
-		const matchesState = !selectedState || state.includes(selectedState)
-  
-		const matchesCycle = !selectedCycle // Implementar lógica de ciclo si es necesario
-  
+		const matchesState = !selectedState || stateText.includes(selectedState)
+		const matchesCycle = true
+	
 		// Mostrar u ocultar fila según filtros
 		row.style.display = matchesSearch && matchesState && matchesCycle ? "" : "none"
 	  })
-  
+	
 	  updatePaginationAfterFilter()
 	}
   
 	// Event listeners para filtros
 	searchInput?.addEventListener("input", filterTable)
 	stateSelect?.addEventListener("change", filterTable)
-	cycleSelect?.addEventListener("change", filterTable)
+	// Ciclo removido
   
 	// Limpiar filtros
 	clearButton?.addEventListener("click", () => {
 	  if (searchInput) searchInput.value = ""
 	  if (stateSelect) stateSelect.value = ""
-	  if (cycleSelect) cycleSelect.value = ""
-	  tableRows.forEach((row) => (row.style.display = ""))
-	  updatePaginationAfterFilter()
+	  // Ciclo removido
+	  filterTable()
 	})
   }
   
   function setupPagination() {
 	const itemsPerPage = 6
 	let currentPage = 1
-	const tableRows = document.querySelectorAll(".table__row")
-	const totalItems = tableRows.length
-	const totalPages = Math.ceil(totalItems / itemsPerPage)
-  
-	// Actualizar la información de paginación
+
+	const getAllRows = () => Array.from(document.querySelectorAll('.table__row'))
+	const getVisibleRows = () => getAllRows().filter(r => r.style.display !== 'none')
+
 	const paginationInfo = document.querySelector(".pagination__info")
-	if (paginationInfo) {
-	  paginationInfo.innerHTML = `Mostrando <span class="pagination__items-per-page">${itemsPerPage}</span> de <span class="pagination__total-items">${totalItems}</span> producciones`
-	}
-  
-	// Actualizar los botones de página
-	const pageButtons = document.querySelectorAll(
-	  ".pagination__button:not(.pagination__button--prev):not(.pagination__button--next)",
-	)
-	pageButtons.forEach((button, index) => {
-	  const pageNum = index + 1
-	  button.style.display = pageNum <= totalPages ? "" : "none"
-	  button.classList.toggle("pagination__button--active", pageNum === currentPage)
-	})
-  
-	// Actualizar botones prev/next
 	const prevBtn = document.querySelector(".pagination__button--prev")
 	const nextBtn = document.querySelector(".pagination__button--next")
-	if (prevBtn) prevBtn.disabled = currentPage === 1
-	if (nextBtn) nextBtn.disabled = currentPage === totalPages
-  
-	// Mostrar la primera página
-	showPage(currentPage)
-  
-	function showPage(page) {
-	  const start = (page - 1) * itemsPerPage
-	  const end = start + itemsPerPage
-  
-	  tableRows.forEach((row, index) => {
-		row.style.display = index >= start && index < end ? "" : "none"
-	  })
-  
-	  currentPage = page
-  
-	  // Actualizar botones activos
+	const pageButtons = document.querySelectorAll(
+	  ".pagination__button:not(.pagination__button--prev):not(.pagination__button--next)"
+	)
+
+	function refreshPaginationUI() {
+	  const totalItems = getVisibleRows().length
+	  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage))
+
+	  if (paginationInfo) {
+		paginationInfo.innerHTML = `Mostrando <span class="pagination__items-per-page">${itemsPerPage}</span> de <span class=\"pagination__total-items\">${totalItems}</span> producciones`
+	  }
+
 	  pageButtons.forEach((button, index) => {
-		button.classList.toggle("pagination__button--active", index + 1 === page)
+		const pageNum = index + 1
+		button.style.display = pageNum <= totalPages ? "" : "none"
+		button.classList.toggle("pagination__button--active", pageNum === currentPage)
 	  })
-  
-	  // Actualizar botones prev/next
-	  if (prevBtn) prevBtn.disabled = page === 1
-	  if (nextBtn) nextBtn.disabled = page === totalPages
+
+	  if (prevBtn) prevBtn.disabled = currentPage === 1
+	  if (nextBtn) nextBtn.disabled = currentPage === totalPages
+
+	  // Actualizar contadores compactos si existen
+	  const totalPagesEl = document.querySelector('.pagination__total-pages')
+	  if (totalPagesEl) totalPagesEl.textContent = String(totalPages)
+	  const totalItemsEl = document.querySelector('.pagination__total-items')
+	  if (totalItemsEl) totalItemsEl.textContent = String(totalItems)
 	}
-  
+
+	function showPage(page) {
+	  const rows = getVisibleRows()
+	  const totalPages = Math.max(1, Math.ceil(rows.length / itemsPerPage))
+	  const targetPage = Math.max(1, Math.min(page, totalPages))
+	  const start = (targetPage - 1) * itemsPerPage
+	  const end = start + itemsPerPage
+
+	  // Primero ocultar todas las filas visibles actuales
+	  getAllRows().forEach(row => { if (row.style.display !== 'none') row.style.display = 'none' })
+	  // Volver a mostrar solo el subset de filas correspondientes
+	  rows.forEach((row, index) => {
+		if (index >= start && index < end) row.style.display = ''
+	  })
+
+	  currentPage = targetPage
+	  pageButtons.forEach((button, index) => {
+		button.classList.toggle("pagination__button--active", index + 1 === currentPage)
+	  })
+	  if (prevBtn) prevBtn.disabled = currentPage === 1
+	  if (nextBtn) nextBtn.disabled = currentPage === totalPages
+	}
+
+	// Inicialización
+	refreshPaginationUI()
+	showPage(currentPage)
+
 	// Event listeners para botones de paginación
 	if (prevBtn) {
 	  prevBtn.addEventListener("click", () => {
 		if (currentPage > 1) showPage(currentPage - 1)
 	  })
 	}
-  
+
 	if (nextBtn) {
 	  nextBtn.addEventListener("click", () => {
-		if (currentPage < totalPages) showPage(currentPage + 1)
+		showPage(currentPage + 1)
 	  })
 	}
-  
+
 	pageButtons.forEach((button, index) => {
 	  button.addEventListener("click", () => showPage(index + 1))
+	})
+
+	// Escuchar reinicio de paginación tras un filtrado
+	document.addEventListener('paginationReset', () => {
+	  currentPage = 1
+	  refreshPaginationUI()
+	  showPage(currentPage)
 	})
   }
   
@@ -1255,6 +1312,11 @@ function setupProductionStatusCard() {
 	producciones.forEach((produccion) => {
 	  const row = document.createElement("tr")
 	  row.className = "table__row"
+	  // Guardar metadatos útiles para filtros
+	  row.dataset.cycle = produccion.nombre_ciclo || ""
+	  // Fechas para cálculo de progreso en tiempo real
+	  row.dataset.startDate = produccion.fecha_de_inicio || ""
+	  row.dataset.endDate = produccion.fecha_fin || ""
   
 	  row.innerHTML = `
 		<td class="table__cell table__cell--checkbox">
@@ -1307,6 +1369,11 @@ function setupProductionStatusCard() {
   
 	// Inicializar la paginación después de cargar los datos
 	setupPagination()
+
+	// Ajustar barras de progreso con base en fechas reales
+	if (typeof actualizarProgresosPorTiempo === 'function') {
+	  actualizarProgresosPorTiempo()
+	}
 	
 	// Reiniciar selección múltiple
 	const checkboxHeader = document.querySelector(".table__checkbox-header");
@@ -1397,6 +1464,19 @@ function setupProductionStatusCard() {
 	  actualizarTexto("cultivoFechaFin", produccion.fecha_fin 
 		? new Date(produccion.fecha_fin).toLocaleDateString() 
 		: "No definida");
+
+	  // Días restantes
+	  const diasRestantesEl = document.getElementById('cultivoDiasRestantes');
+	  if (diasRestantesEl) {
+		let diasRestantes = '-';
+		if (produccion.fecha_fin) {
+		  const fin = new Date(produccion.fecha_fin).getTime();
+		  const hoy = new Date().getTime();
+		  const diff = Math.ceil((fin - hoy) / (1000 * 60 * 60 * 24));
+		  diasRestantes = (isNaN(diff) ? '-' : (diff < 0 ? '0' : String(diff))) + ' días';
+		}
+		diasRestantesEl.textContent = diasRestantes;
+	  }
 	  
 	  // Actualizar estado
 	  const estadoElement = document.getElementById("cultivoEstado");
@@ -1426,6 +1506,34 @@ function setupProductionStatusCard() {
 		} else {
 		  progressBar.classList.remove("progress__bar--warning");
 		}
+	  }
+
+	  // Gráfico doughnut de progreso
+	  try {
+		const chartCanvas = document.getElementById('progressDoughnutChart');
+		if (chartCanvas && window.Chart) {
+		  if (window.__progressChart) {
+			window.__progressChart.destroy();
+		  }
+		  window.__progressChart = new Chart(chartCanvas.getContext('2d'), {
+			type: 'doughnut',
+			data: {
+			  labels: ['Completado', 'Restante'],
+			  datasets: [{
+				data: [progreso, Math.max(0, 100 - progreso)],
+				backgroundColor: ['#22c55e', '#e5e7eb'],
+				borderWidth: 0
+			  }]
+			},
+			options: {
+			  responsive: false,
+			  cutout: '70%',
+			  plugins: { legend: { display: false }, tooltip: { enabled: false } }
+			}
+		  });
+		}
+	  } catch (e) {
+		console.warn('No se pudo renderizar el gráfico de progreso', e);
 	  }
   
 	  // Actualizar lista de insumos
@@ -1694,8 +1802,12 @@ function setupProductionStatusCard() {
 		}
 	  }
   
-	  // Mostrar el modal
+	  // Mostrar el modal y setear botón editar
 	  modal.style.display = "flex";
+	  const editBtn = document.getElementById('editProduccionBtn');
+	  if (editBtn) {
+		editBtn.href = `../views/actualizar-produccion.html?id=${produccion.id}`;
+	  }
 	} catch (error) {
 	  console.error("Error al cargar detalles:", error);
 	  mostrarError("Error al cargar detalles de la producción: " + error.message);

@@ -92,29 +92,136 @@ async function toggleCultivoStatus(id, nuevoEstado) {
 
 class Crops {
     constructor() {
-        this.currentPage = 1;
-        this.itemsPerPage = cropsConfig.table.itemsPerPage || 10;
-        this.filteredData = [];
-        this.selectedCrops = new Set();
-        // Cargar datos de la API o local
-        this.loadData();
+        try {
+            this.currentPage = 1;
+            this.itemsPerPage = (cropsConfig && cropsConfig.table && cropsConfig.table.itemsPerPage) || 10;
+            this.originalData = [];
+            this.filteredData = [];
+            this.selectedCrops = new Set();
+            
+            // Initialize UI components first
+            this.initializeUI();
+            
+            // Then load data
+            this.loadData().catch(error => {
+                console.error('Error loading data:', error);
+                this.showError('Error al cargar los datos');
+            });
+        } catch (error) {
+            console.error('Error in Crops constructor:', error);
+            this.showError('Error al inicializar la página');
+        }
+    }
+    
+    initializeUI() {
+        // Initialize any UI components here
+        const loadingRow = document.querySelector('.table__body');
+        if (loadingRow) {
+            loadingRow.innerHTML = `
+                <tr class="table__row">
+                    <td class="table__cell" colspan="8" style="text-align: center;">
+                        Cargando datos...
+                    </td>
+                </tr>
+            `;
+        }
+    }
+    
+    showError(message) {
+        const tbody = document.querySelector('.table__body');
+        if (tbody) {
+            tbody.innerHTML = `
+                <tr class="table__row">
+                    <td class="table__cell" colspan="8" style="text-align: center; color: #ff4d4f;">
+                        ${message}
+                    </td>
+                </tr>
+            `;
+        }
     }
 
     async loadData() {
         const data = await fetchCropsFromAPI();
         // Si fetchCropsFromAPI retorna null, significa que no hay permiso y ya se mostró el mensaje
         if (data === null) return;
+        this.originalData = [...data];
         this.filteredData = [...data];
         this.renderTable();
         this.updatePagination();
         this.initializeEventListeners();
     }
 
+    filterData() {
+        try {
+            const filtersPanel = document.querySelector('.filters');
+            const searchInput = document.querySelector('.filters__search');
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+            
+            // Mostrar el panel de filtros si está oculto cuando se está buscando
+            if (searchTerm && filtersPanel && filtersPanel.classList.contains('hidden')) {
+                filtersPanel.classList.remove('hidden');
+            }
+            
+            // Asegurarse de que originalData sea un array
+            if (!Array.isArray(this.originalData)) {
+                console.error('originalData no es un array:', this.originalData);
+                this.originalData = [];
+            }
+            
+            // Si no hay término de búsqueda, mostrar todos los datos
+            if (!searchTerm.trim()) {
+                this.filteredData = [...this.originalData];
+            } else {
+                // Filtrar los datos basados en el término de búsqueda
+                this.filteredData = this.originalData.filter(crop => {
+                    if (!crop) return false;
+                    
+                    // Buscar en múltiples campos
+                    return (
+                        (crop.id && crop.id.toString().toLowerCase().includes(searchTerm)) ||
+                        (crop.name && crop.name.toLowerCase().includes(searchTerm)) ||
+                        (crop.type && crop.type.toLowerCase().includes(searchTerm)) ||
+                        (crop.location && crop.location.toLowerCase().includes(searchTerm)) ||
+                        (crop.status && crop.status.toString().toLowerCase().includes(searchTerm)) ||
+                        (crop.description && crop.description.toLowerCase().includes(searchTerm))
+                    );
+                });
+            }
+        
+            // Reiniciar a la primera página después de filtrar
+            this.currentPage = 1;
+            
+            // Actualizar la tabla y la paginación
+            this.renderTable();
+            this.updatePagination();
+            
+            // Actualizar el contador de elementos seleccionados
+            if (typeof this.updateSelectedCount === 'function') {
+                this.updateSelectedCount();
+            }
+            
+            // Mantener el foco en el campo de búsqueda
+            if (searchInput) {
+                searchInput.focus();
+            }
+        } catch (error) {
+            console.error('Error en filterData:', error);
+            // Asegurarse de que filteredData siempre sea un array
+            this.filteredData = [];
+            if (typeof this.renderTable === 'function') {
+                this.renderTable();
+            }
+        }
+    }
+    
     initializeEventListeners() {
-        // Filtros (puedes agregar lógica de filtros aquí si lo deseas)
+        // Botón de filtros
         const filterButton = document.querySelector('.button--filter');
         const filtersClose = document.querySelector('.filters__close');
         const filtersSearch = document.querySelector('.filters__search');
+        const clearFiltersButton = document.querySelector('.button--clear');
+        
+        // Mostrar/ocultar panel de filtros
         if (filterButton && filtersClose) {
             filterButton.addEventListener('click', () => {
                 document.querySelector('.filters').classList.toggle('hidden');
@@ -123,9 +230,46 @@ class Crops {
                 document.querySelector('.filters').classList.add('hidden');
             });
         }
+        
+        // Búsqueda en tiempo real
         if (filtersSearch) {
-            filtersSearch.addEventListener('input', () => {
+            // Usar un debounce para evitar múltiples renderizados rápidos
+            let searchTimeout;
+            filtersSearch.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    this.filterData();
+                    // Mantener el valor en la URL para persistencia
+                    const searchParams = new URLSearchParams(window.location.search);
+                    if (e.target.value) {
+                        searchParams.set('search', e.target.value);
+                    } else {
+                        searchParams.delete('search');
+                    }
+                    const newUrl = window.location.pathname + (searchParams.toString() ? '?' + searchParams.toString() : '');
+                    window.history.pushState({ path: newUrl }, '', newUrl);
+                }, 300); // 300ms de retraso
+            });
+            
+            // Cargar búsqueda desde la URL si existe
+            const urlParams = new URLSearchParams(window.location.search);
+            const savedSearch = urlParams.get('search');
+            if (savedSearch) {
+                filtersSearch.value = savedSearch;
                 this.filterData();
+            }
+        }
+        
+        // Botón para limpiar filtros
+        if (clearFiltersButton) {
+            clearFiltersButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                const searchInput = document.querySelector('.filters__search');
+                if (searchInput) {
+                    searchInput.value = '';
+                    searchInput.focus();
+                    this.filterData();
+                }
             });
         }
         this.setupPaginationEvents();
@@ -337,17 +481,6 @@ class Crops {
         });
     }
 
-    filterData() {
-        const searchTerm = document.querySelector('.filters__search').value.toLowerCase();
-        const allCrops = fetchCropsFromAPI(); // Aseguramos tener todos los datos
-        this.filteredData = allCrops.filter(crop =>
-            crop.name.toLowerCase().includes(searchTerm) ||
-            String(crop.id).toLowerCase().includes(searchTerm)
-        );
-        this.currentPage = 1; // Reset to first page when filtering
-        this.renderTable();
-        this.updatePagination();
-    }
 
     renderTable() {
         const tbody = document.querySelector('.table__body');
@@ -519,6 +652,25 @@ class Crops {
     }
 }
 
+// Wait for DOM and all scripts to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
-    new Crops();
+    try {
+        // Small delay to ensure all components are loaded
+        setTimeout(() => {
+            new Crops();
+        }, 100);
+    } catch (error) {
+        console.error('Error initializing Crops:', error);
+        // Show error to user
+        const tbody = document.querySelector('.table__body');
+        if (tbody) {
+            tbody.innerHTML = `
+                <tr class="table__row">
+                    <td class="table__cell" colspan="8" style="text-align: center; color: #ff4d4f;">
+                        Error al cargar la página. Por favor recarga la página.
+                    </td>
+                </tr>
+            `;
+        }
+    }
 });
