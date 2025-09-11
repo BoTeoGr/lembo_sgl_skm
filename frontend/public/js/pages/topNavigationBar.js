@@ -107,7 +107,7 @@ export default function Navbar() {
 
             <div class="nav__right">
                 <div class="nav__user">
-                    <img src="../imgs/profile-img.jpg" alt="Usuario" class="nav__user-image" />
+                    <img src="../imgs/default-avatar.svg" alt="Usuario" class="nav__user-image" id="desktopProfileImage" />
                     <div class="nav__user-dropdown">
                         <a href="#" id="openProfileModalLink" class="nav__dropdown-link">
                             <span class="material-symbols-outlined">person</span>
@@ -127,7 +127,15 @@ export default function Navbar() {
             <nav class="nav__mobile-nav">
                 <div class="nav__mobile-header">
                     <img src="../imgs/logoSena.svg" alt="Logo Sena" class="nav__logo" />
-                  </div>
+                </div>
+                <div class="nav__mobile-profile" id="mobileProfileSection">
+                    <img src="../imgs/default-avatar.svg" alt="Usuario" class="nav__mobile-profile-image" id="mobileProfileImage" />
+                    <div class="nav__mobile-profile-info">
+                        <h4 class="nav__mobile-profile-name">${localStorage.getItem('userName') || 'Usuario'}</h4>
+                        <p class="nav__mobile-profile-email">${localStorage.getItem('userEmail') || ''}</p>
+                    </div>
+                    <span class="material-symbols-outlined nav__mobile-profile-icon">chevron_right</span>
+                </div>
                 <a href="home.html" class="nav__mobile-link">
                     <span class="material-symbols-outlined">home</span>
                     <span>Inicio</span>
@@ -183,6 +191,10 @@ export default function Navbar() {
                 </a>
                 ` : ''}
 
+                <a href="#" class="nav__mobile-link" id="mobileProfileLink">
+                    <span class="material-symbols-outlined">person</span>
+                    <span>Mi Perfil</span>
+                </a>
                 <a href="index.html" class="nav__mobile-link">
                     <span class="material-symbols-outlined">logout</span>
                     <span>Cerrar Sesión</span>

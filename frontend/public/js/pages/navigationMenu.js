@@ -43,6 +43,17 @@ export default function MenuNav() {
         }
     };
 
+    // Handle profile link click in mobile menu
+    const handleProfileLinkClick = (e) => {
+        e.preventDefault();
+        closeMenu();
+        // Open profile modal
+        const profileLink = document.getElementById('openProfileModalLink');
+        if (profileLink) {
+            profileLink.click();
+        }
+    };
+
     // Cerrar menú al hacer click en un enlace
     const handleLinkClick = (e) => {
         if (e.target.closest('.nav__overlay-link')) {
@@ -53,10 +64,22 @@ export default function MenuNav() {
     // Event Listeners
     mobileMenuBtn.addEventListener('click', toggleMobileMenu);
     overlay.addEventListener('click', closeMenu);
-    overlay.addEventListener('click', handleLinkClick);
     userDropdown.addEventListener('click', toggleUserDropdown);
     document.addEventListener('click', closeDropdowns);
     window.addEventListener('resize', handleResize);
+    document.addEventListener('click', handleLinkClick);
+    
+    // Add click handler for mobile profile link and section
+    const mobileProfileLink = document.getElementById('mobileProfileLink');
+    const mobileProfileSection = document.getElementById('mobileProfileSection');
+    
+    if (mobileProfileLink) {
+        mobileProfileLink.addEventListener('click', handleProfileLinkClick);
+    }
+    
+    if (mobileProfileSection) {
+        mobileProfileSection.addEventListener('click', handleProfileLinkClick);
+    }
 
     // Inicialización
     handleResize();

@@ -7,6 +7,10 @@
     --gray-700: #616161;
     --green-600: #54b854;
     --green-700: #38ac38;
+    --warning: rgb(254,217,93);
+    --primary-color: #39b54a;
+    --text-light: #666;
+
     --z-modal: 1050;
     --radius-md: 0.5rem;
     --radius-xl: 1rem;
@@ -93,38 +97,143 @@
   }
   
   #profileModal .modal__footer {
-    padding: 0.85rem 1.25rem;
+    padding: 1.25rem 1.5rem;
     border-top: 1px solid var(--gray-200);
+    background: var(--white);
+  }
+
+  #profileModal .modal__footer-actions {
     display: flex;
-    justify-content: flex-end;
-    gap: 0.5rem;
-    background: #f7f7f7;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
   }
   
+  /* Button Styles */
+  #profileModal .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    width: 100%;
+  }
+
+  #profileModal .btn--primary {
+    background: var(--green-600);
+    color: white;
+  }
+
+  #profileModal .btn--primary:hover {
+    background: var(--green-700);
+    transform: translateY(-1px);
+  }
+
+  #profileModal .btn--success {
+    background: #2e7d32;
+    color: white;
+  }
+
+  #profileModal .btn--success:hover {
+    background: #1b5e20;
+    transform: translateY(-1px);
+  }
+
+  #profileModal .btn--secondary {
+    background: #757575;
+    color: white;
+  }
+
+  #profileModal .btn--secondary:hover {
+    background: #616161;
+    transform: translateY(-1px);
+  }
+
+  #profileModal .btn--icon .material-symbols-outlined {
+    font-size: 1.1rem;
+  }
+
   #profileModal .modal__logout-btn {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
+    justify-content: center;
+    gap: 0.5rem;
     text-decoration: none;
     background: var(--gray-700);
     color: #fff;
-    padding: 0.55rem 0.9rem;
-    border-radius: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    border-radius: var(--radius-md);
     font-weight: 600;
-    border: 1px solid rgba(0,0,0,0.06);
-    box-shadow: 0 2px 6px var(--gray-700);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    border: none;
+    transition: all 0.2s ease;
+    width: 100%;
+    font-size: 0.9rem;
   }
   
   #profileModal .modal__logout-btn:hover {
+    background: var(--gray-700);
     transform: translateY(-1px);
-    box-shadow: 0 4px 10px var(--gray-700);
   }
   
   #profileModal .modal__logout-btn .material-symbols-outlined {
-    font-size: 20px;
+    font-size: 1.1rem;
   }
   
+  /* Form Styles */
+  #profileModal .form-edit {
+    display: grid;
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  #profileModal .form__group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  #profileModal .form__label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    margin-left: 0.25rem;
+  }
+
+  #profileModal .form__input,
+  #profileModal .form__select {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    font-size: 0.95rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background-color: #fff;
+  }
+
+  #profileModal .form__input:focus,
+  #profileModal .form__select:focus {
+    outline: none;
+    border-color: var(--green-600);
+    box-shadow: 0 0 0 2px rgba(56, 172, 56, 0.2);
+  }
+
+  #profileModal .form__select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23616161' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.7em top 50%;
+    background-size: 1em auto;
+    padding-right: 2.5em;
+  }
+
+  /* Profile List Styles */
   #profileModal .profile-list {
     list-style: none;
     display: grid;
@@ -143,4 +252,144 @@
   #profileModal .profile-list strong {
     color: var(--gray-700);
   }
+
+  #profileModal .form__input-container--password{
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+  }
   
+
+  
+@media(max-width: 768px){
+  #profileModal .modal__header{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background-color: white;
+  border-radius: var(--radius, 8px);
+  box-shadow: var(--shadow, 0 4px 12px rgba(0, 0, 0, 0.15));
+  padding: 1rem;
+  min-width: 300px;
+  max-width: 400px;
+  z-index: 9999;
+  animation: toastFadeIn 0.3s;
+  border-left: 4px solid var(--primary-color);
+}
+
+@keyframes toastFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.toast.hidden {
+  display: none;
+}
+
+.toast-content {
+  display: flex;
+  align-items: center;
+}
+
+.toast-content i {
+  margin-right: 0.75rem;
+  font-size: 2.2rem;
+}
+
+.toast-content i.fa-check-circle {
+  color: var(--primary-color);
+}
+
+.toast-content i.fa-exclamation-circle {
+  color: var(--warning);
+}
+
+.toast-message {
+  flex: 1;
+}
+
+.toast-title {
+  display: block;
+  font-weight: 500;
+  font-size: 1.2rem;
+}
+
+.toast-description {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-light, #666);
+}
+
+.toast-progress {
+  height: 3px;
+  background-color: var(--primary-color);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  animation: progress 5s linear;
+}
+
+@keyframes progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+/* Form Helpers */
+.form__helper-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  color: #666;
+  font-size: 0.8rem;
+}
+
+.form__helper-text i {
+  color: var(--warning);
+}
+
+.disabled-input,
+.disabled-input:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+  opacity: 0.8;
+  border-color: #e0e0e0;
+}
+
+/* Toast Types */
+.toast.success {
+  border-left-color: var(--primary-color);
+}
+
+.toast.error {
+  border-left-color: var(--warning);
+}
+
+.toast.warning {
+  border-left-color: var(--warning);
+}
+
+.toast.info {
+  border-left-color: var(--secondary-blue, #2196f3);
+}

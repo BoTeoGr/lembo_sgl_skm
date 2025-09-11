@@ -22,7 +22,8 @@ router.post('/restablecer-contrasena', restablecerContrasena);
 router.get('/usuarios', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), VerUsuarios)
 router.post('/users', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), crearUsuario);
 router.put('/usuarios/:id/estado', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), actualizarEstadoUsuario);
-router.put('/usuarios/:id', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), actualizarUsuario);
+// Allow users to update their own profile or admins to update any profile
+router.put('/usuarios/:id', verificarUsuarioPropioOAdmin(['admin', 'Administrador', 'superadmin', 'Super Administrador']), actualizarUsuario);
 // Allow users to view their own profile or admins to view any profile
 router.get('/usuarios/:id', verificarUsuarioPropioOAdmin(['admin', 'Administrador', 'superadmin', 'Super Administrador']), obtenerUsuarioPorId);
 // Rutas para sensores
