@@ -506,9 +506,16 @@ async function initializeForm() {
     allSuppliesGlobal = suppliesWithStock;
     updateAvailableSuppliesSelect();
 
-  // Mostrar todos los usuarios habilitados en el selector de responsables
-  const enabledUsers = users.filter(u => u.estado === 'habilitado');
-  fillSelect("responsible", enabledUsers, "Seleccionar responsable", NAME_FIELDS.user, ID_FIELDS.user);
+  // Mostrar solo administradores y superadministradores habilitados en el selector de responsables
+  const adminUsers = users.filter(user => {
+    if (user.estado !== 'habilitado') return false;
+    const userRole = (user.rol || user.role || user.tipo_usuario || user.tipoUsuario || '').toString().toLowerCase();
+    return userRole.includes('admin') || userRole.includes('superadmin') || 
+           userRole.includes('administrador') || userRole.includes('superadministrador');
+  });
+  
+  console.log(`Filtrando usuarios - Mostrando ${adminUsers.length} administradores/superadministradores de ${users.length} usuarios totales`);
+  fillSelect("responsible", adminUsers, "Seleccionar responsable", NAME_FIELDS.user, ID_FIELDS.user);
 
     // Inicializar fechas con valores predeterminados
     const startDate = document.getElementById("startDate")

@@ -51,14 +51,15 @@ let closeCreateUserModal = document.getElementById("closeCreateUserModal");
 let createUserBtn = document.getElementById("createUserBtn");
 let createUserForm = document.getElementById("createUserForm");
 let modalUserData = {
-  userTypeId: "",
-  userName: "",
-  userId: "",
-  userTel: "",
-  userEmail: "",
-  userConfirmEmail: "",
-  userRol: "",
-  estado: ""
+  tipo_documento: "",
+  nombre: "",
+  numero_documento: "",
+  telefono: "",
+  correo: "",
+  confirmar_correo: "",
+  rol: "",
+  password: "",
+  estado: "habilitado"
 };
 const closeCreateSensorModal = document.getElementById("closeCreateSensorModal")
 const createSensorForm = document.getElementById("createSensorForm")
@@ -254,43 +255,47 @@ async function initializeForm() {
     fillSelect("cropCycle", cycles, "Seleccionar ciclo", NAME_FIELDS.cycle, ID_FIELDS.cycle)
     fillSelect("sensor", sensors, "Seleccionar sensor", NAME_FIELDS.sensor, ID_FIELDS.sensor)
 
-  // Filtrar insumos con cantidad mayor a 0
-  const suppliesWithStock = supplies.filter(s => Number(s.cantidad) > 0);
-  // Guardar todos los insumos en la variable global
-  allSuppliesGlobal = suppliesWithStock;
-  updateAvailableSuppliesSelect();
+    // Filtrar insumos con cantidad mayor a 0
+    const suppliesWithStock = supplies.filter(s => Number(s.cantidad) > 0);
+    // Guardar todos los insumos en la variable global
+    allSuppliesGlobal = suppliesWithStock;
+    updateAvailableSuppliesSelect();
 
     console.log("Datos completos de los primeros 2 usuarios:", users.slice(0, 2));
-    
+
     // Asegurarse de que los usuarios tengan los campos necesarios
     const validUsers = users.filter(user => user && (user.id || user._id) && (user.nombre || user.name || user.email || user.correo));
     console.log("Total de usuarios válidos:", validUsers.length);
-    
+
     // Mostrar los roles únicos para depuración
     const uniqueRoles = [...new Set(validUsers.map(u => {
       const rol = u.rol || u.role || u.tipo_usuario || u.tipoUsuario || 'no-rol';
       return rol.toString().toLowerCase();
     }))];
     console.log("Roles únicos encontrados:", uniqueRoles);
-    
+
     // Mostrar todos los usuarios con sus roles para depuración
     console.log("Usuarios con sus roles:", validUsers.map(u => ({
       id: u.id || u._id,
       nombre: u.nombre || u.name || u.email || u.correo,
       rol: u.rol || u.role || u.tipo_usuario || u.tipoUsuario
     })));
+
+    // Filtrar solo administradores y superadministradores
+    const usersToShow = validUsers.filter(user => {
+      const userRole = (user.rol ).toString().toLowerCase();
+      return userRole.includes('admin') || userRole.includes('superadmin') || userRole.includes('administrador') || userRole.includes('super administrador');
+    });
     
-    // Por ahora, mostrar todos los usuarios en lugar de solo administradores
-    const usersToShow = [...validUsers];
-    console.log(`Mostrando ${usersToShow.length} usuarios en el selector`);
-    
+    console.log(`Filtrando usuarios - Mostrando ${usersToShow.length} administradores/superadministradores de ${validUsers.length} usuarios totales`);
+
     // Determinar los campos a usar
     const firstUser = validUsers[0] || {};
-    const nameField = firstUser.nombre ? 'nombre' : 
-                     firstUser.name ? 'name' : 
-                     firstUser.email ? 'email' : 'correo';
+    const nameField = firstUser.nombre ? 'nombre' :
+      firstUser.name ? 'name' :
+        firstUser.email ? 'email' : 'correo';
     const idField = firstUser.id ? 'id' : '_id';
-    
+
     console.log(`Usando campos: nameField=${nameField}, idField=${idField}`);
     fillSelect("responsible", usersToShow, "Seleccionar responsable", nameField, idField);
 
@@ -361,9 +366,9 @@ function fillSelect(elementId, items, defaultText, nameField, idField = "id") {
     if (id && name) {
       select.innerHTML += `<option value="${id}">${name}</option>`
     } else {
-      if(elementId == 'crop' && item.cultivoId){
+      if (elementId == 'crop' && item.cultivoId) {
         select.innerHTML += `<option value="${item.cultivoId}">${item.nombre}</option>`
-      } else{
+      } else {
         console.log(`Item inválido en ${elementId} (id: ${id}, name: ${name}):`, item)
         console.log("Campos disponibles:", Object.keys(item))
       }
@@ -667,31 +672,31 @@ function validateForm() {
 // Funciones para manejar la selección de sensores e insumos
 // Función para agregar un sensor seleccionado
 function addSelectedSensor() {
-    const sensorSelect = document.getElementById("sensor");
-    const selectedSensor = sensorSelect.options[sensorSelect.selectedIndex];
+  const sensorSelect = document.getElementById("sensor");
+  const selectedSensor = sensorSelect.options[sensorSelect.selectedIndex];
 
-    if (!selectedSensor.value) {
-        showToast("Error", "Por favor seleccione un sensor", "error");
-        return;
-    }
+  if (!selectedSensor.value) {
+    showToast("Error", "Por favor seleccione un sensor", "error");
+    return;
+  }
 
-    if (selectedSensors.has(selectedSensor.value)) {
-        showToast("Error", "Este sensor ya ha sido agregado", "error");
-        return;
-    }
+  if (selectedSensors.has(selectedSensor.value)) {
+    showToast("Error", "Este sensor ya ha sido agregado", "error");
+    return;
+  }
 
-    if (selectedSensors.size >= 3) {
-        showToast("Error", "No se pueden agregar más de 3 sensores", "error");
-        return;
-    }
+  if (selectedSensors.size >= 3) {
+    showToast("Error", "No se pueden agregar más de 3 sensores", "error");
+    return;
+  }
 
-    selectedSensors.add(selectedSensor.value);
+  selectedSensors.add(selectedSensor.value);
 
-    const selectedSensorsDiv = document.getElementById("selectedSensors");
-    const sensorCard = document.createElement("div");
-    sensorCard.className = "item-card";
-    sensorCard.dataset.sensorId = selectedSensor.value;
-    sensorCard.innerHTML = `
+  const selectedSensorsDiv = document.getElementById("selectedSensors");
+  const sensorCard = document.createElement("div");
+  sensorCard.className = "item-card";
+  sensorCard.dataset.sensorId = selectedSensor.value;
+  sensorCard.innerHTML = `
         <button type="button" class="remove-item" onclick="removeSelectedItem(this, 'sensor')">
             <i class="fas fa-times"></i>
         </button>
@@ -699,9 +704,9 @@ function addSelectedSensor() {
             <span class="item-name">${selectedSensor.text}</span>
         </div>
     `;
-    
-    selectedSensorsDiv.appendChild(sensorCard);
-    updateCreateButtonState();
+
+  selectedSensorsDiv.appendChild(sensorCard);
+  updateCreateButtonState();
 }
 
 // Función para calcular la inversión total basada en los insumos seleccionados
@@ -826,7 +831,7 @@ function registerSupplyUsage() {
   try {
     console.log('Iniciando registro de uso')
     console.log('tempSelectedSupply:', tempSelectedSupply)
-    
+
     if (!tempSelectedSupply) {
       showToast('Error', 'No se ha seleccionado ningún insumo')
       return
@@ -944,15 +949,15 @@ function addSelectedSupply() {
   const supplyUsageForm = document.getElementById("supplyUsageForm");
   const supplyInfo = document.querySelector('.supply-info');
   const supplyUsageQuantity = document.querySelector('#supplyUsageQuantity');
-  
+
   if (supplyUsageForm && supplyInfo && supplyUsageQuantity) {
     supplyUsageForm.style.display = "block";
     supplyInfo.style.display = "block";
     supplyUsageQuantity.style.display = "block";
-    
+
     // Resetear el valor de la cantidad
     supplyUsageQuantity.value = '';
-    
+
     // Actualizar la información del insumo en el formulario
     document.getElementById("supplyName").textContent = supply.nombre;
     document.getElementById("availableQuantity").textContent = supply.cantidad;
@@ -986,6 +991,46 @@ async function createProduction(e) {
   // Filtrar los insumos válidos (con cantidad_usar > 0)
   const validSupplies = selectedSupplies.filter(s => s.id && s.cantidad_usar && !isNaN(s.cantidad_usar) && s.cantidad_usar > 0);
 
+  // Validar que el estado no sea "deshabilitado" para nuevo usuario
+  if (modalUserData.estado === "deshabilitado") {
+    showToast("Error", "No se puede crear un usuario con estado deshabilitado", "error");
+    return false;
+  }
+
+  // Función para guardar los valores seleccionados actuales
+  function saveSelectedValues() {
+    const crop = document.getElementById("crop");
+    const cropCycle = document.getElementById("cropCycle");
+    const responsible = document.getElementById("responsible");
+    const sensor = document.getElementById("sensor");
+    const supply = document.getElementById("supply");
+
+    return {
+      crop: crop ? crop.value : "",
+      cropCycle: cropCycle ? cropCycle.value : "",
+      responsible: responsible ? responsible.value : "",
+      sensor: sensor ? sensor.value : "",
+      supply: supply ? supply.value : ""
+    };
+  }
+
+  // Función para restaurar los valores seleccionados
+  function restoreSelectedValues(savedValues) {
+    if (!savedValues) return;
+
+    const crop = document.getElementById("crop");
+    const cropCycle = document.getElementById("cropCycle");
+    const responsible = document.getElementById("responsible");
+    const sensor = document.getElementById("sensor");
+    const supply = document.getElementById("supply");
+
+    if (crop && savedValues.crop !== undefined) crop.value = savedValues.crop;
+    if (cropCycle && savedValues.cropCycle !== undefined) cropCycle.value = savedValues.cropCycle;
+    if (responsible && savedValues.responsible !== undefined) responsible.value = savedValues.responsible;
+    if (sensor && savedValues.sensor !== undefined) sensor.value = savedValues.sensor;
+    if (supply && savedValues.supply !== undefined) supply.value = savedValues.supply;
+  }
+
   // Validar que hay al menos un insumo válido
   if (validSupplies.length === 0) {
     showToast("Error", "Debe agregar al menos un insumo con cantidad válida", "error");
@@ -1017,7 +1062,6 @@ async function createProduction(e) {
       showToast("Error", "No se encontró el token de autenticación", "error");
       return;
     }
-    
     const response = await fetch(`${API_URL}/producciones`, {
       method: "POST",
       headers: {
@@ -1035,28 +1079,26 @@ async function createProduction(e) {
     if (data.produccion_id) {
       // Mostrar mensaje de éxito
       showToast("Éxito", "Producción creada y uso de insumos registrado correctamente", "success");
-      
       // Limpiar el formulario
       const form = document.querySelector('form');
       if (form) form.reset();
-      
+
       // Limpiar listas de insumos y sensores seleccionados
       selectedSupplies = [];
       selectedSensors.clear();
-      
+
       // Limpiar las listas visuales de insumos y sensores
       const selectedSuppliesList = document.getElementById('selectedSupplies');
       const selectedSensorsList = document.getElementById('selectedSensors');
       if (selectedSuppliesList) selectedSuppliesList.innerHTML = '';
       if (selectedSensorsList) selectedSensorsList.innerHTML = '';
-      
+
       // Limpiar campos adicionales si existen
       const totalInvestment = document.getElementById('totalInvestment');
       const estimatedProfit = document.getElementById('estimatedProfit');
       if (totalInvestment) totalInvestment.value = '';
       if (estimatedProfit) estimatedProfit.value = '';
-      
-      // Redirigir a la lista de producciones después de 2 segundos
+      // Redirigir a la lista de producciones
       setTimeout(() => window.location.href = "listar-producciones.html", 2000);
     }
   } catch (error) {
@@ -1076,16 +1118,16 @@ function showToast(title, message, type = 'success') {
   try {
     // Try to find the toast container, or create it if it doesn't exist
     let toastContainer = document.getElementById('toast-container');
-    
+
     // If toast container doesn't exist, create it
     if (!toastContainer) {
-        toastContainer = document.createElement('div');
-        toastContainer.id = 'toast-container';
-        toastContainer.style.position = 'fixed';
-        toastContainer.style.top = '20px';
-        toastContainer.style.right = '20px';
-        toastContainer.style.zIndex = '9999';
-        document.body.appendChild(toastContainer);
+      toastContainer = document.createElement('div');
+      toastContainer.id = 'toast-container';
+      toastContainer.style.position = 'fixed';
+      toastContainer.style.top = '20px';
+      toastContainer.style.right = '20px';
+      toastContainer.style.zIndex = '9999';
+      document.body.appendChild(toastContainer);
     }
 
     // Create toast element
@@ -1106,34 +1148,34 @@ function showToast(title, message, type = 'success') {
     toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
 
     // Set background color based on type
-    switch(type) {
-        case 'error':
-            toast.style.backgroundColor = '#ef4444';
-            break;
-        case 'warning':
-            toast.style.backgroundColor = '#f59e0b';
-            break;
-        case 'info':
-            toast.style.backgroundColor = '#3b82f6';
-            break;
-        default: // success
-            toast.style.backgroundColor = '#10b981';
+    switch (type) {
+      case 'error':
+        toast.style.backgroundColor = '#ef4444';
+        break;
+      case 'warning':
+        toast.style.backgroundColor = '#f59e0b';
+        break;
+      case 'info':
+        toast.style.backgroundColor = '#3b82f6';
+        break;
+      default: // success
+        toast.style.backgroundColor = '#10b981';
     }
 
     // Add title if provided
     if (title) {
-        const titleElement = document.createElement('div');
-        titleElement.style.fontWeight = 'bold';
-        titleElement.style.fontSize = '1.1em';
-        titleElement.textContent = title;
-        toast.appendChild(titleElement);
+      const titleElement = document.createElement('div');
+      titleElement.style.fontWeight = 'bold';
+      titleElement.style.fontSize = '1.1em';
+      titleElement.textContent = title;
+      toast.appendChild(titleElement);
     }
 
     // Add message if provided
     if (message) {
-        const messageElement = document.createElement('div');
-        messageElement.textContent = message;
-        toast.appendChild(messageElement);
+      const messageElement = document.createElement('div');
+      messageElement.textContent = message;
+      toast.appendChild(messageElement);
     }
 
     // Add close button
@@ -1150,12 +1192,12 @@ function showToast(title, message, type = 'success') {
     closeButton.style.padding = '0';
     closeButton.style.lineHeight = '1';
     closeButton.addEventListener('click', () => {
-        toast.style.opacity = '0';
-        setTimeout(() => {
-            if (toast && toast.parentNode) {
-                toast.parentNode.removeChild(toast);
-            }
-        }, 300);
+      toast.style.opacity = '0';
+      setTimeout(() => {
+        if (toast && toast.parentNode) {
+          toast.parentNode.removeChild(toast);
+        }
+      }, 300);
     });
     toast.appendChild(closeButton);
 
@@ -1164,18 +1206,18 @@ function showToast(title, message, type = 'success') {
 
     // Animate in
     setTimeout(() => {
-        toast.style.opacity = '1';
-        toast.style.transform = 'translateX(0)';
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateX(0)';
     }, 10);
 
     // Auto-remove after delay
     setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => {
-            if (toast && toast.parentNode) {
-                toast.parentNode.removeChild(toast);
-            }
-        }, 300);
+      toast.style.opacity = '0';
+      setTimeout(() => {
+        if (toast && toast.parentNode) {
+          toast.parentNode.removeChild(toast);
+        }
+      }, 300);
     }, 5000);
   } catch (error) {
     console.error('Error showing toast:', error);
@@ -1268,18 +1310,18 @@ function setupProfitSuggestionButton() {
 
 // // Función para ocultar el formulario de uso de insumo
 function hideSupplyUsageForm() {
-    const supplyInfo = document.querySelector('.supply-info');
-    const supplyUsageQuantity = document.querySelector('#supplyUsageQuantity');
-    const supplyUsageForm = document.getElementById('supplyUsageForm');
-    
-    supplyInfo.style.display = 'none';
-    supplyUsageQuantity.style.display = 'none';
-    supplyUsageForm.style.display = 'none';
+  const supplyInfo = document.querySelector('.supply-info');
+  const supplyUsageQuantity = document.querySelector('#supplyUsageQuantity');
+  const supplyUsageForm = document.getElementById('supplyUsageForm');
+
+  supplyInfo.style.display = 'none';
+  supplyUsageQuantity.style.display = 'none';
+  supplyUsageForm.style.display = 'none';
 }
 
 // Event listener para el botón Ocultar Formulario
 document.getElementById('hideSupplyUsageForm').addEventListener('click', (e) => {
-    hideSupplyUsageForm();
+  hideSupplyUsageForm();
 });
 
 // Event listener para el botón Registrar Uso
@@ -1307,7 +1349,7 @@ closeCreateUserModal.addEventListener("click", () => {
 
 // Event listeners para el formulario del modal
 document.getElementById("modal-tipo-documento").addEventListener("change", (e) => {
-  modalUserData.userTypeId = e.target.value
+  modalUserData.tipo_documento = e.target.value;
 })
 
 // Bloquear números en el campo de nombre
@@ -1319,7 +1361,7 @@ document.getElementById("modal-nombre").addEventListener("keydown", (e) => {
 })
 
 document.getElementById("modal-nombre").addEventListener("input", (e) => {
-  modalUserData.userName = e.target.value
+  modalUserData.nombre = e.target.value;
 })
 
 // Solo permitir números en el campo de documento
@@ -1342,7 +1384,7 @@ document.getElementById("modal-numero-documento").addEventListener("keydown", (e
 })
 
 document.getElementById("modal-numero-documento").addEventListener("input", (e) => {
-  modalUserData.userId = e.target.value
+  modalUserData.numero_documento = e.target.value;
 })
 
 // Solo permitir números en el campo de teléfono
@@ -1365,95 +1407,136 @@ document.getElementById("modal-telefono").addEventListener("keydown", (e) => {
 })
 
 document.getElementById("modal-telefono").addEventListener("input", (e) => {
-  modalUserData.userTel = e.target.value
+  modalUserData.telefono = e.target.value;
 })
 
 document.getElementById("modal-correo").addEventListener("input", (e) => {
-  modalUserData.userEmail = e.target.value
+  modalUserData.correo = e.target.value;
 })
 
 document.getElementById("modal-confirmar-correo").addEventListener("input", (e) => {
-  modalUserData.userConfirmEmail = e.target.value
+  modalUserData.confirmar_correo = e.target.value;
 })
 
 document.getElementById("modal-rol").addEventListener("change", (e) => {
-  modalUserData.userRol = e.target.value
+  modalUserData.rol = e.target.value;
 })
 
 document.querySelectorAll('input[name="modal-estado-habilitado"]').forEach((radio) => {
   radio.addEventListener("change", (e) => {
-    modalUserData.estado = e.target.value
-  })
-})
+    modalUserData.estado = e.target.value;
+  });
+});
+
+// Manejar el campo de contraseña
+document.getElementById("modal-password").addEventListener("input", (e) => {
+  modalUserData.password = e.target.value;
+});
 
 // Función para validar los datos del usuario en el modal
 function validateModalUserData() {
+  // Validar campos requeridos
   const requiredFields = [
-    { field: "userTypeId", label: "Tipo de documento" },
-    { field: "userName", label: "Nombre" },
-    { field: "userId", label: "Número de documento" },
-    { field: "userTel", label: "Teléfono" },
-    { field: "userEmail", label: "Correo electrónico" },
-    { field: "userConfirmEmail", label: "Confirmación de correo" },
-    { field: "userRol", label: "Rol" },
-    { field: "estado", label: "Estado" },
-  ]
+    { field: "tipo_documento", label: "Tipo de documento" },
+    { field: "nombre", label: "Nombre completo" },
+    { field: "numero_documento", label: "Número de documento" },
+    { field: "telefono", label: "Teléfono" },
+    { field: "correo", label: "Correo electrónico" },
+    { field: "confirmar_correo", label: "Confirmación de correo" },
+    { field: "rol", label: "Rol" },
+    { field: "password", label: "Contraseña" },
+    { field: "estado", label: "Estado" }
+  ];
 
   for (const field of requiredFields) {
     if (!modalUserData[field.field]) {
-      showToast(`Por favor, complete el campo ${field.label}`, "", "error")
-      return false
+      showToast(`Por favor, complete el campo ${field.label}`, "", "error");
+      return false;
     }
   }
 
+
+  // Validar formato de correo electrónico
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(modalUserData.correo)) {
+    showToast("Error", "El formato del correo electrónico no es válido", "error");
+    return false;
+  }
+
   // Validar que los correos coincidan
-  if (modalUserData.userEmail !== modalUserData.userConfirmEmail) {
-    showToast("Error", "Los correos electrónicos no coinciden", "error")
-    return false
+  if (modalUserData.correo !== modalUserData.confirmar_correo) {
+    showToast("Error", "Los correos electrónicos no coinciden", "error");
+    return false;
   }
 
-  // Validar que el tipo de documento sea válido según la base de datos
-  const validDocumentTypes = ["ti", "cc", "ce", "ppt", "pep"]
-  if (!validDocumentTypes.includes(modalUserData.userTypeId)) {
-    showToast("Error", "Tipo de documento no válido", "error")
-    return false
+  // Validar longitud de la contraseña
+  if (modalUserData.password.length < 8 || modalUserData.password.length > 18) {
+    showToast("Error", "La contraseña debe tener entre 8 y 18 caracteres", "error");
+    return false;
   }
 
-  // Validar que el rol sea válido según la base de datos
-  const validRoles = ["superadmin", "admin", "apoyo", "visitante"]
-  if (!validRoles.includes(modalUserData.userRol)) {
-    showToast("Error", "Rol no válido", "error")
-    return false
+  // Validar que el tipo de documento sea válido
+  const validDocumentTypes = ["ti", "cc", "ce", "ppt", "pep"];
+  if (!validDocumentTypes.includes(modalUserData.tipo_documento)) {
+    showToast("Error", `Tipo de documento no válido. Debe ser uno de: ${validDocumentTypes.join(', ')}`, "error");
+    return false;
   }
 
+  // Validar que el rol sea válido
+  const validRoles = ["Super Administrador", "Administrador", "Personal de Apoyo", "Visitante"];
+  if (!validRoles.includes(modalUserData.rol)) {
+    showToast("Error", "Rol no válido", "error");
+    return false;
+  }
+
+  // Validar formato de teléfono (solo números, mínimo 7 dígitos)
+  const phoneRegex = /^\d{7,15}$/;
+  if (!phoneRegex.test(modalUserData.telefono)) {
+    showToast("Error", "El teléfono debe contener entre 7 y 15 dígitos", "error");
+    return false;
+  }
+
+  // Validar que el estado sea válido
+  if (modalUserData.estado !== "habilitado" && modalUserData.estado !== "deshabilitado") {
+    showToast("Error", "Estado no válido", "error");
+    return false;
+  }
+
+  // Validar que el estado no sea "deshabilitado" para nuevo usuario
   if (modalUserData.estado === "deshabilitado") {
-    showToast("Error", "Cambia el estado para crear el usuario", "error")
-    return false
+    showToast("Error", "No se puede crear un usuario con estado deshabilitado", "error");
+    return false;
   }
 
-  return true
+  return true;
 }
 
-// Función para guardar los valores seleccionados actuales
+// Function to save form field values
 function saveSelectedValues() {
   return {
-    crop: document.getElementById("crop").value,
-    cropCycle: document.getElementById("cropCycle").value,
-    responsible: document.getElementById("responsible").value,
-    sensor: document.getElementById("sensor").value,
-    supply: document.getElementById("supply").value,
-  }
+    crop: document.getElementById("crop")?.value || "",
+    cropCycle: document.getElementById("cropCycle")?.value || "",
+    responsible: document.getElementById("responsible")?.value || "",
+    sensor: document.getElementById("sensor")?.value || "",
+    supply: document.getElementById("supply")?.value || ""
+  };
 }
 
-// Función para restaurar los valores seleccionados
+// Function to restore form field values
 function restoreSelectedValues(savedValues) {
-  if (savedValues) {
-    document.getElementById("crop").value = savedValues.crop
-    document.getElementById("cropCycle").value = savedValues.cropCycle
-    document.getElementById("responsible").value = savedValues.responsible
-    document.getElementById("sensor").value = savedValues.sensor
-    document.getElementById("supply").value = savedValues.supply
-  }
+  if (!savedValues) return;
+  
+  const crop = document.getElementById("crop");
+  const cropCycle = document.getElementById("cropCycle");
+  const responsible = document.getElementById("responsible");
+  const sensor = document.getElementById("sensor");
+  const supply = document.getElementById("supply");
+  
+  if (crop) crop.value = savedValues.crop || "";
+  if (cropCycle) cropCycle.value = savedValues.cropCycle || "";
+  if (responsible) responsible.value = savedValues.responsible || "";
+  if (sensor) sensor.value = savedValues.sensor || "";
+  if (supply) supply.value = savedValues.supply || "";
 }
 
 // Manejar el envío del formulario del modal
@@ -1463,28 +1546,53 @@ createUserForm.addEventListener("submit", async (e) => {
   // Guardar valores actuales
   const savedValues = saveSelectedValues();
 
+  // Validar los datos del formulario
   if (!validateModalUserData()) {
     return;
   }
 
+  const submitBtn = createUserForm.querySelector('button[type="submit"]');
+  const originalBtnText = submitBtn?.innerHTML || 'Crear Usuario';
+
   try {
+    // Deshabilitar el botón durante el envío
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando...';
+    }
+
+    // Validar que la contraseña tenga al menos 8 caracteres
+    if (!modalUserData.password || modalUserData.password.length < 8) {
+      showToast("Error", "La contraseña debe tener al menos 8 caracteres", "error");
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+      }
+      return;
+    }
+
     // Preparar los datos en el formato que espera el backend
     const userData = {
-      userTypeId: modalUserData.userTypeId,
-      userId: modalUserData.userId,
-      userName: modalUserData.userName,
-      userTel: modalUserData.userTel,
-      userEmail: modalUserData.userEmail,
-      userRol: modalUserData.userRol,
+      userTypeId: modalUserData.tipo_documento,
+      userId: modalUserData.numero_documento,
+      userName: modalUserData.nombre,
+      userTel: modalUserData.telefono,
+      userEmail: modalUserData.correo,
+      userRol: modalUserData.rol,
+      password: modalUserData.password,
       estado: modalUserData.estado
     };
-    
+
     const token = localStorage.getItem('token');
     if (!token) {
       showToast("Error", "No se encontró el token de autenticación", "error");
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+      }
       return;
     }
-  
+
     const response = await fetch(`${API_URL}/users`, {
       method: "POST",
       headers: {
@@ -1494,31 +1602,140 @@ createUserForm.addEventListener("submit", async (e) => {
       body: JSON.stringify(userData)
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Error al crear el usuario");
-    }
-
     const data = await response.json();
-    showToast("Éxito", "Usuario creado correctamente", "success");
 
-    // Actualizar el select de responsables
-    await initializeForm();
+    if (response.status === 409) {
+      showToast("Error", "El usuario ya existe con ese correo electrónico", "error");
+    } else if (response.ok) {
+      showToast("Éxito", "Usuario creado correctamente", "success");
+      // Cerrar el modal
+      createUserModal.classList.add("hidden");
+      // Limpiar el formulario
+      createUserForm.reset();
+      modalUserData = {
+        tipo_documento: "",
+        nombre: "",
+        numero_documento: "",
+        telefono: "",
+        correo: "",
+        confirmar_correo: "",
+        rol: "",
+        password: "",
+        estado: "habilitado"
+      };
+      // Actualizar el select de responsables
+      await initializeForm();
 
-    // Cerrar el modal
-    createUserModal.classList.add("hidden");
-
-    // Limpiar el formulario
-    createUserForm.reset();
-    modalUserData.estado = "habilitado";
-
-    // Después de crear el usuario exitosamente, restaurar los valores
-    restoreSelectedValues(savedValues);
+    } else {
+      showToast("Error", data.error || "Error al crear el usuario", "error");
+    }
   } catch (error) {
-    console.error("Error:", error);
-    showToast("Error", error.message || "No se pudo crear el usuario", "error");
+    console.error('Error al crear el usuario:', error);
+    showToast("Error", error.message || "Error al crear el usuario", "error");
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnText;
+    }
+  } finally {
+    // Restaurar el botón
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnText;
+    }
   }
 })
+
+// Event listeners para el modal de sensor
+createSensorBtn.addEventListener("click", () => {
+  createSensorModal.classList.remove("hidden")
+})
+
+closeCreateSensorModal.addEventListener("click", () => {
+  createSensorModal.classList.add("hidden")
+})
+
+
+// Event listeners para el formulario del modal de sensor
+document.getElementById("modal-tipo-sensor").addEventListener("change", (e) => {
+  modalSensorData.sensorType = e.target.value
+})
+
+// Bloquear números en el campo de nombre del sensor
+document.getElementById("modal-nombre-sensor").addEventListener("keydown", (e) => {
+  if (e.key >= "0" && e.key <= "9") {
+    e.preventDefault()
+    console.log("Número bloqueado")
+  }
+})
+
+document.getElementById("modal-nombre-sensor").addEventListener("input", (e) => {
+  modalSensorData.sensorName = e.target.value
+})
+
+document.getElementById("modal-unidad-medida").addEventListener("change", (e) => {
+  modalSensorData.sensorUnit = e.target.value
+})
+
+document.getElementById("modal-descripcion").addEventListener("input", (e) => {
+  modalSensorData.sensorDescription = e.target.value
+})
+
+document.getElementById("modal-tiempo-escaneo").addEventListener("change", (e) => {
+  modalSensorData.sensorScan = e.target.value
+})
+
+document.querySelectorAll('input[name="modal-estado-sensor"]').forEach((radio) => {
+  radio.addEventListener("change", (e) => {
+    modalSensorData.estado = e.target.value
+  })
+})
+
+// Función para validar los datos del sensor en el modal
+function validateModalSensorData() {
+  const requiredFields = [
+    { field: "sensorType", label: "Tipo de sensor" },
+    { field: "sensorName", label: "Nombre del sensor" },
+    { field: "sensorUnit", label: "Unidad de medida" },
+    { field: "sensorDescription", label: "Descripción" },
+    { field: "sensorScan", label: "Tiempo de escaneo" },
+    { field: "estado", label: "Estado" },
+  ]
+
+  for (const field of requiredFields) {
+    if (!modalSensorData[field.field]) {
+      showToast(`Por favor, complete el campo ${field.label}`, "", "error")
+      return false
+    }
+  }
+
+  // Validar que el tipo de sensor sea válido según la base de datos
+  const validSensorTypes = ["Sensor de contacto", "Sensor de distancia", "Sensores de luz"]
+  if (!validSensorTypes.includes(modalSensorData.sensorType)) {
+    showToast("Error", "Tipo de sensor no válido", "error")
+    return false
+  }
+
+  // Validar que la unidad de medida sea válida según la base de datos
+  const validUnits = ["Temperatura", "Distancia", "Presión"]
+  if (!validUnits.includes(modalSensorData.sensorUnit)) {
+    showToast("Error", "Unidad de medida no válida", "error")
+    return false
+  }
+
+  // Validar que el tiempo de escaneo sea válido según la base de datos
+  const validScanTimes = ["Sensores lentos", "Sensores de velocidad media", "Sensores rápidos"]
+  if (!validScanTimes.includes(modalSensorData.sensorScan)) {
+    showToast("Error", "Tiempo de escaneo no válido", "error")
+    return false
+  }
+
+  if (modalSensorData.estado === "deshabilitado") {
+    showToast("Error", "Cambia el estado para crear el sensor", "error")
+    return false
+  }
+
+  return true
+}
 
 // Manejar el envío del formulario del modal de sensor
 createSensorForm.addEventListener("submit", async (e) => {
@@ -1542,13 +1759,13 @@ createSensorForm.addEventListener("submit", async (e) => {
       sensorScan: modalSensorData.sensorScan,
       estado: modalSensorData.estado
     };
-    
+
     const token = localStorage.getItem('token');
     if (!token) {
       showToast("Error", "No se encontró el token de autenticación", "error");
       return;
     }
-  
+
     const response = await fetch(`${API_URL}/sensor`, {
       method: "POST",
       headers: {
@@ -1583,6 +1800,156 @@ createSensorForm.addEventListener("submit", async (e) => {
     showToast("Error", error.message || "No se pudo crear el sensor", "error");
   }
 })
+
+// Event listeners para el modal de insumo
+createSupplyBtn.addEventListener("click", () => {
+  createSupplyModal.classList.remove("hidden")
+})
+
+closeCreateSupplyModal.addEventListener("click", () => {
+  createSupplyModal.classList.add("hidden")
+})
+
+// Bloquear números en el campo de nombre
+document.getElementById("modal-nombre-insumo").addEventListener("keydown", (e) => {
+  if (e.key >= "0" && e.key <= "9") {
+    e.preventDefault()
+    console.log("Número bloqueado")
+  }
+})
+
+// Solo permitir números en el campo de valor unitario
+document.getElementById("modal-valor-unitario").addEventListener("keydown", (e) => {
+  if (
+    e.key === "Backspace" ||
+    e.key === "Tab" ||
+    e.key === "Enter" ||
+    e.key === "ArrowLeft" ||
+    e.key === "ArrowRight" ||
+    e.key === "."
+  ) {
+    return
+  }
+  if (e.key < "0" || e.key > "9") {
+    e.preventDefault()
+    console.log("Solo se permite números")
+  }
+})
+
+// Solo permitir números en el campo de cantidad
+document.getElementById("modal-cantidad").addEventListener("keydown", (e) => {
+  if (
+    e.key === "Backspace" ||
+    e.key === "Tab" ||
+    e.key === "Enter" ||
+    e.key === "ArrowLeft" ||
+    e.key === "ArrowRight"
+  ) {
+    return
+  }
+  if (e.key < "0" || e.key > "9") {
+    e.preventDefault()
+    console.log("Solo se permite números")
+  }
+})
+
+// Event listeners para el formulario del modal de insumo
+document.getElementById("modal-nombre-insumo").addEventListener("input", (e) => {
+  modalSupplyData.insumeName = e.target.value
+  console.log("Nombre actualizado:", modalSupplyData.insumeName)
+})
+
+document.getElementById("modal-tipo-insumo").addEventListener("input", (e) => {
+  modalSupplyData.insumeType = e.target.value
+  console.log("Tipo actualizado:", modalSupplyData.insumeType)
+})
+
+document.getElementById("modal-medida-insumo").addEventListener("change", (e) => {
+  modalSupplyData.insumeExtent = e.target.value
+  console.log("Unidad de medida actualizada:", modalSupplyData.insumeExtent)
+})
+
+document.getElementById("modal-valor-unitario").addEventListener("input", (e) => {
+  modalSupplyData.insumePrice = e.target.value
+  console.log("Valor unitario actualizado:", modalSupplyData.insumePrice)
+  calculateTotal()
+})
+
+document.getElementById("modal-cantidad").addEventListener("input", (e) => {
+  modalSupplyData.insumeAmount = e.target.value
+  console.log("Cantidad actualizada:", modalSupplyData.insumeAmount)
+  calculateTotal()
+})
+
+document.getElementById("modal-descripcion-insumo").addEventListener("input", (e) => {
+  modalSupplyData.insumeDescription = e.target.value
+  console.log("Descripción actualizada:", modalSupplyData.insumeDescription)
+})
+
+document.querySelectorAll('input[name="modal-estado-insumo"]').forEach((radio) => {
+  radio.addEventListener("change", (e) => {
+    modalSupplyData.estado = e.target.value
+    console.log("Estado actualizado:", modalSupplyData.estado)
+  })
+})
+
+// Función para calcular el valor total
+function calculateTotal() {
+  const price = Number.parseFloat(modalSupplyData.insumePrice) || 0
+  const amount = Number.parseInt(modalSupplyData.insumeAmount) || 0
+  const total = price * amount
+  modalSupplyData.totalValue = total.toString()
+  document.getElementById("modal-valor-total").value = total
+}
+
+// Función para validar los datos del insumo en el modal
+function validateModalSupplyData() {
+  console.log("Validando datos:", modalSupplyData)
+
+  const requiredFields = [
+    { field: "insumeName", label: "Nombre" },
+    { field: "insumeType", label: "Tipo de insumo" },
+    { field: "insumeExtent", label: "Unidad de medida" },
+    { field: "insumeDescription", label: "Descripción" },
+    { field: "insumePrice", label: "Valor unitario" },
+    { field: "insumeAmount", label: "Cantidad" },
+    { field: "totalValue", label: "Valor total" },
+    { field: "estado", label: "Estado" },
+  ]
+
+  for (const field of requiredFields) {
+    if (!modalSupplyData[field.field]) {
+      console.log(`Campo vacío: ${field.field}`)
+      showToast(`Por favor, complete el campo ${field.label}`, "", "error")
+      return false
+    }
+  }
+
+  // Validar que la unidad de medida sea válida según la base de datos
+  const validUnits = ["peso", "volumen", "superficie", "concentración", "litro", "kilo"]
+  if (!validUnits.includes(modalSupplyData.insumeExtent)) {
+    showToast("Error", "Unidad de medida no válida", "error")
+    return false
+  }
+
+  // Validar que los valores numéricos sean válidos
+  if (isNaN(Number.parseFloat(modalSupplyData.insumePrice)) || Number.parseFloat(modalSupplyData.insumePrice) <= 0) {
+    showToast("Error", "El valor unitario debe ser un número mayor a 0", "error")
+    return false
+  }
+
+  if (isNaN(Number.parseInt(modalSupplyData.insumeAmount)) || Number.parseInt(modalSupplyData.insumeAmount) <= 0) {
+    showToast("Error", "La cantidad debe ser un número mayor a 0", "error")
+    return false
+  }
+
+  if (modalSupplyData.estado === "deshabilitado") {
+    showToast("Error", "Cambia el estado para crear el insumo", "error")
+    return false
+  }
+
+  return true
+}
 
 // Manejar el envío del formulario del modal de insumo
 createSupplyForm.addEventListener("submit", async (e) => {
@@ -1622,13 +1989,13 @@ createSupplyForm.addEventListener("submit", async (e) => {
       insumeId: parseInt(document.getElementById("responsible").value) || 1, // Usar el ID del responsable seleccionado
       estado: modalSupplyData.estado
     };
-    
+
     const token = localStorage.getItem('token');
     if (!token) {
       showToast("Error", "No se encontró el token de autenticación", "error");
       return;
     }
-  
+
     const response = await fetch(`${API_URL}/insumos`, {
       method: "POST",
       headers: {
@@ -1664,6 +2031,82 @@ createSupplyForm.addEventListener("submit", async (e) => {
   }
 })
 
+// Event listeners para el modal de cultivo
+createCropBtn.addEventListener("click", () => {
+  createCropModal.classList.remove("hidden")
+})
+
+closeCreateCropModal.addEventListener("click", () => {
+  createCropModal.classList.add("hidden")
+})
+
+// Bloquear números en el campo de nombre
+document.getElementById("modal-nombre-cultivo").addEventListener("keydown", (e) => {
+  if (e.key >= "0" && e.key <= "9") {
+    e.preventDefault()
+    console.log("Número bloqueado")
+  }
+})
+
+// Event listeners para el formulario del modal de cultivo
+document.getElementById("modal-nombre-cultivo").addEventListener("input", (e) => {
+  modalCropData.cultiveName = e.target.value
+})
+
+document.getElementById("modal-tipo-cultivo").addEventListener("input", (e) => {
+  modalCropData.cultiveType = e.target.value
+})
+
+document.getElementById("modal-ubicacion-cultivo").addEventListener("input", (e) => {
+  modalCropData.cultiveLocation = e.target.value
+})
+
+document.getElementById("modal-tamano-cultivo").addEventListener("input", (e) => {
+  modalCropData.cultiveSize = e.target.value
+})
+
+document.getElementById("modal-descripcion-cultivo").addEventListener("input", (e) => {
+  modalCropData.cultiveDescription = e.target.value
+})
+
+document.querySelectorAll('input[name="modal-estado-cultivo"]').forEach((radio) => {
+  radio.addEventListener("change", (e) => {
+    modalCropData.estado = e.target.value
+  })
+})
+
+// Función para validar los datos del cultivo en el modal
+function validateModalCropData() {
+  const requiredFields = [
+    { field: "cultiveName", label: "Nombre" },
+    { field: "cultiveType", label: "Tipo de cultivo" },
+    { field: "cultiveLocation", label: "Ubicación" },
+    { field: "cultiveDescription", label: "Descripción" },
+    { field: "cultiveSize", label: "Tamaño" },
+    { field: "estado", label: "Estado" },
+  ]
+
+  for (const field of requiredFields) {
+    if (!modalCropData[field.field]) {
+      showToast(`Por favor, complete el campo ${field.label}`, "", "error")
+      return false
+    }
+  }
+
+  // Validar que el tamaño sea un número válido
+  if (isNaN(Number.parseFloat(modalCropData.cultiveSize)) || Number.parseFloat(modalCropData.cultiveSize) <= 0) {
+    showToast("Error", "El tamaño debe ser un número mayor a 0", "error")
+    return false
+  }
+
+  if (modalCropData.estado === "deshabilitado") {
+    showToast("Error", "Cambia el estado para crear el cultivo", "error")
+    return false
+  }
+
+  return true
+}
+
 // Manejar el envío del formulario del modal de cultivo
 createCropForm.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -1687,13 +2130,13 @@ createCropForm.addEventListener("submit", async (e) => {
       usuario_id: parseInt(document.getElementById("responsible").value) || 1, // Usar el ID del responsable seleccionado
       estado: modalCropData.estado
     };
-    
+
     const token = localStorage.getItem('token');
     if (!token) {
       showToast("Error", "No se encontró el token de autenticación", "error");
       return;
     }
-  
+
     const response = await fetch(`${API_URL}/cultivos`, {
       method: "POST",
       headers: {
@@ -1702,6 +2145,7 @@ createCropForm.addEventListener("submit", async (e) => {
       },
       body: JSON.stringify(cultivoData)
     });
+
 
     if (!response.ok) {
       const errorData = await response.json();
@@ -1729,6 +2173,84 @@ createCropForm.addEventListener("submit", async (e) => {
   }
 })
 
+// Event listeners para el modal de ciclo de cultivo
+createCropCycleBtn.addEventListener("click", () => {
+  createCropCycleModal.classList.remove("hidden")
+})
+
+closeCreateCropCycleModal.addEventListener("click", () => {
+  createCropCycleModal.classList.add("hidden")
+})
+
+// Bloquear números en el campo de nombre
+document.getElementById("modal-nombre-ciclo").addEventListener("keydown", (e) => {
+  if (e.key >= "0" && e.key <= "9") {
+    e.preventDefault()
+    console.log("Número bloqueado")
+  }
+})
+
+// Event listeners para el formulario del modal de ciclo de cultivo
+document.getElementById("modal-nombre-ciclo").addEventListener("input", (e) => {
+  modalCropCycleData.cycleName = e.target.value
+})
+
+document.getElementById("modal-descripcion-ciclo").addEventListener("input", (e) => {
+  modalCropCycleData.cycleDescription = e.target.value
+})
+
+document.getElementById("modal-periodo-inicio").addEventListener("input", (e) => {
+  modalCropCycleData.cycleStartDate = e.target.value
+})
+
+document.getElementById("modal-periodo-final").addEventListener("input", (e) => {
+  modalCropCycleData.cycleEndDate = e.target.value
+})
+
+document.getElementById("modal-novedades-ciclo").addEventListener("input", (e) => {
+  modalCropCycleData.cycleUpdates = e.target.value
+})
+
+document.querySelectorAll('input[name="modal-estado-ciclo"]').forEach((radio) => {
+  radio.addEventListener("change", (e) => {
+    modalCropCycleData.estado = e.target.value
+  })
+})
+
+// Función para validar los datos del ciclo de cultivo en el modal
+function validateModalCropCycleData() {
+  const requiredFields = [
+    { field: "cycleName", label: "Nombre" },
+    { field: "cycleDescription", label: "Descripción" },
+    { field: "cycleStartDate", label: "Periodo de inicio" },
+    { field: "cycleEndDate", label: "Periodo final" },
+    { field: "cycleUpdates", label: "Novedades" },
+    { field: "estado", label: "Estado" },
+  ]
+
+  for (const field of requiredFields) {
+    if (!modalCropCycleData[field.field]) {
+      showToast(`Por favor, complete el campo ${field.label}`, "", "error")
+      return false
+    }
+  }
+
+  // Validar que la fecha de inicio sea anterior a la fecha final
+  const startDate = new Date(modalCropCycleData.cycleStartDate)
+  const endDate = new Date(modalCropCycleData.cycleEndDate)
+  if (startDate >= endDate) {
+    showToast("Error", "La fecha de inicio debe ser anterior a la fecha final", "error")
+    return false
+  }
+
+  if (modalCropCycleData.estado === "deshabilitado") {
+    showToast("Error", "Cambia el estado para crear el ciclo de cultivo", "error")
+    return false
+  }
+
+  return true
+}
+
 // Manejar el envío del formulario del modal de ciclo de cultivo
 createCropCycleForm.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -1751,13 +2273,13 @@ createCropCycleForm.addEventListener("submit", async (e) => {
       usuario_id: parseInt(document.getElementById("responsible").value) || 1, // Usar el ID del responsable seleccionado
       estado: modalCropCycleData.estado
     };
-    
+
     const token = localStorage.getItem('token');
     if (!token) {
       showToast("Error", "No se encontró el token de autenticación", "error");
       return;
     }
-  
+
     const response = await fetch(`${API_URL}/ciclo_cultivo`, {
       method: "POST",
       headers: {
@@ -1796,11 +2318,11 @@ createCropCycleForm.addEventListener("submit", async (e) => {
 
 
 function updateCreateButtonState() {
-    const isValid = validateForm()
-    const createBtn = document.getElementById("createBtn")
-    if (createBtn) {
-        createBtn.disabled = !isValid
-    }
+  const isValid = validateForm()
+  const createBtn = document.getElementById("createBtn")
+  if (createBtn) {
+    createBtn.disabled = !isValid
+  }
 }
 
 function validarNombreProduccion(nombre) {
@@ -1823,7 +2345,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Actualizar el título de la sección de insumos
   const sectionTitles = document.querySelectorAll('.form__section-title');
-  const insumosSectionTitle = Array.from(sectionTitles).find(el => 
+  const insumosSectionTitle = Array.from(sectionTitles).find(el =>
     el.textContent.includes('Insumo')
   );
   if (insumosSectionTitle) {

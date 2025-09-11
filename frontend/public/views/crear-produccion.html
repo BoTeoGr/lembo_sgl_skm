@@ -22,7 +22,7 @@
                 <div class="form__back-link">
                     <a href="listar-producciones.html" class="button--back">← Volver</a>
                 </div>
-                
+
                 <!-- Enhanced title section with better spacing -->
                 <div class="form__header">
                     <h2 class="form__title">Crear Nueva Producción</h2>
@@ -34,16 +34,17 @@
                     <div class="form__grid">
                         <section class="form__section form__section--primary">
                             <h3 class="form__section-title">
-                                <i class="fas fa-info-circle"></i> 
+                                <i class="fas fa-info-circle"></i>
                                 Información General
                             </h3>
-                            
+
                             <div class="form__row">
                                 <div class="form__group">
                                     <label for="productionName" class="form__label">
                                         <i class="fas fa-tag"></i> Nombre de la producción
                                     </label>
-                                    <input type="text" id="productionName" name="productionName" class="form__input" required>
+                                    <input type="text" id="productionName" name="productionName" class="form__input"
+                                        required>
                                     <small class="form__helper-text">Mínimo 3 caracteres</small>
                                 </div>
                                 <div class="form__group">
@@ -82,7 +83,8 @@
                                     <label for="quantity" class="form__label">
                                         <i class="fas fa-weight"></i> Cantidad de Producción
                                     </label>
-                                    <input type="number" id="quantity" name="quantity" class="form__input" min="0" step="0.01" required>
+                                    <input type="number" id="quantity" name="quantity" class="form__input" min="0"
+                                        step="0.01" required>
                                     <small class="form__helper-text">Cantidad total de la producción (en kg)</small>
                                 </div>
                             </div>
@@ -91,17 +93,18 @@
                                 <label for="description" class="form__label">
                                     <i class="fas fa-align-left"></i> Descripción
                                 </label>
-                                <textarea id="description" name="description" class="form__textarea" rows="3" required></textarea>
+                                <textarea id="description" name="description" class="form__textarea" rows="3"
+                                    required></textarea>
                             </div>
                         </section>
 
                         <!-- Better organized cultivation section with side-by-side layout -->
                         <section class="form__section">
                             <h3 class="form__section-title">
-                                <i class="fas fa-seedling"></i> 
+                                <i class="fas fa-seedling"></i>
                                 Configuración de Cultivo
                             </h3>
-                            
+
                             <div class="form__row">
                                 <div class="form__group">
                                     <label for="crop" class="form__label">
@@ -130,7 +133,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="form__group">
                                 <label for="responsible" class="form__label">
                                     <i class="fas fa-user"></i> Responsable
@@ -197,7 +200,8 @@
 
                     <!-- Supply usage form moved to a collapsible section -->
                     <div id="supplyUsageForm" class="form__section form__section--collapsible hidden">
-                        <h3 class="form__section-title"><i class="fas fa-clipboard-list"></i> Registro de Uso de Insumo</h3>
+                        <h3 class="form__section-title"><i class="fas fa-clipboard-list"></i> Registro de Uso de Insumo
+                        </h3>
                         <div class="form__row">
                             <div class="form__group">
                                 <h3>Información del Insumo</h3>
@@ -208,9 +212,12 @@
                                 </div>
                             </div>
                             <div class="form__group">
-                                <label for="supplyUsageQuantity" class="form__label"><i class="fas fa-weight"></i> Cantidad a usar</label>
-                                <input type="number" id="supplyUsageQuantity" name="supplyUsageQuantity" class="form__input" min="0" step="0.01" required>
-                                <small class="form__helper-text">Ingrese la cantidad que desea usar del insumo seleccionado</small>
+                                <label for="supplyUsageQuantity" class="form__label"><i class="fas fa-weight"></i>
+                                    Cantidad a usar</label>
+                                <input type="number" id="supplyUsageQuantity" name="supplyUsageQuantity"
+                                    class="form__input" min="0" step="0.01" required>
+                                <small class="form__helper-text">Ingrese la cantidad que desea usar del insumo
+                                    seleccionado</small>
                             </div>
                         </div>
                         <div class="form__button-container">
@@ -226,17 +233,22 @@
                     <!-- Dates and investment in a two-column layout -->
                     <div class="form__grid form__grid--two-columns">
                         <section class="form__section">
-                            <h3 class="form__section-title"><i class="fas fa-calendar-alt"></i> Fechas de Producción</h3>
+                            <h3 class="form__section-title"><i class="fas fa-calendar-alt"></i> Fechas de Producción
+                            </h3>
                             <div class="form__row">
                                 <div class="form__group">
-                                    <label for="startDate" class="form__label"><i class="fas fa-calendar-plus"></i> Fecha de Inicio</label>
+                                    <label for="startDate" class="form__label"><i class="fas fa-calendar-plus"></i>
+                                        Fecha de Inicio</label>
                                     <input type="date" id="startDate" name="startDate" class="form__input" required>
-                                    <small id="startDateHelperText" class="form__helper-text">Fecha en que inicia o inició la producción</small>
+                                    <small id="startDateHelperText" class="form__helper-text">Fecha en que inicia o
+                                        inició la producción</small>
                                 </div>
                                 <div class="form__group">
-                                    <label for="endDate" class="form__label"><i class="fas fa-calendar-check"></i> Fecha de Fin</label>
+                                    <label for="endDate" class="form__label"><i class="fas fa-calendar-check"></i> Fecha
+                                        de Fin</label>
                                     <input type="date" id="endDate" name="endDate" class="form__input" required>
-                                    <small id="endDateHelperText" class="form__helper-text">Fecha estimada de finalización</small>
+                                    <small id="endDateHelperText" class="form__helper-text">Fecha estimada de
+                                        finalización</small>
                                 </div>
                             </div>
                         </section>
@@ -245,13 +257,18 @@
                             <h3 class="form__section-title"><i class="fas fa-chart-line"></i> Inversión y Meta</h3>
                             <div class="form__row">
                                 <div class="form__group">
-                                    <label for="totalInvestment" class="form__label"><i class="fas fa-dollar-sign"></i> Inversión Total</label>
-                                    <input type="number" id="totalInvestment" name="totalInvestment" class="form__input" step="0.01" min="0" readonly required>
-                                    <small id="investmentHelperText" class="form__helper-text">Calculado automáticamente</small>
+                                    <label for="totalInvestment" class="form__label"><i class="fas fa-dollar-sign"></i>
+                                        Inversión Total</label>
+                                    <input type="number" id="totalInvestment" name="totalInvestment" class="form__input"
+                                        step="0.01" min="0" readonly required>
+                                    <small id="investmentHelperText" class="form__helper-text">Calculado
+                                        automáticamente</small>
                                 </div>
                                 <div class="form__group">
-                                    <label for="estimatedProfit" class="form__label"><i class="fas fa-chart-line"></i> Meta de Ganancias</label>
-                                    <input type="number" id="estimatedProfit" name="estimatedProfit" class="form__input" step="0.01" min="0" required readonly>
+                                    <label for="estimatedProfit" class="form__label"><i class="fas fa-chart-line"></i>
+                                        Meta de Ganancias</label>
+                                    <input type="number" id="estimatedProfit" name="estimatedProfit" class="form__input"
+                                        step="0.01" min="0" required readonly>
                                     <small id="profitHelperText" class="form__helper-text">30% de la inversión</small>
                                 </div>
                             </div>
@@ -282,7 +299,7 @@
             <i class="fas fa-times"></i>
         </button>
     </div>
-    
+
     <!-- Toast container for dynamic toasts -->
     <div id="toast-container" class="toast-container"></div>
 
@@ -343,14 +360,26 @@
                     </div>
 
                     <div class="form__group">
+                        <label for="modal-password" class="form__label">Contraseña</label>
+                        <div class="form__input-container">
+                            <input type="password" id="modal-password" class="form__input"
+                                placeholder="Ingrese una contraseña" minlength="8" maxlength="18" required />
+                            <span class="toggle-password" data-target="modal-password">
+                                <i class="far fa-eye"></i>
+                            </span>
+                        </div>
+                        <small class="form__helper-text">La contraseña debe tener entre 8 y 18 caracteres</small>
+                    </div>
+
+                    <div class="form__group">
                         <label for="modal-rol" class="form__label">Rol</label>
                         <div class="form__rol">
                             <select id="modal-rol" class="form__select form__select--user-rol" required>
                                 <option value="default" selected>Seleccione una Opción</option>
-                                <option value="superadmin">Super administrador</option>
-                                <option value="admin">Administrador</option>
-                                <option value="apoyo">Personal de Apoyo</option>
-                                <option value="visitante">Visitante</option>
+                                <option value="Super administrador">Super administrador</option>
+                                <option value="Administrador">Administrador</option>
+                                <option value="Personal de Apoyo">Personal de Apoyo</option>
+                                <option value="Visitante">Visitante</option>
                             </select>
                         </div>
                     </div>
@@ -705,7 +734,7 @@
     <script src="../js/validations/supplyUsageValidator.js" type="module"></script>
     <!-- Add Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
 </body>
 
 </html>
