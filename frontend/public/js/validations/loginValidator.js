@@ -53,7 +53,12 @@ form.addEventListener("submit", async function (e) {
 			}
 		}, 1000);
 	} catch (error) {
-		showAlert(error.message, true);
+		// Mostrar mensaje de error específico para usuarios deshabilitados
+		if (error.message && error.message.includes('deshabilitado')) {
+			showAlert(error.message, true);
+		} else {
+			showAlert(error.message || "Error en el inicio de sesión. Verifica tus credenciales e intenta nuevamente.", true);
+		}
 	}
 });
 

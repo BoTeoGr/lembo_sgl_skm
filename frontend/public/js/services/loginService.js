@@ -14,6 +14,13 @@ export async function loginUser(email, password) {
         if (!response.ok) {
             throw new Error(data.error || 'Error al iniciar sesión');
         }
+        
+        // Verificar si el usuario está habilitado
+        const userStatus = data.usuario.estado || data.usuario.status || data.usuario.estado_usuario;
+        if (userStatus && userStatus.toString().toLowerCase() !== 'habilitado') {
+            throw new Error('Este usuario está deshabilitado. Por favor contacte al administrador.');
+        }
+        
         // Guardar el token y datos básicos del usuario en localStorage
         localStorage.setItem('token', data.token);
         localStorage.setItem('userRol', data.usuario.rol);

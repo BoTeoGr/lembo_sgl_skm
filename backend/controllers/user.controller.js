@@ -199,7 +199,16 @@ export function loginUsuario(req, res) {
         if (results.length === 0) {
             return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
         }
+        
         const usuario = results[0];
+        
+        // Verificar si el usuario está habilitado
+        if (usuario.estado && usuario.estado.toLowerCase() !== 'habilitado') {
+            return res.status(403).json({ 
+                error: 'Este usuario está deshabilitado. Por favor contacte al administrador.' 
+            });
+        }
+        
         // Verificar contraseña
         bcrypt.compare(password, usuario.password, (err, isMatch) => {
             if (err) {
@@ -365,26 +374,60 @@ export function obtenerUsuarioPorId(req, res) {
         if (results.length === 0) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
+        
         res.status(200).json(results[0]);
     });
 }
 
 // Cambia el estado de un usuario (habilitado/deshabilitado)
+// Solo Super Administradores pueden modificar estados
 export function actualizarEstadoUsuario(req, res) {
     try {
+        // Verificar si el usuario que hace la petición es Super Administrador
+        if (!req.user || (req.user.rol !== 'superadmin' && req.user.rol !== 'Super administrador')) {
+            return res.status(403).json({ 
+                error: 'No tiene permisos para modificar el estado de los usuarios' 
+            });
+        }
+
         const { id } = req.params;
         let { estado } = req.body;
+        
         if (!id || !estado) {
             return res.status(400).json({ error: 'ID y estado son requeridos' });
         }
-        estado = (estado === 'habilitado') ? 'habilitado' : 'deshabilitado';
-        const query = 'UPDATE usuarios SET estado = ? WHERE id = ?';
-        db.query(query, [estado, id], (err, result) => {
+
+        // Verificar que el usuario existe
+        db.query('SELECT rol FROM usuarios WHERE id = ?', [id], (err, results) => {
             if (err) {
-                console.error('Error al actualizar estado de usuario:', err);
-                return res.status(500).json({ error: 'Error al actualizar estado de usuario' });
+                console.error('Error al verificar usuario:', err);
+                return res.status(500).json({ error: 'Error al verificar usuario' });
             }
-            res.status(200).json({ message: 'Estado actualizado correctamente' });
+
+            if (results.length === 0) {
+                return res.status(404).json({ error: 'Usuario no encontrado' });
+            }
+
+            const usuario = results[0];
+            
+            // Prevenir modificación de otros superadministradores
+            if ((usuario.rol === 'superadmin' || usuario.rol === 'Super administrador') && 
+                req.user.id !== id) {
+                return res.status(403).json({ 
+                    error: 'No se puede modificar el estado de otro Super Administrador' 
+                });
+            }
+
+            estado = (estado === 'habilitado') ? 'habilitado' : 'deshabilitado';
+            const query = 'UPDATE usuarios SET estado = ? WHERE id = ?';
+            
+            db.query(query, [estado, id], (err, result) => {
+                if (err) {
+                    console.error('Error al actualizar estado de usuario:', err);
+                    return res.status(500).json({ error: 'Error al actualizar estado de usuario' });
+                }
+                res.status(200).json({ message: 'Estado actualizado correctamente' });
+            });
         });
     } catch (error) {
         console.error('Error en actualizarEstadoUsuario:', error);
@@ -397,13 +440,48 @@ export function actualizarUsuario(req, res) {
     const { id } = req.params;
     const { tipo_documento, nombre, numero_documento, telefono, correo, rol, estado, password } = req.body;
 
-    if (!id || !tipo_documento || !nombre || !numero_documento || !telefono || !correo || !rol || !estado) {
+    if (!id || !tipo_documento || !nombre || !numero_documento || !telefono || !correo || !rol) {
         return res.status(400).json({ error: 'Todos los campos son requeridos' });
     }
+    
+    // Normalizar el rol del usuario (case-insensitive y manejo de espacios)
+    const normalizeRole = (role) => {
+        if (!role) return '';
+        return role.toString().toLowerCase().replace(/\s+/g, ' ').trim();
+    };
+    
+    const userRole = normalizeRole(req.user?.rol);
+    const isSuperAdmin = ['superadmin', 'super administrador', 'superadministrador'].includes(userRole);
+    
+    console.log('Rol normalizado:', userRole, 'Es super admin:', isSuperAdmin);
+    
+    console.log('User role in update:', userRole, 'Is super admin:', isSuperAdmin);
+    
+    // Si se está intentando modificar el estado, verificar permisos de Super Administrador
+    if (estado) {
+        if (!isSuperAdmin) {
+            console.warn('Intento de modificar estado sin permisos de Super Administrador');
+            return res.status(403).json({ 
+                error: 'Solo los Super Administradores pueden modificar el estado de los usuarios' 
+            });
+        }
+        // Si es Super Admin, asegurarse de que el rol no sea modificado a uno superior
+        if (rol && rol.toLowerCase() !== 'super administrador' && rol.toLowerCase() !== 'superadmin') {
+            return res.status(403).json({
+                error: 'No se puede cambiar el rol de un Super Administrador a un rol inferior'
+            });
+        }
+    }
 
-    // Construir la consulta con todos los campos
-    let query = 'UPDATE usuarios SET tipo_documento = ?, nombre = ?, numero_documento = ?, telefono = ?, correo = ?, rol = ?, estado = ?';
-    let values = [tipo_documento, nombre, numero_documento, telefono, correo, rol, estado];
+    // Construir la consulta base
+    let query = 'UPDATE usuarios SET tipo_documento = ?, nombre = ?, numero_documento = ?, telefono = ?, correo = ?, rol = ?';
+    const values = [tipo_documento, nombre, numero_documento, telefono, correo, rol];
+    
+    // Si es superadmin y se proporcionó un estado, incluirlo en la actualización
+    if (isSuperAdmin && estado) {
+        query += ', estado = ?';
+        values.push(estado);
+    }
 
     // Si se proporciona una nueva contraseña, agregarla a la actualización
     if (password) {
