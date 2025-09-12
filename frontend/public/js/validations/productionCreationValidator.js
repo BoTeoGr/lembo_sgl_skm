@@ -1406,6 +1406,30 @@ document.getElementById("modal-telefono").addEventListener("keydown", (e) => {
   }
 })
 
+// Function to toggle password visibility
+document.addEventListener('DOMContentLoaded', function() {
+    const togglePassword = document.querySelector('#togglePassword');
+    const passwordInput = document.querySelector('#modal-password');
+    
+    if (togglePassword && passwordInput) {
+        togglePassword.addEventListener('click', function() {
+            // Toggle the type attribute
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            // Toggle the eye icon
+            const icon = this.querySelector('i');
+            if (type === 'password') {
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            } else {
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            }
+        });
+    }
+});
+
 document.getElementById("modal-telefono").addEventListener("input", (e) => {
   modalUserData.telefono = e.target.value;
 })
@@ -1483,7 +1507,7 @@ function validateModalUserData() {
   }
 
   // Validar que el rol sea válido
-  const validRoles = ["Super Administrador", "Administrador", "Personal de Apoyo", "Visitante"];
+  const validRoles = ["Super Administrador", "Administrador", "Personal de Apoyo"];
   if (!validRoles.includes(modalUserData.rol)) {
     showToast("Error", "Rol no válido", "error");
     return false;

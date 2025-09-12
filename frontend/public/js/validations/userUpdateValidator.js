@@ -1,4 +1,14 @@
 document.addEventListener("DOMContentLoaded", async () => {
+    // Verificar si el usuario actual es super administrador
+    const currentUserRole = localStorage.getItem('userRole') || localStorage.getItem('userRol') || '';
+    const isSuperAdmin = currentUserRole.toLowerCase().includes('super');
+    
+    // Ocultar campo de estado si no es super administrador
+    const statusContainer = document.getElementById('statusContainer');
+    if (statusContainer && !isSuperAdmin) {
+        statusContainer.closest('.form-group').style.display = 'none';
+    }
+
     const params = new URLSearchParams(window.location.search);
     const userId = params.get("id");
 
@@ -243,18 +253,47 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         try {
             const token = localStorage.getItem('token');
+            
+            // Primero actualizamos los datos del usuario
             const response = await fetch(`http://localhost:5000/usuarios/${userId}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
                 },
-                body: JSON.stringify(datosActualizados)
+                body: JSON.stringify({
+                    tipo_documento: userData.tipo_documento,
+                    nombre: userData.nombre,
+                    numero_documento: userData.numero_documento,
+                    telefono: userData.telefono,
+                    correo: userData.correo,
+                    rol: userData.rol,
+                    ...(userData.password && { password: userData.password })
+                })
             });
 
+            // Luego actualizamos el estado por separado
+            if (userData.estado !== usuarioActual.estado) {
+                const estadoResponse = await fetch(`http://localhost:5000/usuarios/${userId}/estado`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ estado: userData.estado })
+                });
+
+                if (!estadoResponse.ok) {
+                    const errorData = await estadoResponse.json().catch(() => ({}));
+                    const errorMessage = errorData.error || "No se pudo actualizar el estado del usuario";
+                    throw new Error(errorMessage);
+                }
+            }
+
             if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(errorText || "No se pudo actualizar el usuario");
+                const errorData = await response.json().catch(() => ({}));
+                const errorMessage = errorData.error || "No se pudo actualizar el usuario";
+                throw new Error(errorMessage);
             }
 
             showToast("Actualización exitosa", "Usuario actualizado correctamente", "success");

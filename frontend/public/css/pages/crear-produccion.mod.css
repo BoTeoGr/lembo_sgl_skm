@@ -761,6 +761,25 @@ h3{
   flex-shrink: 0;
 }
 
+/* Estilos para el input de contraseña de usuario */
+.form__input-container {
+  display: flex;
+  width: 100%;
+}
+
+.toggle-password{
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gray-400);
+  transition: var(--transition);
+  z-index: 9999;
+}
+
 /* Responsive adjustments for supply form */
 @media (max-width: 768px) {
   .supply-selection {

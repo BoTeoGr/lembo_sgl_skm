@@ -383,10 +383,23 @@ export function obtenerUsuarioPorId(req, res) {
 // Solo Super Administradores pueden modificar estados
 export function actualizarEstadoUsuario(req, res) {
     try {
+        console.log('User object from token:', req.user);
+        const userRole = req.user?.rol;
+        console.log('User role from token (raw):', userRole);
+        
         // Verificar si el usuario que hace la petición es Super Administrador
-        if (!req.user || (req.user.rol !== 'superadmin' && req.user.rol !== 'Super administrador')) {
+        const normalizedRole = userRole?.toLowerCase().trim();
+        console.log('Normalized role:', normalizedRole);
+        
+        if (!req.user || (normalizedRole !== 'superadmin' && normalizedRole !== 'super administrador')) {
+            console.log('Access denied - User role does not have permission');
             return res.status(403).json({ 
-                error: 'No tiene permisos para modificar el estado de los usuarios' 
+                error: 'No tiene permisos para modificar el estado de los usuarios',
+                debug: {
+                    userRole: userRole,
+                    normalizedRole: normalizedRole,
+                    hasPermission: false
+                }
             });
         }
 
@@ -409,12 +422,24 @@ export function actualizarEstadoUsuario(req, res) {
             }
 
             const usuario = results[0];
+            const targetUserRole = usuario.rol?.toLowerCase().trim();
+            const isTargetSuperAdmin = targetUserRole === 'superadmin' || targetUserRole === 'super administrador';
             
-            // Prevenir modificación de otros superadministradores
-            if ((usuario.rol === 'superadmin' || usuario.rol === 'Super administrador') && 
-                req.user.id !== id) {
+            // Verificar si el usuario actual es Super Administrador (manejar diferentes formatos)
+            const currentUserRole = req.user.rol?.toLowerCase().trim();
+            const isCurrentUserSuperAdmin = currentUserRole === 'superadmin' || currentUserRole === 'super administrador';
+            
+            // Si el usuario actual no es Super Administrador, no puede modificar a nadie
+            if (!isCurrentUserSuperAdmin) {
                 return res.status(403).json({ 
-                    error: 'No se puede modificar el estado de otro Super Administrador' 
+                    error: 'Solo un Super Administrador puede modificar el estado de los usuarios' 
+                });
+            }
+            
+            // Un Super Administrador no puede deshabilitar a otro Super Administrador
+            if (isTargetSuperAdmin && estado === 'deshabilitado') {
+                return res.status(403).json({ 
+                    error: 'No puedes deshabilitar a otro Super Administrador' 
                 });
             }
 

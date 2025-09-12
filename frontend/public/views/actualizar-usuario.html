@@ -42,8 +42,10 @@
 							>
 								<option value="default">Seleccione una Opción</option>
 								<option value="ti">Tarjeta de identidad</option>
-								<option value="cc">Cédula de ciudadanía</option>
-								<option value="ppt">Permiso de protección temporal</option>
+                                <option value="cc">Cédula de ciudadanía</option>
+                                <option value="ce">Cédula extranjera</option>
+                                <option value="pep">Persona Políticamente Expuesta</option>
+                                <option value="ppt">Permiso de protección temporal</option>
 							</select>
 						</div>
 						<div class="form__group">
@@ -141,13 +143,12 @@
 								<option value="Administrador">Administrador</option>
 								<option value="Personal de Apoyo">Personal de Apoyo</option>
 								<option value="Personal de apoyo en campo">Personal de apoyo en campo</option>
-								<option value="Visitante">Visitante</option>
 							</select>
 						</div>
 					</div>
 
 					<div class="form-group full-width">
-						<div class="status-container">
+						<div class="status-container" id="statusContainer">
 							<div class="status-item">
 								<input
 									type="radio"

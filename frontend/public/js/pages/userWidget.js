@@ -2,19 +2,22 @@
     // Función para verificar si el usuario actual tiene permisos de administrador
     function isAdminUser() {
         try {
-            const userRole = localStorage.getItem('userRol');
+            // Check both possible keys for backward compatibility
+            const userRole = localStorage.getItem('userRole') || localStorage.getItem('userRol');
             if (!userRole) {
+                console.log('No se encontró el rol del usuario en localStorage');
                 return false;
             }
     
+            const normalizedRole = String(userRole).trim().toLowerCase();
             const isAdmin = [
-                'Administrador', 
-                'Super administrador', 
+                'administrador', 
+                'super administrador', 
                 'admin', 
-                'superadmin',
-                'administrador'
-            ].includes(String(userRole).trim().toLowerCase());
-    
+                'superadmin'
+            ].includes(normalizedRole);
+            
+            console.log('Rol del usuario:', userRole, '¿Es admin?', isAdmin);
             return isAdmin;
         } catch (e) {
             console.error('Error verificando rol de administrador');
@@ -54,32 +57,40 @@
 
             const data = await response.json();
             const usuarios = Array.isArray(data) ? data : (data.usuarios || []);
-
+            
             const stats = {
                 'Super administrador': 0,
                 'Administrador': 0,
                 'Personal de Apoyo': 0,
                 'Visitante': 0,
                 total: 0,
-                nuevosEstaSemana: 0
+                nuevosEstaSemana: 0,
+                habilitados: 0,
+                deshabilitados: 0
             };
 
             const now = new Date();
             const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
             usuarios.forEach(user => {
+                // Contar usuarios habilitados/deshabilitados
                 if (user.estado === 'habilitado') {
+                    stats.habilitados++;
+                    // Solo contar roles para usuarios habilitados
                     const rol = user.rol || 'Visitante';
                     if (stats.hasOwnProperty(rol)) {
                         stats[rol]++;
                     }
-                    stats.total++;
-
+                    // Contar usuarios nuevos de esta semana
                     const fechaCreacion = new Date(user.fecha_creacion || now);
                     if (fechaCreacion >= oneWeekAgo) {
                         stats.nuevosEstaSemana++;
                     }
+                } else {
+                    stats.deshabilitados++;
                 }
+                
+                stats.total = stats.habilitados + stats.deshabilitados;
             });
 
             return stats;
@@ -160,19 +171,34 @@
         // Actualizar badges con información resumida
         const badges = userCard.querySelectorAll('.badge');
         if (badges.length > 0) {
-            badges[0].textContent = `${stats.total} usuarios`;
+            // Primer badge: Total de usuarios y estado
+            badges[0].textContent = `${stats.total} usuarios totales`;
+            
+            // Segundo badge: Habilitados/Deshabilitados
             if (badges.length > 1) {
-                badges[1].textContent = `+${stats.nuevosEstaSemana} nuevos esta semana`;
+                badges[1].textContent = `${stats.habilitados} habilitados • ${stats.deshabilitados} deshabilitados`;
+            }
+            
+            // Tercer badge: Nuevos esta semana
+            if (badges.length > 2) {
+                badges[2].textContent = `+${stats.nuevosEstaSemana} nuevos esta semana`;
             }
         }
 
-        // Mostrar mensaje informativo
+        // Mostrar mensaje informativo con la última actualización
         const existingMessages = userCard.querySelectorAll('.info-message');
         existingMessages.forEach(msg => msg.remove());
         
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('es-ES', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        
         const message = document.createElement('div');
         message.className = 'info-message';
-        message.textContent = 'Estadísticas en tiempo real';
+        message.textContent = `Actualizado: ${timeString}`;
         userCard.querySelector('.card__content').appendChild(message);
     }
 

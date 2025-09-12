@@ -12,6 +12,9 @@
 		<link rel="stylesheet" href="../css/components/navbar.css" />
 		<link rel="stylesheet" href="../css/components/modal-list.css" />
 		<link rel="stylesheet" href="../css/pages/roles.css" />
+		<link rel="stylesheet" href="../css/components/toast.css" />
+		<!-- Font Awesome -->
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 		<script type="module" src="../js/config/usersConfig.js"></script>
 		<script type="module" src="../js/pages/componentLoader.js"></script>
 		<script type="module" src="../js/pages/Users.js"></script>
@@ -320,20 +323,17 @@
 				</div>
 			</div>
 		</main>
-		<script>
-			document.addEventListener('DOMContentLoaded', function() {
-				const toggleBtn = document.getElementById('toggleFiltersBtn');
-				const closeBtn = document.getElementById('closeFiltersBtn');
-				const filtersPanel = document.getElementById('filtersPanel');
-				if(toggleBtn && closeBtn && filtersPanel) {
-					toggleBtn.addEventListener('click', () => {
-						filtersPanel.classList.toggle('hidden');
-					});
-					closeBtn.addEventListener('click', () => {
-						filtersPanel.classList.add('hidden');
-					});
-				}
-			});
-		</script>
+
+		<!-- Toast para notificaciones de usuarios -->
+		<div id="userToast" class="user-toast hidden">
+			<div class="user-toast-content">
+				<i id="userToastIcon" class="fas"></i>
+				<div class="user-toast-message">
+					<strong id="userToastTitle"></strong>
+					<span id="userToastDescription"></span>
+				</div>
+			</div>
+			<div class="user-toast-progress"></div>
+		</div>
 	</body>
 </html>

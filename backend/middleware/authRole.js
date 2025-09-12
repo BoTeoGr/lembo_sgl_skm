@@ -48,12 +48,18 @@ export function verificarRol(rolesPermitidos = []) {
 			console.log('Token recibido:', token);
 			const decoded = jwt.verify(token, process.env.JWT_SECRET || 'tu_clave_secreta');
 			console.log('Payload decodificado:', decoded);
+			
+			// Adjuntar el usuario decodificado al objeto de solicitud
+			req.user = decoded;
+			
 			const rol = decoded.rol?.toLowerCase();
 			console.log('Rol extraído del token:', rol);
+			
 			// Si no se especifican rolesPermitidos, deja pasar a cualquiera
 			if (rolesPermitidos.length === 0) {
 				return next();
 			}
+			
 			// Permite si el rol está en la lista de permitidos
 			if (rolesPermitidos.map(r => r.toLowerCase()).includes(rol)) {
 				return next();

@@ -192,3 +192,90 @@
 .toast.slide-out {
   animation: slideOut 0.3s ease forwards;
 }
+
+/* Estilos específicos para el toast de usuarios */
+.user-toast {
+  position: fixed;
+  top: 20px;
+  right: 10px;
+  background: #ffffff;
+  color: #333;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  z-index: 1000;
+  max-width: 350px;
+  transform: translateX(120%);
+  transition: transform 0.3s ease-in-out;
+  overflow: hidden;
+  border-left: 4px solid #4caf50;
+}
+
+.user-toast:not(.hidden) {
+  transform: translateX(0);
+}
+
+.user-toast.hidden {
+  transform: translateX(120%);
+}
+
+.user-toast-content {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.user-toast i {
+  font-size: 20px;
+  margin-right: 12px;
+  flex-shrink: 0;
+  color: rgb(254,217,93)
+}
+
+.user-toast-message {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.user-toast strong {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.user-toast span {
+  font-size: 14px;
+  color: #666;
+}
+
+.user-toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background-color: #4caf50;
+  width: 100%;
+  transform-origin: left;
+  transform: scaleX(1);
+  transition: transform 5s linear;
+}
+
+/* Colores para diferentes tipos de mensaje */
+.user-toast.success {
+  border-left-color: #4caf50;
+}
+
+.user-toast.error {
+  border-left-color: rgb(253,195,0);;
+}
+
+.user-toast.warning {
+  border-left-color: rgb(254,217,93);
+}
+
+.user-toast.info {
+  border-left-color: #2196f3;
+}

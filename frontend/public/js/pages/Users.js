@@ -1,5 +1,68 @@
 import { usersConfig } from '../config/usersConfig.js';
 
+// Función para mostrar toasts en la página de usuarios
+function showToast(title, message, type = 'success') {
+    const toast = document.getElementById('userToast');
+    const toastTitle = document.getElementById('userToastTitle');
+    const toastDescription = document.getElementById('userToastDescription');
+    const toastIcon = document.getElementById('userToastIcon');
+    const toastProgress = document.querySelector('.user-toast-progress');
+
+    if (!toast || !toastTitle || !toastDescription || !toastIcon || !toastProgress) {
+        console.error('No se encontraron los elementos del toast de usuario');
+        return;
+    }
+
+    // Establecer el contenido del toast
+    toastTitle.textContent = title;
+    toastDescription.textContent = message;
+    
+    // Establecer el icono según el tipo
+    toast.className = 'user-toast';
+    switch(type) {
+        case 'success':
+            toastIcon.className = 'fas fa-check-circle';
+            toast.classList.add('success');
+            break;
+        case 'error':
+            toastIcon.className = 'fas fa-exclamation-circle';
+            toast.classList.add('error');
+            break;
+        case 'warning':
+            toastIcon.className = 'fas fa-exclamation-triangle';
+            toast.classList.add('warning');
+            break;
+        case 'info':
+            toastIcon.className = 'fas fa-info-circle';
+            toast.classList.add('info');
+            break;
+        default:
+            toastIcon.className = 'fas fa-info-circle';
+            toast.classList.add('info');
+    }
+
+    // Mostrar el toast
+    toast.classList.remove('hidden');
+    
+    // Resetear y animar la barra de progreso
+    toastProgress.style.transform = 'scaleX(1)';
+    toastProgress.style.transition = 'none';
+    toastProgress.offsetHeight; // Forzar reflow
+    
+    // Iniciar animación de la barra de progreso
+    setTimeout(() => {
+        toastProgress.style.transition = 'transform 4.5s linear';
+        toastProgress.style.transform = 'scaleX(0)';
+    }, 50);
+
+    // Ocultar el toast después de 5 segundos
+    setTimeout(() => {
+        toast.classList.add('hidden');
+        toastProgress.style.transition = 'none';
+        toastProgress.style.transform = 'scaleX(1)';
+    }, 5000);
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   let currentPage = 1;
   const itemsPerPage = usersConfig.table.itemsPerPage || 10;
@@ -143,27 +206,43 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    tbody.innerHTML = data.map(user => `
-      <tr class="table__row">
-        <td class="table__cell table__cell--checkbox">
-          <input type="checkbox" class="table__checkbox" />
-        </td>
-        <td class="table__cell table__cell--id">${user.id}</td>
-        <td class="table__cell table__cell--name">${user.nombre}</td>
-        <td class="table__cell table__cell--role">${user.rol}</td>
-        <td class="table__cell table__cell--phone">${user.telefono}</td>
-        <td class="table__cell table__cell--status">
-          <span class="badge badge--${user.estado === 'Activo' ? 'active' : 'inactive'}">${user.estado}</span>
-        </td>
-        <td class="table__cell table__cell--actions">
-          <button class="table__action-button table__action-button--view"><span class="material-symbols-outlined">visibility</span></button>
-          <button class="table__action-button table__action-button--edit" onclick="window.location.href='actualizar-usuario.html?id=${user.id}'">
-            <span class="material-symbols-outlined">edit</span>
-          </button>
-          <button class="table__action-button table__action-button--${user.estado === 'Activo' ? 'disable' : 'enable'}"><span class="material-symbols-outlined">power_settings_new</span></button>
-        </td>
-      </tr>
-    `).join('');
+    // Obtener el rol del usuario actual
+    const currentUserRole = localStorage.getItem('userRole') || localStorage.getItem('userRol') || '';
+    console.log('Current user role from localStorage:', currentUserRole);
+    const isSuperAdmin = currentUserRole.toLowerCase().includes('super');
+
+    tbody.innerHTML = data.map(user => {
+      // Solo mostrar botón de cambiar estado si es super administrador
+      const statusButton = isSuperAdmin 
+        ? `<button class="table__action-button table__action-button--${user.estado === 'Activo' ? 'disable' : 'enable'}">
+             <span class="material-symbols-outlined">power_settings_new</span>
+           </button>`
+        : '';
+      
+      return `
+        <tr class="table__row">
+          <td class="table__cell table__cell--checkbox">
+            <input type="checkbox" class="table__checkbox" />
+          </td>
+          <td class="table__cell table__cell--id">${user.id}</td>
+          <td class="table__cell table__cell--name">${user.nombre}</td>
+          <td class="table__cell table__cell--role">${user.rol}</td>
+          <td class="table__cell table__cell--phone">${user.telefono}</td>
+          <td class="table__cell table__cell--status">
+            <span class="badge badge--${user.estado === 'Activo' ? 'active' : 'inactive'}">${user.estado}</span>
+          </td>
+          <td class="table__cell table__cell--actions">
+            <button class="table__action-button table__action-button--view">
+              <span class="material-symbols-outlined">visibility</span>
+            </button>
+            <button class="table__action-button table__action-button--edit" onclick="window.location.href='actualizar-usuario.html?id=${user.id}'">
+              <span class="material-symbols-outlined">edit</span>
+            </button>
+            ${statusButton}
+          </td>
+        </tr>
+      `;
+    }).join('');
   }
 
   function renderPaginatedTable(list) {
@@ -344,9 +423,70 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  // Función para cambiar el estado de un usuario
+  async function toggleUserStatus(userId, newStatus) {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No se encontró el token de autenticación');
+      }
+
+      const response = await fetch(`http://localhost:5000/usuarios/${userId}/estado`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          estado: newStatus === 'Activo' ? 'habilitado' : 'deshabilitado'
+        })
+      });
+      
+      const responseData = await response.json();
+      
+      if (!response.ok) {
+        // Mapear mensajes de error del backend a mensajes más amigables
+        const errorMessages = {
+          'No puedes deshabilitar a otro Super Administrador': 'No tiene permisos para deshabilitar a otro Super Administrador',
+          'Solo un Super Administrador puede modificar el estado de los usuarios': 'Solo un Super Administrador puede modificar el estado de los usuarios',
+          'Error al actualizar estado de usuario': 'Ocurrió un error al actualizar el estado del usuario'
+        };
+        
+        const errorMessage = errorMessages[responseData.error] || responseData.error || 'Error al actualizar el estado del usuario';
+        throw new Error(errorMessage);
+      }
+
+      // Mostrar mensaje de éxito
+      showToast('Éxito', `El estado del usuario ha sido actualizado a ${newStatus}`, 'success');
+      
+      // Actualizar la lista de usuarios
+      filteredUsers = await fetchUsersFromAPI();
+      return true;
+    } catch (error) {
+      console.error('Error al cambiar el estado del usuario:', error);
+      // Mostrar mensaje de error
+      if (typeof showToast === 'function') {
+        showToast('Error', error.message, 'error');
+      } else {
+        alert(error.message);
+      }
+      return false;
+    }
+  }
+
   // Acciones de habilitar/deshabilitar masivo
   const enableBtn = document.querySelector('.button--enable');
   const disableBtn = document.querySelector('.button--disable');
+  
+  // Ocultar botones de acciones masivas si no es super administrador
+  const currentUserRole = localStorage.getItem('userRole') || localStorage.getItem('userRol') || '';
+  const isSuperAdmin = currentUserRole.toLowerCase().includes('super');
+  console.log('Bulk actions - Current user role:', currentUserRole, 'isSuperAdmin:', isSuperAdmin);
+  if (!isSuperAdmin) {
+    if (enableBtn) enableBtn.style.display = 'none';
+    if (disableBtn) disableBtn.style.display = 'none';
+  }
 
   function getSelectedIds() {
     return Array.from(document.querySelectorAll('.table__checkbox:checked'))
@@ -409,16 +549,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  // Mapeo de tipos de documento
+  const documentTypes = {
+    'cc': 'Cédula de ciudadanía',
+    'ti': 'Tarjeta de identidad',
+    'ce': 'Cédula de extranjería',
+    'pep': 'Permiso especial de permanencia',
+    'ppt': 'Permiso por protección temporal'
+  };
+
   // --- Modal Visualizar Usuario ---
   function showUsuarioModal(usuario) {
+    // Obtener el tipo de documento legible
+    const tipoDocumento = documentTypes[usuario.tipo_documento?.toLowerCase()] || usuario.tipo_documento || '-';
+    
     document.getElementById('modalUsuarioId').textContent = usuario.id || '';
     document.getElementById('modalUsuarioNombre').textContent = usuario.nombre || '';
     document.getElementById('modalUsuarioCorreo').textContent = usuario.correo || usuario.email || '-';
-    document.getElementById('modalUsuarioTipoDoc').textContent = usuario.tipo_documento || '-';
+    document.getElementById('modalUsuarioTipoDoc').textContent = tipoDocumento;
     document.getElementById('modalUsuarioNumDoc').textContent = usuario.numeroDocumento || usuario.numero_documento || usuario.numero_doc || '-';
     document.getElementById('modalUsuarioTelefono').textContent = usuario.telefono || usuario.celular || '-';
     document.getElementById('modalUsuarioRol').textContent = usuario.rol || '-';
     document.getElementById('modalUsuarioEstado').textContent = usuario.estado || '-';
+    
     const imgElem = document.getElementById('modalUsuarioImagen');
     if (imgElem) {
       imgElem.src = usuario.imagen || '../imgs/default-user.jpg';
