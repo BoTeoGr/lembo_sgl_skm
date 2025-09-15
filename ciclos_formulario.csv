@@ -1,0 +1,7 @@
+Campo,Valor Esperado,Validado,Tipo de Campo,Requerido,Validaciones,Observaciones
+Nombre,Ciclo Primavera 2025,Sí,Text,Sí,"Solo letras, sin números",Nombre del ciclo
+Descripción,Ciclo de cultivo para temporada primaveral,Sí,Textarea,Sí,Texto descriptivo,Detalles del ciclo
+Periodo de inicio,2025-03-01,Sí,Date,Sí,Formato YYYY-MM-DD,Fecha de inicio del ciclo
+Periodo final,2025-06-30,Sí,Date,Sí,"Formato YYYY-MM-DD, posterior al inicio",Fecha de finalización
+Novedades,Implementación de riego por goteo,Sí,Textarea,Sí,Texto descriptivo,Observaciones del ciclo
+Estado,habilitado,Sí,Radio,Sí,habilitado/deshabilitado,Estado del ciclo

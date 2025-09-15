@@ -1,0 +1,10 @@
+Campo,Valor Esperado,Validado,Tipo de Campo,Requerido,Validaciones,Observaciones
+Nombre,Fertilizante NPK,Sí,Text,Sí,"Solo letras, sin números",Nombre del insumo
+Tipo,Químico,Sí,Text,Sí,Texto libre,Categoría del insumo
+Imagen,fertilizante.jpg,Sí,File,Sí,Archivos de imagen,Foto del insumo
+Unidad de medida,kilo,Sí,Select,Sí,"peso, volumen, superficie, concentración, litro, kilo",Unidad de medición
+Valor unitario,15.50,Sí,Number,Sí,Número decimal > 0,Precio por unidad
+Cantidad,100,Sí,Number,Sí,Número entero > 0,Stock disponible
+Valor total,1550.00,Sí,Number,Sí,Calculado automáticamente,Valor unitario × cantidad
+Descripción,Fertilizante balanceado para cultivos,Sí,Textarea,Sí,Texto descriptivo,Detalles del insumo
+Estado,habilitado,Sí,Radio,Sí,habilitado/deshabilitado,Estado del insumo

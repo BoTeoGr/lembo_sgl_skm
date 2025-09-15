@@ -1,0 +1,8 @@
+Campo,Valor Esperado,Validado,Tipo de Campo,Requerido,Validaciones,Observaciones
+Nombre,Tomate Cherry,Sí,Text,Sí,"Solo letras, sin números",Nombre del cultivo
+Tipo,Fruta,Sí,Text,Sí,"Solo letras, sin números",Categoría del cultivo
+Imagen,tomate.jpg,Sí,File,Sí,Archivos de imagen,Foto del cultivo
+Ubicación,Invernadero 1,Sí,Text,Sí,Texto libre,Localización del cultivo
+Descripción,Cultivo de tomates cherry orgánicos,Sí,Textarea,Sí,Texto descriptivo,Detalles del cultivo
+Tamaño,150.5,Sí,Number,Sí,"Número decimal, 10-10000 m²",Área del cultivo en metros cuadrados
+Estado,habilitado,Sí,Radio,Sí,habilitado/deshabilitado,Estado del cultivo

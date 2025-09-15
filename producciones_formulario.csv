@@ -1,0 +1,16 @@
+Campo,Valor Esperado,Validado,Tipo de Campo,Requerido,Validaciones,Observaciones
+Nombre,Producción Tomates Q1-2025,Sí,Text,Sí,Mínimo 3 caracteres,Identificación de la producción
+Tipo,Orgánica,Sí,Text,Sí,Texto libre,Tipo de producción
+Ubicación,Invernadero Principal,Sí,Text,Sí,Texto libre,Localización de la producción
+Descripción,Producción de tomates orgánicos certificados,Sí,Textarea,Sí,Texto descriptivo,Detalles de la producción
+Cultivo,Tomate Cherry,Sí,Select,Sí,Lista de cultivos habilitados,Cultivo asociado
+Ciclo de cultivo,Ciclo Primavera 2025,Sí,Select,Sí,Lista de ciclos habilitados,Ciclo asociado
+Responsable,Juan Pérez,Sí,Select,Sí,Usuarios con rol Admin/SuperAdmin,Usuario responsable
+Fecha de inicio,2025-03-01,Sí,Date,Sí,Formato YYYY-MM-DD,Inicio de la producción
+Fecha de fin,2025-06-30,Sí,Date,Sí,"Posterior a fecha inicio, máximo 2 años",Fin de la producción
+Cantidad,50.5,Sí,Number,Sí,Número decimal > 0,Cantidad esperada de producción
+Inversión total,15000.00,Sí,Number,Sí,Calculado automáticamente,Suma del costo de insumos
+Meta de ganancia,22500.00,Sí,Number,Sí,Debe ser >= inversión,Ganancia esperada
+Sensores,Sensor Temperatura A1,Sí,Multi-Select,No,Máximo 3 sensores,Sensores asignados
+Insumos,Fertilizante NPK (15 kg),Sí,Multi-Select,Sí,Mínimo 1 insumo con cantidad,Insumos utilizados con cantidades
+Estado,habilitado,Sí,Radio,Sí,habilitado/deshabilitado,Estado de la producción
