@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Campos de Formularios - Tablas</title>
+    <style>
+      body { font-family: Arial, Helvetica, sans-serif; margin: 24px; }
+      h1 { margin-bottom: 8px; }
+      h2 { margin-top: 28px; margin-bottom: 8px; }
+      h3 { margin-top: 24px; margin-bottom: 8px; }
+      .meta { color: #555; margin-bottom: 24px; }
+      table { border-collapse: collapse; width: 100%; margin: 12px 0 24px; }
+      th, td { border: 1px solid #ddd; padding: 8px; }
+      th { background: #f3f4f6; text-align: left; }
+      tbody tr:nth-child(even) { background: #fafafa; }
+      .yes { color: #065f46; font-weight: bold; }
+      .no { color: #7c2d12; font-weight: bold; }
+      .small { color: #444; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <h1>Campos de Formularios</h1>
+    <div class="meta small">Origen: vistas HTML, validaciones JS y esquema BD. Columnas: Campo, Tabla BD, Columna BD, Valor esperado, Validado.</div>
+
+    <h2>Registrar usuario (crear-usuario)</h2>
+    <table>
+      <thead>
+        <tr><th>Campo</th><th>Tabla BD</th><th>Columna BD</th><th>Valor esperado</th><th>Validado</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Tipo de documento</td><td>usuarios</td><td>tipo_documento</td><td>cc</td><td class="yes">sí</td></tr>
+        <tr><td>Nombre completo</td><td>usuarios</td><td>nombre</td><td>Mateo Ramírez</td><td class="yes">sí</td></tr>
+        <tr><td>Número de documento</td><td>usuarios</td><td>numero_documento</td><td>1000000001</td><td class="yes">sí</td></tr>
+        <tr><td>Número de Teléfono</td><td>usuarios</td><td>telefono</td><td>3111111111</td><td class="yes">sí</td></tr>
+        <tr><td>Correo electrónico</td><td>usuarios</td><td>correo</td><td>mateo.ramirez@example.com</td><td class="yes">sí</td></tr>
+        <tr><td>Confirmar correo</td><td></td><td></td><td>(igual al correo)</td><td class="yes">sí</td></tr>
+        <tr><td>Contraseña</td><td>usuarios</td><td>password</td><td>Abcdef12</td><td class="yes">sí</td></tr>
+        <tr><td>Rol</td><td>usuarios</td><td>rol</td><td>Administrador</td><td class="yes">sí</td></tr>
+        <tr><td>Estado</td><td>usuarios</td><td>estado</td><td>habilitado</td><td class="yes">sí</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Actualizar usuario (actualizar-usuario)</h2>
+    <table>
+      <thead>
+        <tr><th>Campo</th><th>Tabla BD</th><th>Columna BD</th><th>Valor esperado</th><th>Validado</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Tipo de documento</td><td>usuarios</td><td>tipo_documento</td><td>cc</td><td class="yes">sí</td></tr>
+        <tr><td>Nombre completo</td><td>usuarios</td><td>nombre</td><td>Mateo Ramírez</td><td class="yes">sí</td></tr>
+        <tr><td>Número de documento</td><td>usuarios</td><td>numero_documento</td><td>1000000001</td><td class="yes">sí</td></tr>
+        <tr><td>Número de Teléfono</td><td>usuarios</td><td>telefono</td><td>3111111111</td><td class="yes">sí</td></tr>
+        <tr><td>Correo electrónico</td><td>usuarios</td><td>correo</td><td>mateo.ramirez@example.com</td><td class="yes">sí</td></tr>
+        <tr><td>Confirmar correo</td><td></td><td></td><td>(igual al correo)</td><td class="yes">sí</td></tr>
+        <tr><td>Contraseña (opcional)</td><td>usuarios</td><td>password</td><td>Abcdef12</td><td class="yes">sí</td></tr>
+        <tr><td>Rol</td><td>usuarios</td><td>rol</td><td>Administrador</td><td class="yes">sí</td></tr>
+        <tr><td>Estado</td><td>usuarios</td><td>estado</td><td>habilitado/deshabilitado</td><td class="yes">sí</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Olvidé mi contraseña</h2>
+    <table>
+      <thead><tr><th>Campo</th><th>Tabla BD</th><th>Columna BD</th><th>Valor esperado</th><th>Validado</th></tr></thead>
+      <tbody>
+        <tr><td>Correo electrónico</td><td></td><td></td><td>mateo.ramirez@example.com</td><td class="yes">sí</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Recuperar código</h2>
+    <table>
+      <thead><tr><th>Campo</th><th>Tabla BD</th><th>Columna BD</th><th>Valor esperado</th><th>Validado</th></tr></thead>
+      <tbody>
+        <tr><td>Código (6 dígitos)</td><td></td><td></td><td>123456</td><td class="yes">sí</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Actualización de contraseña</h2>
+    <table>
+      <thead><tr><th>Campo</th><th>Tabla BD</th><th>Columna BD</th><th>Valor esperado</th><th>Validado</th></tr></thead>
+      <tbody>
+        <tr><td>Nueva contraseña</td><td>usuarios</td><td>password</td><td>Abcdef12</td><td class="yes">sí</td></tr>
+        <tr><td>Confirmar contraseña</td><td></td><td></td><td>(igual a la nueva)</td><td class="yes">sí</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Crear cultivo</h2>
+    <table>
+      <thead><tr><th>Campo</th><th>Tabla BD</th><th>Columna BD</th><th>Valor esperado</th><th>Validado</th></tr></thead>
+      <tbody>
+        <tr><td>Nombre</td><td>cultivos</td><td>nombre</td><td>Tomate</td><td class="yes">sí</td></tr>
+        <tr><td>Tipo de cultivo</td><td>cultivos</td><td>tipo</td><td>Verdura</td><td class="yes">sí</td></tr>
+        <tr><td>Imagen</td><td>cultivos</td><td>imagen</td><td>cultivo.jpg</td><td class="yes">sí</td></tr>
+        <tr><td>Ubicación</td><td>cultivos</td><td>ubicacion</td><td>Invernadero 1</td><td class="yes">sí</td></tr>
+        <tr><td>Tamaño (m2)</td><td>cultivos</td><td>tamano</td><td>100</td><td class="yes">sí</td></tr>
+        <tr><td>Descripción</td><td>cultivos</td><td>descripcion</td><td>Cultivo de tomates</td><td class="yes">sí</td></tr>
+        <tr><td>Estado</td><td>cultivos</td><td>estado</td><td>habilitado</td><td class="yes">sí</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Actualizar cultivo</h2>
+    <table>
+      <thead><tr><th>Campo</th><th>Tabla BD</th><th>Columna BD</th><th>Valor esperado</th><th>Validado</th></tr></thead>
+      <tbody>
+        <tr><td>Nombre</td><td>cultivos</td><td>nombre</td><td>Tomate</td><td class="yes">sí</td></tr>
+        <tr><td>Tipo de cultivo</td><td>cultivos</td><td>tipo</td><td>Verdura</td><td class="yes">sí</td></tr>
+        <tr><td>Imagen (opcional)</td><td>cultivos</td><td>imagen</td><td>cultivo.jpg</td><td class="yes">sí</td></tr>
+        <tr><td>Ubicación</td><td>cultivos</td><td>ubicacion</td><td>Invernadero 1</td><td class="yes">sí</td></tr>
+        <tr><td>Tamaño (m2)</td><td>cultivos</td><td>tamano</td><td>100</td><td class="yes">sí</td></tr>
+        <tr><td>Descripción</td><td>cultivos</td><td>descripcion</td><td>Cultivo de tomates</td><td class="yes">sí</td></tr>
+        <tr><td>Estado</td><td>cultivos</td><td>estado</td><td>habilitado/deshabilitado</td><td class="yes">sí</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Crear ciclo de cultivo</h2>
+    <table>
+      <thead><tr><th>Campo</th><th>Tabla BD</th><th>Columna BD</th><th>Valor esperado</th><th>Validado</th></tr></thead>
+      <tbody>
+        <tr><td>Nombre</td><td>ciclo_cultivo</td><td>nombre</td><td>Ciclo Primavera</td><td class="yes">sí</td></tr>
+        <tr><td>Descripción</td><td>ciclo_cultivo</td><td>descripcion</td><td>Ciclo de cultivo para primavera</td><td class="yes">sí</td></tr>
+        <tr><td>Periodo - Inicio</td><td>ciclo_cultivo</td><td>periodo_inicio</td><td>2025-03-01</td><td class="yes">sí</td></tr>
+        <tr><td>Periodo - Final</td><td>ciclo_cultivo</td><td>periodo_final</td><td>2025-06-30</td><td class="yes">sí</td></tr>
+        <tr><td>Novedades</td><td>ciclo_cultivo</td><td>novedades</td><td>Ninguna</td><td class="yes">sí</td></tr>
+        <tr><td>Estado</td><td>ciclo_cultivo</td><td>estado</td><td>habilitado</td><td class="yes">sí</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Actualizar ciclo de cultivo</h2>
+    <table>
+      <thead><tr><th>Campo</th><th>Tabla BD</th><th>Columna BD</th><th>Valor esperado</th><th>Validado</th></tr></thead>
+      <tbody>
+        <tr><td>Nombre</td><td>ciclo_cultivo</td><td>nombre</td><td>Ciclo Primavera</td><td class="yes">sí</td></tr>
+        <tr><td>Descripción</td><td>ciclo_cultivo</td><td>descripcion</td><td>Ciclo de cultivo para primavera</td><td class="yes">sí</td></tr>
+        <tr><td>Periodo - Inicio</td><td>ciclo_cultivo</td><td>periodo_inicio</td><td>2025-03-01</td><td class="yes">sí</td></tr>
+        <tr><td>Periodo - Final</td><td>ciclo_cultivo</td><td>periodo_final</td><td>2025-06-30</td><td class="yes">sí</td></tr>
+        <tr><td>Novedades</td><td>ciclo_cultivo</td><td>novedades</td><td>Ninguna</td><td class="yes">sí</td></tr>
+        <tr><td>Estado</td><td>ciclo_cultivo</td><td>estado</td><td>habilitado/deshabilitado</td><td class="yes">sí</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Crear sensor</h2>
+    <table>
+      <thead><tr><th>Campo</th><th>Tabla BD</th><th>Columna BD</th><th>Valor esperado</th><th>Validado</th></tr></thead>
+      <tbody>
+        <tr><td>Tipo de sensor</td><td>sensores</td><td>tipo_sensor</td><td>Sensor de contacto</td><td class="yes">sí</td></tr>
+        <tr><td>Nombre del sensor</td><td>sensores</td><td>nombre_sensor</td><td>Sensor Temperatura Ambiente</td><td class="yes">sí</td></tr>
+        <tr><td>Unidad de medida</td><td>sensores</td><td>unidad_medida</td><td>Temperatura</td><td class="yes">sí</td></tr>
+        <tr><td>Imagen</td><td>sensores</td><td>imagen</td><td>sensor.jpg</td><td class="yes">sí</td></tr>
+        <tr><td>Descripción</td><td>sensores</td><td>descripcion</td><td>Sensor para medir temperatura</td><td class="yes">sí</td></tr>
+        <tr><td>Tiempo de Escaneo/Muestreo</td><td>sensores</td><td>tiempo_escaneo</td><td>Sensores lentos</td><td class="yes">sí</td></tr>
+        <tr><td>Estado</td><td>sensores</td><td>estado</td><td>habilitado</td><td class="yes">sí</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Actualizar sensor</h2>
+    <table>
+      <thead><tr><th>Campo</th><th>Tabla BD</th><th>Columna BD</th><th>Valor esperado</th><th>Validado</th></tr></thead>
+      <tbody>
+        <tr><td>Tipo de sensor</td><td>sensores</td><td>tipo_sensor</td><td>Sensor de contacto</td><td class="yes">sí</td></tr>
+        <tr><td>Nombre del sensor</td><td>sensores</td><td>nombre_sensor</td><td>Sensor Temperatura Ambiente</td><td class="yes">sí</td></tr>
+        <tr><td>Unidad de medida</td><td>sensores</td><td>unidad_medida</td><td>Temperatura</td><td class="yes">sí</td></tr>
+        <tr><td>Imagen (opcional)</td><td>sensores</td><td>imagen</td><td>sensor.jpg</td><td class="yes">sí</td></tr>
+        <tr><td>Descripción</td><td>sensores</td><td>descripcion</td><td>Sensor para medir temperatura</td><td class="yes">sí</td></tr>
+        <tr><td>Tiempo de Escaneo/Muestreo</td><td>sensores</td><td>tiempo_escaneo</td><td>Sensores rápidos</td><td class="yes">sí</td></tr>
+        <tr><td>Estado</td><td>sensores</td><td>estado</td><td>habilitado/deshabilitado</td><td class="yes">sí</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Crear insumo</h2>
+    <table>
+      <thead><tr><th>Campo</th><th>Tabla BD</th><th>Columna BD</th><th>Valor esperado</th><th>Validado</th></tr></thead>
+      <tbody>
+        <tr><td>Nombre</td><td>insumos</td><td>nombre</td><td>Fertilizante NPK</td><td class="yes">sí</td></tr>
+        <tr><td>Tipo de insumo</td><td>insumos</td><td>tipo</td><td>Químico</td><td class="yes">sí</td></tr>
+        <tr><td>Imagen</td><td>insumos</td><td>imagen</td><td>insumo.jpg</td><td class="yes">sí</td></tr>
+        <tr><td>Unidad de medida</td><td>insumos</td><td>unidad_medida</td><td>kilo</td><td class="yes">sí</td></tr>
+        <tr><td>Valor unitario</td><td>insumos</td><td>valor_unitario</td><td>10.00</td><td class="yes">sí</td></tr>
+        <tr><td>Cantidad</td><td>insumos</td><td>cantidad</td><td>5</td><td class="yes">sí</td></tr>
+        <tr><td>Valor total (auto)</td><td>insumos</td><td>valor_total</td><td>50.00</td><td class="yes">sí</td></tr>
+        <tr><td>Descripción</td><td>insumos</td><td>descripcion</td><td>Fertilizante para cultivos</td><td class="yes">sí</td></tr>
+        <tr><td>Estado</td><td>insumos</td><td>estado</td><td>habilitado</td><td class="yes">sí</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Actualizar insumo</h2>
+    <table>
+      <thead><tr><th>Campo</th><th>Tabla BD</th><th>Columna BD</th><th>Valor esperado</th><th>Validado</th></tr></thead>
+      <tbody>
+        <tr><td>Nombre</td><td>insumos</td><td>nombre</td><td>Fertilizante NPK</td><td class="yes">sí</td></tr>
+        <tr><td>Tipo de insumo</td><td>insumos</td><td>tipo</td><td>Químico</td><td class="yes">sí</td></tr>
+        <tr><td>Imagen (opcional)</td><td>insumos</td><td>imagen</td><td>insumo.jpg</td><td class="yes">sí</td></tr>
+        <tr><td>Unidad de medida</td><td>insumos</td><td>unidad_medida</td><td>kilo</td><td class="yes">sí</td></tr>
+        <tr><td>Valor unitario</td><td>insumos</td><td>valor_unitario</td><td>12.00</td><td class="yes">sí</td></tr>
+        <tr><td>Cantidad</td><td>insumos</td><td>cantidad</td><td>8</td><td class="yes">sí</td></tr>
+        <tr><td>Valor total (auto)</td><td>insumos</td><td>valor_total</td><td>96.00</td><td class="yes">sí</td></tr>
+        <tr><td>Descripción</td><td>insumos</td><td>descripcion</td><td>Fertilizante actualizado</td><td class="yes">sí</td></tr>
+        <tr><td>Estado</td><td>insumos</td><td>estado</td><td>habilitado/deshabilitado</td><td class="yes">sí</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Crear producción</h2>
+    <table>
+      <thead><tr><th>Campo</th><th>Tabla BD</th><th>Columna BD</th><th>Valor esperado</th><th>Validado</th></tr></thead>
+      <tbody>
+        <tr><td>Nombre de la producción</td><td>producciones</td><td>nombre</td><td>Producción de Tomates 2025</td><td class="yes">sí</td></tr>
+        <tr><td>Tipo</td><td>producciones</td><td>tipo</td><td>Producción Hortícola</td><td class="yes">sí</td></tr>
+        <tr><td>Ubicación</td><td>producciones</td><td>ubicacion</td><td>Invernadero 1</td><td class="yes">sí</td></tr>
+        <tr><td>Descripción</td><td>producciones</td><td>descripcion</td><td>Producción de tomates orgánicos</td><td class="yes">sí</td></tr>
+        <tr><td>Cantidad de Producción</td><td>producciones</td><td>cantidad</td><td>40.00</td><td class="yes">sí</td></tr>
+        <tr><td>Cultivo</td><td>producciones</td><td>cultivo_id</td><td>1</td><td class="yes">sí</td></tr>
+        <tr><td>Ciclo</td><td>producciones</td><td>ciclo_id</td><td>1</td><td class="yes">sí</td></tr>
+        <tr><td>Responsable</td><td>producciones</td><td>usuario_id</td><td>1</td><td class="yes">sí</td></tr>
+        <tr><td>Fecha de Inicio</td><td>producciones</td><td>fecha_de_inicio</td><td>2025-03-01</td><td class="yes">sí</td></tr>
+        <tr><td>Fecha de Fin</td><td>producciones</td><td>fecha_fin</td><td>2025-06-30</td><td class="yes">sí</td></tr>
+        <tr><td>Inversión (auto)</td><td>producciones</td><td>inversion</td><td>10000.00</td><td class="yes">sí</td></tr>
+        <tr><td>Meta de Ganancias (≥ inversión)</td><td>producciones</td><td>meta_ganancia</td><td>13000.00</td><td class="yes">sí</td></tr>
+        <tr><td>Insumo seleccionado (cantidad a usar)</td><td>uso_insumo</td><td>cantidad_utilizada</td><td>15.50</td><td class="yes">sí</td></tr>
+        <tr><td>Sensores seleccionados</td><td>uso_sensor</td><td>sensor_id</td><td>1</td><td class="yes">sí</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Actualizar producción</h2>
+    <table>
+      <thead><tr><th>Campo</th><th>Tabla BD</th><th>Columna BD</th><th>Valor esperado</th><th>Validado</th></tr></thead>
+      <tbody>
+        <tr><td>Nombre de la producción</td><td>producciones</td><td>nombre</td><td>Producción de Tomates 2025</td><td class="yes">sí</td></tr>
+        <tr><td>Tipo</td><td>producciones</td><td>tipo</td><td>Producción Hortícola</td><td class="yes">sí</td></tr>
+        <tr><td>Ubicación</td><td>producciones</td><td>ubicacion</td><td>Invernadero 1</td><td class="yes">sí</td></tr>
+        <tr><td>Descripción</td><td>producciones</td><td>descripcion</td><td>Producción de tomates orgánicos</td><td class="yes">sí</td></tr>
+        <tr><td>Cantidad de Producción</td><td>producciones</td><td>cantidad</td><td>42.00</td><td class="yes">sí</td></tr>
+        <tr><td>Cultivo</td><td>producciones</td><td>cultivo_id</td><td>1</td><td class="yes">sí</td></tr>
+        <tr><td>Ciclo</td><td>producciones</td><td>ciclo_id</td><td>1</td><td class="yes">sí</td></tr>
+        <tr><td>Responsable</td><td>producciones</td><td>usuario_id</td><td>1</td><td class="yes">sí</td></tr>
+        <tr><td>Fecha de Inicio</td><td>producciones</td><td>fecha_de_inicio</td><td>2025-03-01</td><td class="yes">sí</td></tr>
+        <tr><td>Fecha de Fin</td><td>producciones</td><td>fecha_fin</td><td>2025-06-30</td><td class="yes">sí</td></tr>
+        <tr><td>Inversión (auto)</td><td>producciones</td><td>inversion</td><td>10200.00</td><td class="yes">sí</td></tr>
+        <tr><td>Meta de Ganancias (≥ inversión)</td><td>producciones</td><td>meta_ganancia</td><td>13260.00</td><td class="yes">sí</td></tr>
+        <tr><td>Insumo seleccionado (cantidad a usar)</td><td>uso_insumo</td><td>cantidad_utilizada</td><td>12.00</td><td class="yes">sí</td></tr>
+        <tr><td>Sensores seleccionados</td><td>uso_sensor</td><td>sensor_id</td><td>1</td><td class="yes">sí</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Modales dentro de Producción</h2>
+
+    <h3>Modal Crear Usuario</h3>
+    <table>
+      <thead><tr><th>Campo</th><th>Tabla BD</th><th>Columna BD</th><th>Valor esperado</th><th>Validado</th></tr></thead>
+      <tbody>
+        <tr><td>Tipo de documento</td><td>usuarios</td><td>tipo_documento</td><td>cc</td><td class="yes">sí</td></tr>
+        <tr><td>Nombre completo</td><td>usuarios</td><td>nombre</td><td>María González</td><td class="yes">sí</td></tr>
+        <tr><td>Número de documento</td><td>usuarios</td><td>numero_documento</td><td>1000000022</td><td class="yes">sí</td></tr>
+        <tr><td>Número de Teléfono</td><td>usuarios</td><td>telefono</td><td>3201234567</td><td class="yes">sí</td></tr>
+        <tr><td>Correo electrónico</td><td>usuarios</td><td>correo</td><td>maria@example.com</td><td class="yes">sí</td></tr>
+        <tr><td>Confirmar correo</td><td></td><td></td><td>(igual al correo)</td><td class="yes">sí</td></tr>
+        <tr><td>Contraseña</td><td>usuarios</td><td>password</td><td>Maria123!</td><td class="yes">sí</td></tr>
+        <tr><td>Rol</td><td>usuarios</td><td>rol</td><td>Administrador</td><td class="yes">sí</td></tr>
+        <tr><td>Estado</td><td>usuarios</td><td>estado</td><td>habilitado</td><td class="yes">sí</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Modal Crear Sensor</h3>
+    <table>
+      <thead><tr><th>Campo</th><th>Tabla BD</th><th>Columna BD</th><th>Valor esperado</th><th>Validado</th></tr></thead>
+      <tbody>
+        <tr><td>Tipo de sensor</td><td>sensores</td><td>tipo_sensor</td><td>Sensor de distancia</td><td class="yes">sí</td></tr>
+        <tr><td>Nombre del sensor</td><td>sensores</td><td>nombre_sensor</td><td>Sensor Nivel Agua</td><td class="yes">sí</td></tr>
+        <tr><td>Unidad de medida</td><td>sensores</td><td>unidad_medida</td><td>Distancia</td><td class="yes">sí</td></tr>
+        <tr><td>Imagen</td><td>sensores</td><td>imagen</td><td>sensor.jpg</td><td class="yes">sí</td></tr>
+        <tr><td>Descripción</td><td>sensores</td><td>descripcion</td><td>Sensor ultrasónico para nivel de agua</td><td class="yes">sí</td></tr>
+        <tr><td>Tiempo de Escaneo/Muestreo</td><td>sensores</td><td>tiempo_escaneo</td><td>Sensores rápidos</td><td class="yes">sí</td></tr>
+        <tr><td>Estado</td><td>sensores</td><td>estado</td><td>habilitado</td><td class="yes">sí</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Modal Crear Insumo</h3>
+    <table>
+      <thead><tr><th>Campo</th><th>Tabla BD</th><th>Columna BD</th><th>Valor esperado</th><th>Validado</th></tr></thead>
+      <tbody>
+        <tr><td>Nombre</td><td>insumos</td><td>nombre</td><td>Insecticida Neem</td><td class="yes">sí</td></tr>
+        <tr><td>Tipo de insumo</td><td>insumos</td><td>tipo</td><td>Orgánico</td><td class="yes">sí</td></tr>
+        <tr><td>Imagen</td><td>insumos</td><td>imagen</td><td>insumo.jpg</td><td class="yes">sí</td></tr>
+        <tr><td>Unidad de medida</td><td>insumos</td><td>unidad_medida</td><td>litro</td><td class="yes">sí</td></tr>
+        <tr><td>Valor unitario</td><td>insumos</td><td>valor_unitario</td><td>18.00</td><td class="yes">sí</td></tr>
+        <tr><td>Cantidad</td><td>insumos</td><td>cantidad</td><td>10</td><td class="yes">sí</td></tr>
+        <tr><td>Valor total (auto)</td><td>insumos</td><td>valor_total</td><td>180.00</td><td class="yes">sí</td></tr>
+        <tr><td>Descripción</td><td>insumos</td><td>descripcion</td><td>Insecticida orgánico de neem</td><td class="yes">sí</td></tr>
+        <tr><td>Estado</td><td>insumos</td><td>estado</td><td>habilitado</td><td class="yes">sí</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Modal Crear Cultivo</h3>
+    <table>
+      <thead><tr><th>Campo</th><th>Tabla BD</th><th>Columna BD</th><th>Valor esperado</th><th>Validado</th></tr></thead>
+      <tbody>
+        <tr><td>Nombre</td><td>cultivos</td><td>nombre</td><td>Fresa</td><td class="yes">sí</td></tr>
+        <tr><td>Tipo de cultivo</td><td>cultivos</td><td>tipo</td><td>Fruta</td><td class="yes">sí</td></tr>
+        <tr><td>Imagen</td><td>cultivos</td><td>imagen</td><td>cultivo.jpg</td><td class="yes">sí</td></tr>
+        <tr><td>Ubicación</td><td>cultivos</td><td>ubicacion</td><td>Invernadero 2</td><td class="yes">sí</td></tr>
+        <tr><td>Tamaño (m2)</td><td>cultivos</td><td>tamano</td><td>80</td><td class="yes">sí</td></tr>
+        <tr><td>Descripción</td><td>cultivos</td><td>descripcion</td><td>Cultivo hidropónico de fresas</td><td class="yes">sí</td></tr>
+        <tr><td>Estado</td><td>cultivos</td><td>estado</td><td>habilitado</td><td class="yes">sí</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Modal Crear Ciclo</h3>
+    <table>
+      <thead><tr><th>Campo</th><th>Tabla BD</th><th>Columna BD</th><th>Valor esperado</th><th>Validado</th></tr></thead>
+      <tbody>
+        <tr><td>Nombre</td><td>ciclo_cultivo</td><td>nombre</td><td>Ciclo Invierno Protegido</td><td class="yes">sí</td></tr>
+        <tr><td>Descripción</td><td>ciclo_cultivo</td><td>descripcion</td><td>Producción en invernadero invierno</td><td class="yes">sí</td></tr>
+        <tr><td>Periodo - Inicio</td><td>ciclo_cultivo</td><td>periodo_inicio</td><td>2025-01-01</td><td class="yes">sí</td></tr>
+        <tr><td>Periodo - Final</td><td>ciclo_cultivo</td><td>periodo_final</td><td>2025-02-28</td><td class="yes">sí</td></tr>
+        <tr><td>Novedades</td><td>ciclo_cultivo</td><td>novedades</td><td>Uso de calefacción</td><td class="yes">sí</td></tr>
+        <tr><td>Estado</td><td>ciclo_cultivo</td><td>estado</td><td>habilitado</td><td class="yes">sí</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Columnas solo en Base de Datos</h2>
+    <table>
+      <thead><tr><th>Elemento</th><th>Tabla BD</th><th>Columna BD</th><th>Valor esperado</th><th>Validado</th></tr></thead>
+      <tbody>
+        <tr><td>usuarios: ID (autoincrement)</td><td>usuarios</td><td>id</td><td>1</td><td class="yes">sí (BD)</td></tr>
+        <tr><td>usuarios: Fecha de creación</td><td>usuarios</td><td>fecha_creacion</td><td>CURRENT_TIMESTAMP</td><td class="yes">sí (BD)</td></tr>
+        <tr><td>sensores: Usuario asignado (FK)</td><td>sensores</td><td>usuario_id</td><td>1</td><td class="yes">sí (BD)</td></tr>
+        <tr><td>sensores: Fecha de creación</td><td>sensores</td><td>fecha_creacion</td><td>CURRENT_TIMESTAMP</td><td class="yes">sí (BD)</td></tr>
+        <tr><td>insumos: Usuario asignado (FK)</td><td>insumos</td><td>usuario_id</td><td>1</td><td class="yes">sí (BD)</td></tr>
+        <tr><td>insumos: Fecha de creación</td><td>insumos</td><td>fecha_creacion</td><td>CURRENT_TIMESTAMP</td><td class="yes">sí (BD)</td></tr>
+        <tr><td>ciclo_cultivo: Usuario asignado (FK)</td><td>ciclo_cultivo</td><td>usuario_id</td><td>1</td><td class="yes">sí (BD)</td></tr>
+        <tr><td>ciclo_cultivo: Fecha de creación</td><td>ciclo_cultivo</td><td>fecha_creacion</td><td>CURRENT_TIMESTAMP</td><td class="yes">sí (BD)</td></tr>
+        <tr><td>cultivos: Usuario asignado (FK)</td><td>cultivos</td><td>usuario_id</td><td>1</td><td class="yes">sí (BD)</td></tr>
+        <tr><td>cultivos: Fecha de creación</td><td>cultivos</td><td>fecha_creacion</td><td>CURRENT_TIMESTAMP</td><td class="yes">sí (BD)</td></tr>
+        <tr><td>producciones: Estado</td><td>producciones</td><td>estado</td><td>habilitado</td><td class="yes">sí (BD)</td></tr>
+        <tr><td>producciones: Fecha de creación</td><td>producciones</td><td>fecha_creacion</td><td>CURRENT_TIMESTAMP</td><td class="yes">sí (BD)</td></tr>
+      </tbody>
+    </table>
+
+  </body>
+  </html>
+
