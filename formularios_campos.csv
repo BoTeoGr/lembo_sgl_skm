@@ -1,0 +1,177 @@
+Formulario,Campo,Tabla BD,Columna BD,Valor esperado,Validado
+Registrar usuario (crear-usuario),Tipo de documento,usuarios,tipo_documento,cc,sí
+Registrar usuario (crear-usuario),Nombre completo,usuarios,nombre,Mateo Ramírez,sí
+Registrar usuario (crear-usuario),Número de documento,usuarios,numero_documento,1000000001,sí
+Registrar usuario (crear-usuario),Número de Teléfono,usuarios,telefono,3111111111,sí
+Registrar usuario (crear-usuario),Correo electrónico,usuarios,correo,mateo.ramirez@example.com,sí
+Registrar usuario (crear-usuario),Confirmar correo,,,(igual al correo),sí
+Registrar usuario (crear-usuario),Contraseña,usuarios,password,Abcdef12,sí
+Registrar usuario (crear-usuario),Rol,usuarios,rol,Administrador,sí
+Registrar usuario (crear-usuario),Estado,usuarios,estado,habilitado,sí
+
+Actualizar usuario (actualizar-usuario),Tipo de documento,usuarios,tipo_documento,cc,sí
+Actualizar usuario (actualizar-usuario),Nombre completo,usuarios,nombre,Mateo Ramírez,sí
+Actualizar usuario (actualizar-usuario),Número de documento,usuarios,numero_documento,1000000001,sí
+Actualizar usuario (actualizar-usuario),Número de Teléfono,usuarios,telefono,3111111111,sí
+Actualizar usuario (actualizar-usuario),Correo electrónico,usuarios,correo,mateo.ramirez@example.com,sí
+Actualizar usuario (actualizar-usuario),Confirmar correo,,,(igual al correo),sí
+Actualizar usuario (actualizar-usuario),Contraseña (opcional),usuarios,password,Abcdef12,sí
+Actualizar usuario (actualizar-usuario),Rol,usuarios,rol,Administrador,sí
+Actualizar usuario (actualizar-usuario),Estado,usuarios,estado,habilitado/suspendido,sí
+
+Olvidé mi contraseña,Correo electrónico,,,mateo.ramirez@example.com,sí
+Recuperar código,Código (6 dígitos),,,123456,sí
+Actualización de contraseña,Nueva contraseña,usuarios,password,Abcdef12,sí
+Actualización de contraseña,Confirmar contraseña,,,(igual a la nueva),sí
+
+Crear cultivo,Nombre,cultivos,nombre,Tomate,sí
+Crear cultivo,Tipo de cultivo,cultivos,tipo,Verdura,sí
+Crear cultivo,Imagen,cultivos,imagen,cultivo.jpg,sí
+Crear cultivo,Ubicación,cultivos,ubicacion,Invernadero 1,sí
+Crear cultivo,Tamaño (m2),cultivos,tamano,100,sí
+Crear cultivo,Descripción,cultivos,descripcion,Cultivo de tomates,sí
+Crear cultivo,Estado,cultivos,estado,habilitado,sí
+
+Actualizar cultivo,Nombre,cultivos,nombre,Tomate,sí
+Actualizar cultivo,Tipo de cultivo,cultivos,tipo,Verdura,sí
+Actualizar cultivo,Imagen (opcional),cultivos,imagen,cultivo.jpg,sí
+Actualizar cultivo,Ubicación,cultivos,ubicacion,Invernadero 1,sí
+Actualizar cultivo,Tamaño (m2),cultivos,tamano,100,sí
+Actualizar cultivo,Descripción,cultivos,descripcion,Cultivo de tomates,sí
+Actualizar cultivo,Estado,cultivos,estado,habilitado/suspendido,sí
+
+Crear ciclo de cultivo,Nombre,ciclo_cultivo,nombre,Ciclo Primavera,sí
+Crear ciclo de cultivo,Descripción,ciclo_cultivo,descripcion,Ciclo de cultivo para primavera,sí
+Crear ciclo de cultivo,Periodo - Inicio,ciclo_cultivo,periodo_inicio,2025-03-01,sí
+Crear ciclo de cultivo,Periodo - Final,ciclo_cultivo,periodo_final,2025-06-30,sí
+Crear ciclo de cultivo,Novedades,ciclo_cultivo,novedades,Ninguna,sí
+Crear ciclo de cultivo,Estado,ciclo_cultivo,estado,habilitado,sí
+
+Actualizar ciclo de cultivo,Nombre,ciclo_cultivo,nombre,Ciclo Primavera,sí
+Actualizar ciclo de cultivo,Descripción,ciclo_cultivo,descripcion,Ciclo de cultivo para primavera,sí
+Actualizar ciclo de cultivo,Periodo - Inicio,ciclo_cultivo,periodo_inicio,2025-03-01,sí
+Actualizar ciclo de cultivo,Periodo - Final,ciclo_cultivo,periodo_final,2025-06-30,sí
+Actualizar ciclo de cultivo,Novedades,ciclo_cultivo,novedades,Ninguna,sí
+Actualizar ciclo de cultivo,Estado,ciclo_cultivo,estado,habilitado/suspendido,sí
+
+Crear sensor,Tipo de sensor,sensores,tipo_sensor,Sensor de contacto,sí
+Crear sensor,Nombre del sensor,sensores,nombre_sensor,Sensor Temperatura Ambiente,sí
+Crear sensor,Unidad de medida,sensores,unidad_medida,Temperatura,sí
+Crear sensor,Imagen,sensores,imagen,sensor.jpg,sí
+Crear sensor,Descripción,sensores,descripcion,Sensor para medir temperatura,sí
+Crear sensor,Tiempo de Escaneo/Muestreo,sensores,tiempo_escaneo,Sensores lentos,sí
+Crear sensor,Estado,sensores,estado,habilitado,sí
+
+Actualizar sensor,Tipo de sensor,sensores,tipo_sensor,Sensor de contacto,sí
+Actualizar sensor,Nombre del sensor,sensores,nombre_sensor,Sensor Temperatura Ambiente,sí
+Actualizar sensor,Unidad de medida,sensores,unidad_medida,Temperatura,sí
+Actualizar sensor,Imagen (opcional),sensores,imagen,sensor.jpg,sí
+Actualizar sensor,Descripción,sensores,descripcion,Sensor para medir temperatura,sí
+Actualizar sensor,Tiempo de Escaneo/Muestreo,sensores,tiempo_escaneo,Sensores rápidos,sí
+Actualizar sensor,Estado,sensores,estado,habilitado/suspendido,sí
+
+Crear insumo,Nombre,insumos,nombre,Fertilizante NPK,sí
+Crear insumo,Tipo de insumo,insumos,tipo,Químico,sí
+Crear insumo,Imagen,insumos,imagen,insumo.jpg,sí
+Crear insumo,Unidad de medida,insumos,unidad_medida,kilo,sí
+Crear insumo,Valor unitario,insumos,valor_unitario,10.00,sí
+Crear insumo,Cantidad,insumos,cantidad,5,sí
+Crear insumo,Valor total (auto),insumos,valor_total,50.00,sí
+Crear insumo,Descripción,insumos,descripcion,Fertilizante para cultivos,sí
+Crear insumo,Estado,insumos,estado,habilitado,sí
+
+Actualizar insumo,Nombre,insumos,nombre,Fertilizante NPK,sí
+Actualizar insumo,Tipo de insumo,insumos,tipo,Químico,sí
+Actualizar insumo,Imagen (opcional),insumos,imagen,insumo.jpg,sí
+Actualizar insumo,Unidad de medida,insumos,unidad_medida,kilo,sí
+Actualizar insumo,Valor unitario,insumos,valor_unitario,12.00,sí
+Actualizar insumo,Cantidad,insumos,cantidad,8,sí
+Actualizar insumo,Valor total (auto),insumos,valor_total,96.00,sí
+Actualizar insumo,Descripción,insumos,descripcion,Fertilizante actualizado,sí
+Actualizar insumo,Estado,insumos,estado,habilitado/suspendido,sí
+
+Crear producción,Nombre de la producción,producciones,nombre,Producción de Tomates 2025,sí
+Crear producción,Tipo,producciones,tipo,Producción Hortícola,sí
+Crear producción,Ubicación,producciones,ubicacion,Invernadero 1,sí
+Crear producción,Descripción,producciones,descripcion,Producción de tomates orgánicos,sí
+Crear producción,Cantidad de Producción,producciones,cantidad,40.00,sí
+Crear producción,Cultivo,producciones,cultivo_id,1,sí
+Crear producción,Ciclo,producciones,ciclo_id,1,sí
+Crear producción,Responsable,producciones,usuario_id,1,sí
+Crear producción,Fecha de Inicio,producciones,fecha_de_inicio,2025-03-01,sí
+Crear producción,Fecha de Fin,producciones,fecha_fin,2025-06-30,sí
+Crear producción,Inversión (auto),producciones,inversion,10000.00,sí
+Crear producción,Meta de Ganancias (>= inversión),producciones,meta_ganancia,13000.00,sí
+Crear producción,Insumo seleccionado (cantidad a usar),uso_insumo,cantidad_utilizada,15.50,sí
+Crear producción,Sensores seleccionados,uso_sensor,sensor_id,1,sí
+
+Actualizar producción,Nombre de la producción,producciones,nombre,Producción de Tomates 2025,sí
+Actualizar producción,Tipo,producciones,tipo,Producción Hortícola,sí
+Actualizar producción,Ubicación,producciones,ubicacion,Invernadero 1,sí
+Actualizar producción,Descripción,producciones,descripcion,Producción de tomates orgánicos,sí
+Actualizar producción,Cantidad de Producción,producciones,cantidad,42.00,sí
+Actualizar producción,Cultivo,producciones,cultivo_id,1,sí
+Actualizar producción,Ciclo,producciones,ciclo_id,1,sí
+Actualizar producción,Responsable,producciones,usuario_id,1,sí
+Actualizar producción,Fecha de Inicio,producciones,fecha_de_inicio,2025-03-01,sí
+Actualizar producción,Fecha de Fin,producciones,fecha_fin,2025-06-30,sí
+Actualizar producción,Inversión (auto),producciones,inversion,10200.00,sí
+Actualizar producción,Meta de Ganancias (>= inversión),producciones,meta_ganancia,13260.00,sí
+Actualizar producción,Insumo seleccionado (cantidad a usar),uso_insumo,cantidad_utilizada,12.00,sí
+Actualizar producción,Sensores seleccionados,uso_sensor,sensor_id,1,sí
+
+Modal Crear Usuario (Producción),Tipo de documento,usuarios,tipo_documento,cc,sí
+Modal Crear Usuario (Producción),Nombre completo,usuarios,nombre,María González,sí
+Modal Crear Usuario (Producción),Número de documento,usuarios,numero_documento,1000000022,sí
+Modal Crear Usuario (Producción),Número de Teléfono,usuarios,telefono,3201234567,sí
+Modal Crear Usuario (Producción),Correo electrónico,usuarios,correo,maria@example.com,sí
+Modal Crear Usuario (Producción),Confirmar correo,,,(igual al correo),sí
+Modal Crear Usuario (Producción),Contraseña,usuarios,password,Maria123!,sí
+Modal Crear Usuario (Producción),Rol,usuarios,rol,Administrador,sí
+Modal Crear Usuario (Producción),Estado,usuarios,estado,habilitado,sí
+
+Modal Crear Sensor (Producción),Tipo de sensor,sensores,tipo_sensor,Sensor de distancia,sí
+Modal Crear Sensor (Producción),Nombre del sensor,sensores,nombre_sensor,Sensor Nivel Agua,sí
+Modal Crear Sensor (Producción),Unidad de medida,sensores,unidad_medida,Distancia,sí
+Modal Crear Sensor (Producción),Imagen,sensores,imagen,sensor.jpg,sí
+Modal Crear Sensor (Producción),Descripción,sensores,descripcion,Sensor ultrasónico para nivel de agua,sí
+Modal Crear Sensor (Producción),Tiempo de Escaneo/Muestreo,sensores,tiempo_escaneo,Sensores rápidos,sí
+Modal Crear Sensor (Producción),Estado,sensores,estado,habilitado,sí
+
+Modal Crear Insumo (Producción),Nombre,insumos,nombre,Insecticida Neem,sí
+Modal Crear Insumo (Producción),Tipo de insumo,insumos,tipo,Orgánico,sí
+Modal Crear Insumo (Producción),Imagen,insumos,imagen,insumo.jpg,sí
+Modal Crear Insumo (Producción),Unidad de medida,insumos,unidad_medida,litro,sí
+Modal Crear Insumo (Producción),Valor unitario,insumos,valor_unitario,18.00,sí
+Modal Crear Insumo (Producción),Cantidad,insumos,cantidad,10,sí
+Modal Crear Insumo (Producción),Valor total (auto),insumos,valor_total,180.00,sí
+Modal Crear Insumo (Producción),Descripción,insumos,descripcion,Insecticida orgánico de neem,sí
+Modal Crear Insumo (Producción),Estado,insumos,estado,habilitado,sí
+
+Modal Crear Cultivo (Producción),Nombre,cultivos,nombre,Fresa,sí
+Modal Crear Cultivo (Producción),Tipo de cultivo,cultivos,tipo,Fruta,sí
+Modal Crear Cultivo (Producción),Imagen,cultivos,imagen,cultivo.jpg,sí
+Modal Crear Cultivo (Producción),Ubicación,cultivos,ubicacion,Invernadero 2,sí
+Modal Crear Cultivo (Producción),Tamaño (m2),cultivos,tamano,80,sí
+Modal Crear Cultivo (Producción),Descripción,cultivos,descripcion,Cultivo hidropónico de fresas,sí
+Modal Crear Cultivo (Producción),Estado,cultivos,estado,habilitado,sí
+
+Modal Crear Ciclo (Producción),Nombre,ciclo_cultivo,nombre,Ciclo Invierno Protegido,sí
+Modal Crear Ciclo (Producción),Descripción,ciclo_cultivo,descripcion,Producción en invernadero invierno,sí
+Modal Crear Ciclo (Producción),Periodo - Inicio,ciclo_cultivo,periodo_inicio,2025-01-01,sí
+Modal Crear Ciclo (Producción),Periodo - Final,ciclo_cultivo,periodo_final,2025-02-28,sí
+Modal Crear Ciclo (Producción),Novedades,ciclo_cultivo,novedades,Uso de calefacción,sí
+Modal Crear Ciclo (Producción),Estado,ciclo_cultivo,estado,habilitado,sí
+
+BD (solo BD) - usuarios,ID (autoincrement),usuarios,id,1,sí (BD)
+BD (solo BD) - usuarios,Fecha de creación,usuarios,fecha_creacion,CURRENT_TIMESTAMP,sí (BD)
+BD (solo BD) - sensores,Usuario asignado (FK),sensores,usuario_id,1,sí (BD)
+BD (solo BD) - sensores,Fecha de creación,sensores,fecha_creacion,CURRENT_TIMESTAMP,sí (BD)
+BD (solo BD) - insumos,Usuario asignado (FK),insumos,usuario_id,1,sí (BD)
+BD (solo BD) - insumos,Fecha de creación,insumos,fecha_creacion,CURRENT_TIMESTAMP,sí (BD)
+BD (solo BD) - ciclo_cultivo,Usuario asignado (FK),ciclo_cultivo,usuario_id,1,sí (BD)
+BD (solo BD) - ciclo_cultivo,Fecha de creación,ciclo_cultivo,fecha_creacion,CURRENT_TIMESTAMP,sí (BD)
+BD (solo BD) - cultivos,Usuario asignado (FK),cultivos,usuario_id,1,sí (BD)
+BD (solo BD) - cultivos,Fecha de creación,cultivos,fecha_creacion,CURRENT_TIMESTAMP,sí (BD)
+BD (solo BD) - producciones,Estado,producciones,estado,habilitado,sí (BD)
+BD (solo BD) - producciones,Fecha de creación,producciones,fecha_creacion,CURRENT_TIMESTAMP,sí (BD)
