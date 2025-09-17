@@ -34,12 +34,12 @@
 
 				// Hide buttons if not admin
 				if (!isAdmin) {
-					// Hide 'Ir a Insumos' button
-					const insumosButton = document.querySelector('a[href="listar-insumos.html"]');
+					// Hide 'Ir a Insumos' button in the dashboard (more specific selector)
+					const insumosButton = document.querySelector('.dashboard a[href="listar-insumos.html"]');
 					if (insumosButton) insumosButton.style.display = 'none';
 
-					// Hide 'Ir a Cultivos' button
-					const cultivosButton = document.querySelector('a[href*="listar-cultivos.html"]');
+					// Hide 'Ir a Cultivos' button in the dashboard (more specific selector)
+					const cultivosButton = document.querySelector('.dashboard a[href*="listar-cultivos.html"]');
 					if (cultivosButton) cultivosButton.style.display = 'none';
 				}
 			});

@@ -85,7 +85,13 @@ class Sensors {
         this.originalData = [];
         this.filteredData = [];
         this.selectedSensors = new Set();
+        this.isVisitante = this.checkIfVisitante();
         this.init();
+    }
+    
+    checkIfVisitante() {
+        const userRole = localStorage.getItem('userRol') || '';
+        return userRole.toLowerCase() === 'visitante';
     }
 
     async init() {
@@ -401,16 +407,16 @@ class Sensors {
         }
 
         if (enableButton) {
-            enableButton.disabled = selectedCount === 0;
+            enableButton.disabled = selectedCount === 0 || this.isVisitante;
         }
 
         if (disableButton) {
-            disableButton.disabled = selectedCount === 0;
+            disableButton.disabled = selectedCount === 0 || this.isVisitante;
         }
     }
 
     updateSensorStatus(newStatus) {
-        if (!this.selectedSensors.size) return;
+        if (!this.selectedSensors.size || this.isVisitante) return;
         const ids = Array.from(this.selectedSensors);
         ids.forEach(id => {
             const sensor = this.filteredData.find(s => String(s.id) === String(id));
@@ -446,9 +452,29 @@ class Sensors {
         currentPageData.forEach(sensor => {
             const row = document.createElement('tr');
             row.className = 'table__row';
+            
+            // Show only view button for Visitante users, full actions for others
+            const actionsHtml = this.isVisitante 
+                ? `
+                    <button class="table__action-button table__action-button--view">
+                        <span class="material-symbols-outlined">visibility</span>
+                    </button>
+                `
+                : `
+                    <button class="table__action-button table__action-button--view">
+                        <span class="material-symbols-outlined">visibility</span>
+                    </button>
+                    <button class="table__action-button table__action-button--edit" onclick="window.location.href='../views/actualizar-sensor.html?id=${sensor.id}'">
+                        <span class="material-symbols-outlined">edit</span>
+                    </button>
+                    <button class="table__action-button table__action-button--${sensor.estado === 'habilitado' ? 'disable' : 'enable'}">
+                        <span class="material-symbols-outlined">power_settings_new</span>
+                    </button>
+                `;
+                
             row.innerHTML = `
                 <td class="table__cell table__cell--checkbox">
-                    <input type="checkbox" class="table__checkbox" data-id="${sensor.id}" ${this.selectedSensors.has(sensor.id) ? 'checked' : ''} />
+                    ${this.isVisitante ? '' : `<input type="checkbox" class="table__checkbox" data-id="${sensor.id}" ${this.selectedSensors.has(sensor.id) ? 'checked' : ''} />`}
                 </td>
                 <td class="table__cell table__cell--id">${sensor.id}</td>
                 <td class="table__cell table__cell--name">${sensor.nombre}</td>
@@ -459,16 +485,76 @@ class Sensors {
                     <span class="badge badge--${sensor.estado === 'habilitado' ? 'active' : 'inactive'}">${sensor.estado === 'habilitado' ? 'Habilitado' : 'Deshabilitado'}</span>
                 </td>
                 <td class="table__cell table__cell--actions">
-                    <button class="table__action-button table__action-button--view"><span class="material-symbols-outlined">visibility</span></button>
-                    <button class="table__action-button table__action-button--edit"onclick="window.location.href='../views/actualizar-sensor.html?id=${sensor.id}'">
-                        <span class="material-symbols-outlined">edit</span>
-                    </button>
-                    <button class="table__action-button table__action-button--${sensor.estado === 'habilitado' ? 'disable' : 'enable'}"><span class="material-symbols-outlined">power_settings_new</span></button>
+                    ${actionsHtml}
                 </td>
             `;
             tbody.appendChild(row);
         });
+        
+        // Update UI based on user role
+        this.updateUIForVisitante();
         this.updateActionsBar();
+    }
+    
+    // updateUIForVisitante() {
+    //     if (!this.isVisitante) return;
+        
+    //     // Hide action buttons except view
+    //     const actionButtons = document.querySelectorAll('.button--add, .button--delete, .button--edit, .button--enable, .button--disable');
+    //     actionButtons.forEach(btn => {
+    //         if (btn) btn.style.display = 'none';
+    //     });
+        
+    //     // Hide all Create Sensor buttons (using multiple selectors to be safe)
+    //     const createButtons = [
+    //         document.querySelector('.button--add'),
+    //         document.querySelector('.button--create'),
+    //         document.querySelector('.button.button--secondary.button--create')
+    //     ];
+        
+    //     createButtons.forEach(btn => {
+    //         if (btn) btn.style.display = 'none';
+    //     });
+        
+    //     // La visibilidad de los elementos de navegación ahora se maneja en topNavigationBar.js
+        
+    //     // Hide checkboxes
+    //     const checkboxes = document.querySelectorAll('.table__checkbox, .table__checkbox-header');
+    //     checkboxes.forEach(checkbox => {
+    //         if (checkbox) checkbox.style.display = 'none';
+    //     });
+        
+    //     // Hide report button if it exists
+    //     const reportButton = document.querySelector('.button--report');
+    //     if (reportButton) reportButton.style.display = 'none';
+        
+    //     // Hide filter button if it exists
+    //     const filterButton = document.querySelector('.button--filter');
+    //     if (filterButton) filterButton.style.display = 'none';
+    // }
+
+    updateUIForVisitante() {
+        if (!this.isVisitante) return;
+        
+        // Hide action buttons
+        const actionButtons = document.querySelectorAll('.button--add, .button--delete, .button--edit, .button--enable, .button--disable, .button--report, .button--filter, .button--create');
+        actionButtons.forEach(btn => {
+            if (btn) btn.style.display = 'none';
+        });
+        
+        // Hide checkboxes
+        const checkboxes = document.querySelectorAll('.table__checkbox, .table__checkbox-header');
+        checkboxes.forEach(checkbox => {
+            if (checkbox) checkbox.style.display = 'none';
+        });
+        
+        // Hide actions column header if it exists
+        const actionsHeader = document.querySelector('th.table__header--actions');
+        if (actionsHeader) actionsHeader.style.display = 'none';
+        
+        // Hide actions bar
+        const actionsBar = document.querySelector('.actions-bar');
+        if (actionsBar) actionsBar.style.display = 'none';
     }
 
     showSensorDetails(sensor) {

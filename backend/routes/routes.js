@@ -27,11 +27,11 @@ router.put('/usuarios/:id', verificarUsuarioPropioOAdmin(['admin', 'Administrado
 // Allow users to view their own profile or admins to view any profile
 router.get('/usuarios/:id', verificarUsuarioPropioOAdmin(['admin', 'Administrador', 'superadmin', 'Super Administrador']), obtenerUsuarioPorId);
 // Rutas para sensores
-router.get('/sensor', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador', 'Personal de Apoyo', 'apoyo']), VerSensores);
+router.get('/sensor', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador', 'Personal de Apoyo', 'apoyo', 'Visitante','visitante']), VerSensores);
 router.post('/sensor', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador', 'Personal de Apoyo', 'apoyo']), crearSensor);
 router.put('/sensor/:id/estado', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador', 'Personal de Apoyo', 'apoyo']), actualizarEstadoSensor);
 router.put('/sensor/:id', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador', 'Personal de Apoyo', 'apoyo']), actualizarSensor);
-router.get('/sensor/:id', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador', 'Personal de Apoyo', 'apoyo']), obtenerSensorPorId);
+router.get('/sensor/:id', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador', 'Personal de Apoyo', 'apoyo', 'Visitante','visitante']), obtenerSensorPorId);
 // Rutas para insumos
 router.get('/insumos', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), VerInsumos);
 router.post('/insumos', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), crearInsumo);
@@ -41,11 +41,11 @@ router.get('/insumos/:id', verificarRol(['admin', 'Administrador', 'superadmin',
 router.get('/insumos-resumen/resumen', obtenerResumenInsumos); 
 router.post('/insumos/reponer-stock', reponerStockInsumo);
 // Rutas para cultivos
-router.get('/cultivos', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), VerCultivos);
+router.get('/cultivos', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador', 'Visitante','visitante']), VerCultivos);
 router.post('/cultivos', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), crearCultivo);
 router.put('/cultivos/:id/estado', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), actualizarEstadoCultivo);
 router.put('/cultivos/:id', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), actualizarCultivo);
-router.get('/cultivos/:id', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), obtenerCultivoPorId); 
+router.get('/cultivos/:id', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador', 'Visitante','visitante']), obtenerCultivoPorId); 
 // Rutas para ciclos de cultivo
 router.get('/ciclo_cultivo', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), VerCiclosCultivo);
 router.get('/ciclo_cultivo/:id', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), obtenerCicloCultivoPorId);

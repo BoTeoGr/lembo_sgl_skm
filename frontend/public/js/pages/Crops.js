@@ -98,6 +98,7 @@ class Crops {
             this.originalData = [];
             this.filteredData = [];
             this.selectedCrops = new Set();
+            this.isVisitante = this.checkIfVisitante();
             
             // Initialize UI components first
             this.initializeUI();
@@ -113,18 +114,29 @@ class Crops {
         }
     }
     
+    checkIfVisitante() {
+        const userRole = localStorage.getItem('userRol') || '';
+        return userRole.toLowerCase() === 'visitante';
+    }
+    
+
+    
     initializeUI() {
         // Initialize any UI components here
         const loadingRow = document.querySelector('.table__body');
         if (loadingRow) {
             loadingRow.innerHTML = `
                 <tr class="table__row">
-                    <td class="table__cell" colspan="8" style="text-align: center;">
-                        Cargando datos...
+                    <td colspan="8" class="table__cell table__cell--loading">
+                        <div class="loading-spinner"></div>
+                        <p>Cargando cultivos...</p>
                     </td>
                 </tr>
             `;
         }
+        
+        // Update UI based on user role
+        this.updateUIForVisitante();
     }
     
     showError(message) {
@@ -519,31 +531,66 @@ class Crops {
                     <button class="table__action-button table__action-button--view" title="Ver detalles">
                         <span class="material-symbols-outlined">visibility</span>
                     </button>
+                    ${!this.isVisitante ? `
                     <button class="table__action-button table__action-button--edit" onclick="window.location.href='../views/actualizar-cultivo.html?id=${crop.id}'">
                         <span class="material-symbols-outlined">edit</span>
                     </button>
                     <button class="table__action-button table__action-button--toggle-status ${crop.status === 'Activo' ? 'table__action-button--disable' : 'table__action-button--enable'}" data-id="${crop.id}" title="${crop.status === 'Activo' ? 'Deshabilitar' : 'Habilitar'}">
                         <span class="material-symbols-outlined">power_settings_new</span>
                     </button>
+                    ` : ''}
                 </td>
             `;
             const checkbox = row.querySelector('.table__checkbox');
             checkbox.addEventListener('change', () => {
                 this.updateSelectedCrops(checkbox, checkbox.dataset.id);
             });
-            row.querySelector('.table__action-button--toggle-status').addEventListener('click', async () => {
-                const nuevoEstado = crop.status === 'Activo' ? 'Inhabilitado' : 'Activo';
-                crop.status = nuevoEstado;
-                console.log('PUT cultivo', crop.id, 'nuevo estado:', nuevoEstado); // log de depuración
-                await toggleCultivoStatus(crop.id, nuevoEstado);
-                this.renderTable();
-            });
+            
+            const toggleStatusBtn = row.querySelector('.table__action-button--toggle-status');
+            if (toggleStatusBtn) {
+                toggleStatusBtn.addEventListener('click', async () => {
+                    const nuevoEstado = crop.status === 'Activo' ? 'Inhabilitado' : 'Activo';
+                    crop.status = nuevoEstado;
+                    console.log('PUT cultivo', crop.id, 'nuevo estado:', nuevoEstado);
+                    await toggleCultivoStatus(crop.id, nuevoEstado);
+                    this.renderTable();
+                });
+            }
+            
             // --- Botón Visualizar ---
-            row.querySelector('.table__action-button--view').addEventListener('click', () => {
-                this.showCropModal(crop);
-            });
+            const viewButton = row.querySelector('.table__action-button--view');
+            if (viewButton) {
+                viewButton.addEventListener('click', () => {
+                    this.showCropModal(crop);
+                });
+            }
+            
             tbody.appendChild(row);
         });
+    }
+
+        updateUIForVisitante() {
+        if (!this.isVisitante) return;
+        
+        // Hide action buttons
+        const actionButtons = document.querySelectorAll('.button--add, .button--delete, .button--edit, .button--enable, .button--disable, .button--report, .button--filter, .button--create');
+        actionButtons.forEach(btn => {
+            if (btn) btn.style.display = 'none';
+        });
+        
+        // Hide checkboxes
+        const checkboxes = document.querySelectorAll('.table__checkbox, .table__checkbox-header');
+        checkboxes.forEach(checkbox => {
+            if (checkbox) checkbox.style.display = 'none';
+        });
+        
+        // Hide actions column header if it exists
+        const actionsHeader = document.querySelector('th.table__header--actions');
+        if (actionsHeader) actionsHeader.style.display = 'none';
+        
+        // Hide actions bar
+        const actionsBar = document.querySelector('.actions-bar');
+        if (actionsBar) actionsBar.style.display = 'none';
     }
 
     showCropModal(crop) {

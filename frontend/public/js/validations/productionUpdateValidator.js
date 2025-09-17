@@ -401,10 +401,24 @@ document.addEventListener("DOMContentLoaded", async () => {
 async function getAllItems(endpoint, limit = 100) {
   try {
     console.log(`Solicitando datos de ${endpoint}...`)
-    const response = await fetch(`${API_URL}${endpoint}?page=1&limit=${limit}`)
+    const token = localStorage.getItem('token');
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
+    
+    const response = await fetch(`${API_URL}${endpoint}?page=1&limit=${limit}`, {
+      headers: headers
+    });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
+      if (response.status === 401) {
+        // Token might be expired or invalid
+        localStorage.removeItem('token');
+        window.location.href = 'http://localhost:5501/frontend/public/views/login.html';
+        throw new Error('Sesión expirada o no autorizada. Redirigiendo al inicio de sesión...');
+      }
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json()

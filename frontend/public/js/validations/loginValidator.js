@@ -48,8 +48,10 @@ form.addEventListener("submit", async function (e) {
 				window.location.href = 'home.html';
 			} else if (data.usuario.rol === 'apoyo' || data.usuario.rol === 'Personal de Apoyo') {
 				window.location.href = 'listar-sensores.html';
+			} else if (data.usuario.rol === 'visitante' || data.usuario.rol === 'Visitante') {
+				window.location.href = 'home.html';
 			} else {
-				window.location.href = 'visitante.html';
+				error.message = "Rol de usuario no reconocido. Contacta al administrador.";
 			}
 		}, 1000);
 	} catch (error) {
