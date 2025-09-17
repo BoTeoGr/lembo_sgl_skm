@@ -510,7 +510,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   enableBtn.addEventListener('click', async () => {
     const ids = getSelectedIds();
     if (ids.length === 0) return;
-    updateUserStatus(ids, 'Activo');
     await Promise.all(ids.map(id => toggleUserStatus(id, 'Activo')));
     renderPaginatedTable(filteredUsers);
     document.querySelector('.actions-bar__checkbox').checked = false;
@@ -519,7 +518,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   disableBtn.addEventListener('click', async () => {
     const ids = getSelectedIds();
     if (ids.length === 0) return;
-    updateUserStatus(ids, 'Inactivo');
     await Promise.all(ids.map(id => toggleUserStatus(id, 'Inactivo')));
     renderPaginatedTable(filteredUsers);
     document.querySelector('.actions-bar__checkbox').checked = false;
