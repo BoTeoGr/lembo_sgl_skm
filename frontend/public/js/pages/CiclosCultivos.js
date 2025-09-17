@@ -53,6 +53,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderPaginatedTable(filteredCiclos); } };
     nextBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; renderPaginatedTable(filteredCiclos); } };
+    // Actualizar resumen de selección tras render
+    updateSelectionSummary();
   }
 
   // Inicializa tabla con datos de API
@@ -129,15 +131,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // --- Eventos checkboxes ---
-  document.querySelector('.table__body').addEventListener('change', () => {
+  function updateSelectionSummary() {
     const total = document.querySelectorAll('.table__checkbox').length;
     const selected = document.querySelectorAll('.table__checkbox:checked').length;
-    document.querySelector('.actions-bar__count--selected').textContent = selected;
-    document.querySelector('.actions-bar__count--total').textContent = total;
+    const selectedEl = document.querySelector('.actions-bar__count--selected');
+    const totalEl = document.querySelector('.actions-bar__count--total');
+    if (selectedEl) selectedEl.textContent = selected;
+    if (totalEl) totalEl.textContent = total;
     const header = document.querySelector('.table__checkbox-header');
     const bar = document.querySelector('.actions-bar__checkbox');
-    if (header) header.checked = (selected === total && total > 0);
-    if (bar) bar.checked = (selected === total && total > 0);
+    const allChecked = (selected === total && total > 0);
+    if (header) header.checked = allChecked;
+    if (bar) bar.checked = allChecked;
+  }
+
+  document.querySelector('.table__body').addEventListener('change', () => {
+    updateSelectionSummary();
   });
 
   // Checkbox en header de tabla
@@ -148,6 +157,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.querySelectorAll('.table__checkbox').forEach(cb => { cb.checked = checked; });
       const bar = document.querySelector('.actions-bar__checkbox');
       if (bar) bar.checked = checked;
+      updateSelectionSummary();
+    });
+  }
+
+  // Checkbox en barra de acciones (seleccionar todos)
+  const actionsBarCheckbox = document.querySelector('.actions-bar__checkbox');
+  if (actionsBarCheckbox) {
+    actionsBarCheckbox.addEventListener('change', function() {
+      const checked = this.checked;
+      document.querySelectorAll('.table__checkbox').forEach(cb => { cb.checked = checked; });
+      const header = document.querySelector('.table__checkbox-header');
+      if (header) header.checked = checked;
+      updateSelectionSummary();
     });
   }
 
