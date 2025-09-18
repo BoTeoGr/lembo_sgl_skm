@@ -1333,6 +1333,78 @@ function setupProductionStatusCard() {
 			})
   
 			actualizarTablaProducciones(produccionesConProgreso)
+			// Actualizar widgets con datos reales
+			try {
+				if (typeof window.actualizarProductionStatusCard === 'function') {
+					window.actualizarProductionStatusCard(produccionesConProgreso)
+				}
+				// Actualizar tarjeta "Total Producciones" (Activas/Completadas)
+				const summaryCard = document.querySelector('.summary .stat-card:nth-child(1)')
+				if (summaryCard) {
+					let activas = 0
+					let completadas = 0
+					produccionesConProgreso.forEach(p => {
+						if (p.estado === 'habilitado') activas++
+						if (p.progreso === 100) completadas++
+					})
+					const labels = summaryCard.querySelectorAll('.stat-card__details .stat-card__label')
+					if (labels && labels.length >= 2) {
+						labels[0].textContent = `${activas} Activas`
+						labels[1].textContent = `${completadas} Completadas`
+					}
+					const totalEl = summaryCard.querySelector('.stat-card__value')
+					if (totalEl) totalEl.textContent = String(produccionesConProgreso.length)
+					// Animar icono
+					const icon = summaryCard.querySelector('.stat-card__icon')
+					if (icon) {
+						icon.classList.add('stat-card__icon--pulse','stat-card__icon--glow')
+						setTimeout(() => icon.classList.remove('stat-card__icon--pulse','stat-card__icon--glow'), 800)
+					}
+				}
+
+				// Utilidades
+				const toNumber = (v) => {
+					if (v === null || v === undefined) return 0
+					if (typeof v === 'number') return v
+					const cleaned = String(v).replace(/[^0-9.-]/g, '')
+					const num = parseFloat(cleaned)
+					return isNaN(num) ? 0 : num
+				}
+				const formatCurrency = (n) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n)
+
+				// Totales financieros
+				const totalInversion = produccionesConProgreso.reduce((sum, p) => sum + toNumber(p.inversion), 0)
+				const totalMeta = produccionesConProgreso.reduce((sum, p) => sum + toNumber(p.meta_ganancia), 0)
+				const roiPct = totalInversion > 0 ? Math.round(((totalMeta - totalInversion) / totalInversion) * 100) : 0
+
+				// Actualizar tarjeta "Inversión Total"
+				const inversionCard = document.querySelector('.summary .stat-card:nth-child(2)')
+				if (inversionCard) {
+					const valueEl = inversionCard.querySelector('.stat-card__value')
+					if (valueEl) valueEl.textContent = formatCurrency(totalInversion)
+					const icon = inversionCard.querySelector('.stat-card__icon')
+					if (icon) {
+						icon.classList.add('stat-card__icon--pulse','stat-card__icon--glow')
+						setTimeout(() => icon.classList.remove('stat-card__icon--pulse','stat-card__icon--glow'), 800)
+					}
+				}
+
+				// Actualizar tarjeta "Meta de Ganancias"
+				const metaCard = document.querySelector('.summary .stat-card:nth-child(3)')
+				if (metaCard) {
+					const valueEl = metaCard.querySelector('.stat-card__value')
+					if (valueEl) valueEl.textContent = formatCurrency(totalMeta)
+					const trendValueEl = metaCard.querySelector('.stat-card__trend-value')
+					if (trendValueEl) trendValueEl.textContent = `${roiPct}%`
+					const trendLabelEl = metaCard.querySelector('.stat-card__trend-label')
+					if (trendLabelEl) trendLabelEl.textContent = 'sobre la inversión total'
+					const icon = metaCard.querySelector('.stat-card__icon')
+					if (icon) {
+						icon.classList.add('stat-card__icon--pulse','stat-card__icon--glow')
+						setTimeout(() => icon.classList.remove('stat-card__icon--pulse','stat-card__icon--glow'), 800)
+					}
+				}
+			} catch (_) {}
 			setupSeleccionMultiple()
   
 			// Actualizar contador en el dashboard si existe

@@ -1636,6 +1636,60 @@ ul {
   font-size: 1.25rem;
 }
 
+.stat-card__icon--pulse {
+  animation: statPulse 0.6s ease;
+}
+
+@keyframes statPulse {
+  0% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(79, 70, 229, 0)); }
+  50% { transform: scale(1.15); filter: drop-shadow(0 2px 6px rgba(79, 70, 229, 0.35)); }
+  100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(79, 70, 229, 0)); }
+}
+
+/* Give stat-card icons color, background and motion */
+.summary .stat-card .stat-card__icon.material-symbols-outlined {
+  font-size: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  transition: transform var(--transition-speed), filter var(--transition-speed), background-color var(--transition-speed), color var(--transition-speed);
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+}
+
+/* Per-card color themes */
+.summary .stat-card:nth-child(1) .stat-card__icon { /* Total Producciones */
+  color: #2563eb; /* blue-600 */
+  background-color: rgba(37, 99, 235, 0.12);
+}
+.summary .stat-card:nth-child(2) .stat-card__icon { /* Inversión Total */
+  color: #16a34a; /* green-600 */
+  background-color: rgba(22, 163, 74, 0.12);
+}
+.summary .stat-card:nth-child(3) .stat-card__icon { /* Meta de Ganancias */
+  color: #f59e0b; /* amber-500 */
+  background-color: rgba(245, 158, 11, 0.12);
+}
+
+/* Hover/active motion and weight/fill emphasis */
+.summary .stat-card:hover .stat-card__icon {
+  transform: translateY(-2px) scale(1.06);
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.08));
+  font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 48;
+}
+
+/* Subtle periodic glow on update */
+.stat-card__icon--glow {
+  animation: statGlow 1.2s ease-in-out;
+}
+@keyframes statGlow {
+  0% { box-shadow: 0 0 0 0 rgba(37,99,235,0.0); }
+  50% { box-shadow: 0 8px 18px 0 rgba(37,99,235,0.25); }
+  100% { box-shadow: 0 0 0 0 rgba(37,99,235,0.0); }
+}
+
 .stat-card__content {
   text-align: left;
 }
