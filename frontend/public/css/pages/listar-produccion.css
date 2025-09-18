@@ -3692,6 +3692,34 @@ header {
     gap: var(--spacing-md);
     margin-top: var(--spacing-lg);
 }
+.columns-grid{
+  display:grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: .5rem 1rem;
+  padding: .5rem 0;
+}
+.report-preview{
+  margin-top: .75rem;
+  background: var(--white);
+  border:1px solid var(--gray-40);
+  border-radius: .5rem;
+  padding: .75rem;
+  max-height: 200px;
+  overflow:auto;
+  font-size: .85rem;
+}
+.report-preview table{
+  width:100%;
+  border-collapse: collapse;
+}
+.report-preview th,.report-preview td{
+  border-bottom:1px solid var(--gray-40);
+  padding:.5rem .6rem;
+  text-align:left;
+}
+.report-preview th{
+  background: var(--green-50);
+}
 
 .cultivo-section {
     flex: 1 1 320px;

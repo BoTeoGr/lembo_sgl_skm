@@ -1187,10 +1187,13 @@ function setupProductionStatusCard() {
 	const cancelReportBtn = document.getElementById("cancelReportBtn")
 	const generateReportBtn = document.getElementById("generateReportBtn")
 	const closeReportModal = document.getElementById("closeReportModal")
+    const previewBtn = null
   
 	// Mostrar modal
 	reportBtn?.addEventListener("click", () => {
 	  reportModal.style.display = "flex"
+	  // Render inicial
+	  try { renderPreview() } catch (_) {}
 	})
   
 	// Cerrar modal
@@ -1200,60 +1203,125 @@ function setupProductionStatusCard() {
 	  })
 	})
   
+
+	function collectReportData() {
+	  const includeInactive = document.getElementById("includeInactive")?.checked
+	  const dateFrom = document.getElementById("dateFrom")?.value
+	  const dateTo = document.getElementById("dateTo")?.value
+	  const selectedCols = Array.from(document.querySelectorAll('.col-check:checked')).map(i => i.getAttribute('data-col'))
+
+	  const rows = Array.from(document.querySelectorAll(".table__row"))
+	  const dataset = rows
+		.filter((row) => {
+		  // Respetar filtros, pero ignorar paginación (incluir todas las páginas)
+		  if (row.dataset.filtered === 'true') return false
+		  if (!includeInactive && row.querySelector(".badge--inactive")) return false
+		  // Filtro por fecha si hay columnas de fecha en dataset (usa data-startDate/ data-endDate si existiera)
+		  if (dateFrom || dateTo) {
+			const start = row.dataset.startDate || ''
+			if (dateFrom && start && start < dateFrom) return false
+			if (dateTo && start && start > dateTo) return false
+		  }
+		  return true
+		})
+		.map((row) => ({
+		  id: row.querySelector("td:nth-child(2)")?.textContent || '',
+		  nombre: row.querySelector("td:nth-child(3)")?.textContent || '',
+		  responsable: row.querySelector("td:nth-child(4)")?.textContent || '',
+		  cultivo: row.querySelector("td:nth-child(5)")?.textContent || '',
+		  inversion: row.querySelector("td:nth-child(6)")?.textContent || '',
+		  progreso: row.querySelector(".progress__text")?.textContent || '',
+		  estado: (row.querySelector(".badge--status")?.textContent || '').trim(),
+		}))
+
+	  // Aplicar selección de columnas
+	  const mapped = dataset.map(item => {
+		const obj = {}
+		selectedCols.forEach(c => { obj[c] = item[c] })
+		return obj
+	  })
+	  return { data: mapped, cols: selectedCols }
+	}
+
+	function renderPreview() {
+	  const { data } = collectReportData()
+	  const prev = document.getElementById('reportPreview')
+	  if (!prev) return
+	  const count = data.length
+	  prev.innerHTML = count > 0
+	    ? `Se descargarán <strong>${count}</strong> producciones.`
+	    : '<em>No hay datos para exportar</em>'
+	}
+
+    // Auto-actualizar vista previa al cambiar opciones
+	document.getElementById('includeInactive')?.addEventListener('change', renderPreview)
+	document.getElementById('dateFrom')?.addEventListener('change', renderPreview)
+	document.getElementById('dateTo')?.addEventListener('change', renderPreview)
+	Array.from(document.querySelectorAll('.col-check')).forEach(el => el.addEventListener('change', renderPreview))
+
 	// Generar reporte
 	document.getElementById("reportForm")?.addEventListener("submit", (e) => {
 	  e.preventDefault()
-	  const includeInactive = document.getElementById("includeInactive").checked
-	  const includeDetails = document.getElementById("includeDetails").checked
-  
-	  // Obtener datos de la tabla
-	  const rows = Array.from(document.querySelectorAll(".table__row"))
-	  const reportData = rows
-		.filter((row) => {
-		  if (!includeInactive && row.querySelector(".badge--inactive")) {
-			return false
-		  }
-		  return row.style.display !== "none"
-		})
-		.map((row) => ({
-		  id: row.querySelector("td:nth-child(2)").textContent,
-		  nombre: row.querySelector("td:nth-child(3)").textContent,
-		  responsable: row.querySelector("td:nth-child(4)").textContent,
-		  cultivo: row.querySelector("td:nth-child(5)").textContent,
-		  inversion: row.querySelector("td:nth-child(6)").textContent,
-		  progreso: row.querySelector(".progress__text").textContent,
-		  estado: row.querySelector(".badge--status").textContent.trim(),
-		}))
-  
-	  // Agregar BOM para UTF-8
-	  const BOM = "\uFEFF"
-  
-	  // Generar CSV con headers en español
-	  let csv = BOM
-	  if (includeDetails) {
-		csv += "Identificador,Nombre,Responsable,Cultivo,Inversión,Progreso,Estado\n"
-		reportData.forEach((item) => {
-		  csv += `"${item.id}","${item.nombre}","${item.responsable}","${item.cultivo}","${item.inversion}","${item.progreso}","${item.estado}"\n`
-		})
-	  } else {
-		csv += "Identificador,Nombre,Estado\n"
-		reportData.forEach((item) => {
-		  csv += `"${item.id}","${item.nombre}","${item.estado}"\n`
-		})
-	  }
-  
-	  // Crear y descargar archivo con nombre en español
+	  const format = document.getElementById('reportFormat')?.value || 'csv'
+	  const { data, cols } = collectReportData()
+	  if (!data || data.length === 0) { mostrarError('No hay datos para exportar'); return }
+
 	  const fecha = new Date().toLocaleDateString("es-ES").replace(/\//g, "-")
-	  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" })
-	  const link = document.createElement("a")
-	  const url = URL.createObjectURL(blob)
-	  link.setAttribute("href", url)
-	  link.setAttribute("download", `reporte_producciones_${fecha}.csv`)
-	  document.body.appendChild(link)
-	  link.click()
-	  document.body.removeChild(link)
-	  URL.revokeObjectURL(url)
-	  reportModal.style.display = "none"
+
+	  if (format === 'json') {
+		const blob = new Blob([JSON.stringify({ columnas: cols, datos: data }, null, 2)], { type: 'application/json;charset=utf-8' })
+		const url = URL.createObjectURL(blob)
+		const a = document.createElement('a')
+		a.href = url; a.download = `reporte_producciones_${fecha}.json`
+		document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url)
+		reportModal.style.display = 'none'
+		return
+	  }
+
+	  if (format === 'csv') {
+		const BOM = "\uFEFF"
+		const header = cols.map(c=>`"${c}"`).join(',')
+		const rows = data.map(row => cols.map(c => `"${String(row[c]??'').replace(/"/g,'""')}"`).join(',')).join('\n')
+		const csv = `${BOM}${header}\n${rows}`
+		const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+		const url = URL.createObjectURL(blob)
+		const a = document.createElement('a')
+		a.href = url; a.download = `reporte_producciones_${fecha}.csv`
+		document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url)
+		reportModal.style.display = 'none'
+		return
+	  }
+
+	  if (format === 'xlsx') {
+		// Generación simple de XLSX sin librería: fallback a CSV con extensión xlsx
+		const header = cols.join(',')
+		const rows = data.map(row => cols.map(c => String(row[c]??'')).join(',')).join('\n')
+		const csv = `${header}\n${rows}`
+		const blob = new Blob([csv], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+		const url = URL.createObjectURL(blob)
+		const a = document.createElement('a')
+		a.href = url; a.download = `reporte_producciones_${fecha}.xlsx`
+		document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url)
+		reportModal.style.display = 'none'
+		return
+	  }
+
+	  if (format === 'pdf') {
+		// Renderizar tabla a un HTML e imprimir. Alternativa simple sin librerías: abrir nueva ventana y usar print
+		const tableHtml = `<table style="width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:12px;">
+		  <thead><tr>${cols.map(c=>`<th style='border:1px solid #ddd;padding:6px;background:#f3f4f6;text-align:left;'>${c[0].toUpperCase()+c.slice(1)}</th>`).join('')}</tr></thead>
+		  <tbody>${data.map(r=>`<tr>${cols.map(c=>`<td style='border:1px solid #eee;padding:6px;'>${String(r[c]??'')}</td>`).join('')}</tr>`).join('')}</tbody>
+		</table>`
+		const w = window.open('', '_blank')
+		if (w) {
+		  w.document.write(`<html><head><title>Reporte de Producciones</title></head><body>${tableHtml}<script>window.onload=()=>{window.print(); setTimeout(()=>window.close(), 300);}</script></body></html>`)
+		  w.document.close()
+		  reportModal.style.display = 'none'
+		} else {
+		  mostrarError('No se pudo abrir la ventana para imprimir PDF')
+		}
+		return
+	  }
 	})
   
 	// Cerrar modal al hacer clic fuera

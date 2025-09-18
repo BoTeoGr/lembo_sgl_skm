@@ -481,45 +481,52 @@
 											</button>
 										</div>
 										<div class="modal__body">
-											<form id="reportForm" class="form">
-												<div class="form__group">
-													<label class="form__label">
-														<input
-															type="checkbox"
-															id="includeInactive"
-															class="form__checkbox"
-														/>
-														Incluir producciones inactivas
-													</label>
-												</div>
-												<div class="form__group">
-													<label class="form__label">
-														<input
-															type="checkbox"
-															id="includeDetails"
-															class="form__checkbox"
-															checked
-														/>
-														Incluir detalles completos
-													</label>
-												</div>
-												<div class="form__actions form__actions--report">
-													<button
-														type="button"
-														class="button button--secondary"
-														id="cancelReportBtn"
-													>
-														Cancelar
-													</button>
-													<button
-														type="submit"
-														class="button button--primary"
-														id="generateReportBtn"
-													>
-														Generar
-													</button>
-												</div>
-											</form>
+								<form id="reportForm" class="form">
+									<div class="form__group">
+										<label class="form__label">Formato</label>
+										<select id="reportFormat" class="filters__select">
+											<option value="csv">CSV</option>
+											<option value="xlsx">Excel (.xlsx)</option>
+											<option value="pdf">PDF</option>
+											<option value="json">JSON</option>
+										</select>
+									</div>
+
+									<div class="form__group">
+										<label class="form__label">
+											<input type="checkbox" id="includeInactive" class="form__checkbox" />
+											Incluir producciones inactivas
+										</label>
+									</div>
+
+									<div class="form__group">
+										<label class="form__label">Columnas</label>
+										<div class="columns-grid">
+											<label><input type="checkbox" class="col-check" data-col="id" checked /> Identificador</label>
+											<label><input type="checkbox" class="col-check" data-col="nombre" checked /> Nombre</label>
+											<label><input type="checkbox" class="col-check" data-col="responsable" checked /> Responsable</label>
+											<label><input type="checkbox" class="col-check" data-col="cultivo" checked /> Cultivo</label>
+											<label><input type="checkbox" class="col-check" data-col="inversion" checked /> Inversión</label>
+											<label><input type="checkbox" class="col-check" data-col="progreso" checked /> Progreso</label>
+											<label><input type="checkbox" class="col-check" data-col="estado" checked /> Estado</label>
+										</div>
+									</div>
+
+									<div class="form__group">
+										<label class="form__label">Rango de fechas</label>
+										<div class="filters__date-container">
+											<input type="date" id="dateFrom" class="filters__date" />
+											<input type="date" id="dateTo" class="filters__date" />
+										</div>
+									</div>
+
+									<div id="reportPreview" class="report-preview"></div>
+
+									<div class="form__actions form__actions--report">
+										<button type="button" class="button button--secondary" id="cancelReportBtn">Cancelar</button>
+										<button type="submit" class="button button--primary" id="generateReportBtn">Generar</button>
+									</div>
+								</form>
 										</div>
 									</div>
 								</div>
