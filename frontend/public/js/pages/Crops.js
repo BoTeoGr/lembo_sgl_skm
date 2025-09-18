@@ -567,6 +567,10 @@ class Crops {
             
             tbody.appendChild(row);
         });
+
+        // Mantener sincronizados contadores y checkboxes maestros tras cada render
+        this.updateSelectedCount();
+        this.updateHeaderCheckbox();
     }
 
         updateUIForVisitante() {
@@ -682,11 +686,21 @@ class Crops {
     }
 
     updateHeaderCheckbox() {
-        const checkboxes = document.querySelectorAll('.table__checkbox');
-        const headerCheckbox = document.querySelector('.actions-bar__checkbox');
-        if (!headerCheckbox) return;
-        const allChecked = Array.from(checkboxes).length > 0 && Array.from(checkboxes).every(cb => cb.checked);
-        headerCheckbox.checked = allChecked;
+        const rowCheckboxes = Array.from(document.querySelectorAll('.table__checkbox'));
+        const actionsBarCheckbox = document.querySelector('.actions-bar__checkbox');
+        const tableHeaderCheckbox = document.querySelector('.table__checkbox-header');
+        const hasRows = rowCheckboxes.length > 0;
+        const allChecked = hasRows && rowCheckboxes.every(cb => cb.checked);
+        const someChecked = hasRows && rowCheckboxes.some(cb => cb.checked);
+
+        if (actionsBarCheckbox) {
+            actionsBarCheckbox.checked = allChecked;
+            actionsBarCheckbox.indeterminate = !allChecked && someChecked;
+        }
+        if (tableHeaderCheckbox) {
+            tableHeaderCheckbox.checked = allChecked;
+            tableHeaderCheckbox.indeterminate = !allChecked && someChecked;
+        }
     }
 
     updateSelectedCount() {
