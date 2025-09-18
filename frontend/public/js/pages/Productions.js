@@ -735,26 +735,28 @@ function setupProductionStatusCard() {
 	})
   
 	// Función de filtrado
-	function filterTable() {
+    function filterTable() {
 	  const searchTerm = (searchInput?.value || "").trim().toLowerCase()
 	  // Normalizar estado del select (UI) a valores reales en datos (habilitado/deshabilitado)
 	  const selectedStateRaw = (stateSelect?.value || "").trim()
 	  const selectedState = selectedStateRaw === "Activo" ? "habilitado" : selectedStateRaw === "Inactivo" ? "deshabilitado" : ""
 	  // Ciclo removido
 	
-	  getRows().forEach((row) => {
+      getRows().forEach((row) => {
 		const id = row.querySelector("td:nth-child(2)")?.textContent.toLowerCase() || ""
 		const name = row.querySelector("td:nth-child(3)")?.textContent.toLowerCase() || ""
 		const stateText = (row.querySelector(".badge--status")?.textContent || "").trim().toLowerCase()
 		// Ciclo removido
 	
 		// Aplicar filtros
-		const matchesSearch = !searchTerm || id.includes(searchTerm) || name.includes(searchTerm)
-		const matchesState = !selectedState || stateText.includes(selectedState)
-		const matchesCycle = true
-	
-		// Mostrar u ocultar fila según filtros
-		row.style.display = matchesSearch && matchesState && matchesCycle ? "" : "none"
+        const matchesSearch = !searchTerm || id.includes(searchTerm) || name.includes(searchTerm)
+        const matchesState = !selectedState || stateText.includes(selectedState)
+        const matchesCycle = true
+
+        const isEligible = matchesSearch && matchesState && matchesCycle
+        // Marcar elegibilidad para paginación y aplicar visibilidad provisional
+        row.dataset.filtered = isEligible ? "false" : "true"
+        row.style.display = isEligible ? "" : "none"
 	  })
 	
 	  updatePaginationAfterFilter()
@@ -778,29 +780,53 @@ function setupProductionStatusCard() {
 	const itemsPerPage = 6
 	let currentPage = 1
 
-	const getAllRows = () => Array.from(document.querySelectorAll('.table__row'))
-	const getVisibleRows = () => getAllRows().filter(r => r.style.display !== 'none')
+    const getAllRows = () => Array.from(document.querySelectorAll('.table__row'))
+    // Filas elegibles para la paginación (no filtradas por criterios)
+    const getEligibleRows = () => getAllRows().filter(r => r.dataset.filtered !== 'true')
 
-	const paginationInfo = document.querySelector(".pagination__info")
-	const prevBtn = document.querySelector(".pagination__button--prev")
-	const nextBtn = document.querySelector(".pagination__button--next")
-	const pageButtons = document.querySelectorAll(
-	  ".pagination__button:not(.pagination__button--prev):not(.pagination__button--next)"
-	)
+    const paginationInfo = document.querySelector(".pagination__info")
+    // Clonar y reemplazar botones para evitar listeners duplicados
+    const replaceWithClone = (el) => {
+      if (!el || !el.parentNode) return el
+      const clone = el.cloneNode(true)
+      el.parentNode.replaceChild(clone, el)
+      return clone
+    }
+		let prevBtn = document.querySelector(".pagination__button--prev")
+		let nextBtn = document.querySelector(".pagination__button--next")
+		prevBtn = replaceWithClone(prevBtn)
+		nextBtn = replaceWithClone(nextBtn)
 
-	function refreshPaginationUI() {
-	  const totalItems = getVisibleRows().length
-	  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage))
+		const getControlsContainer = () => document.querySelector('.pagination__controls')
 
-	  if (paginationInfo) {
-		paginationInfo.innerHTML = `Mostrando <span class="pagination__items-per-page">${itemsPerPage}</span> de <span class=\"pagination__total-items\">${totalItems}</span> producciones`
-	  }
+		function renderPageButtons(totalPages) {
+			const controls = getControlsContainer()
+			if (!controls) return
+			// Eliminar botones numéricos existentes
+			Array.from(controls.querySelectorAll('.pagination__button'))
+				.filter(btn => !btn.classList.contains('pagination__button--prev') && !btn.classList.contains('pagination__button--next'))
+				.forEach(btn => btn.remove())
 
-	  pageButtons.forEach((button, index) => {
-		const pageNum = index + 1
-		button.style.display = pageNum <= totalPages ? "" : "none"
-		button.classList.toggle("pagination__button--active", pageNum === currentPage)
-	  })
+			// Insertar botones numéricos 1..totalPages
+			for (let i = 1; i <= totalPages; i++) {
+				const btn = document.createElement('button')
+				btn.className = 'pagination__button' + (i === currentPage ? ' pagination__button--active' : '')
+				btn.textContent = String(i)
+				btn.addEventListener('click', () => showPage(i))
+				if (nextBtn && nextBtn.parentNode === controls) {
+					controls.insertBefore(btn, nextBtn)
+				} else {
+					controls.appendChild(btn)
+				}
+			}
+		}
+
+		function refreshPaginationUI() {
+			const totalItems = getEligibleRows().length
+			const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage))
+
+			// Volver a crear los botones según totalPages
+			renderPageButtons(totalPages)
 
 	  if (prevBtn) prevBtn.disabled = currentPage === 1
 	  if (nextBtn) nextBtn.disabled = currentPage === totalPages
@@ -810,28 +836,37 @@ function setupProductionStatusCard() {
 	  if (totalPagesEl) totalPagesEl.textContent = String(totalPages)
 	  const totalItemsEl = document.querySelector('.pagination__total-items')
 	  if (totalItemsEl) totalItemsEl.textContent = String(totalItems)
+      const itemsPerPageEl = document.querySelector('.pagination__items-per-page')
+      if (itemsPerPageEl) itemsPerPageEl.textContent = String(itemsPerPage)
+      const currentPageEl = document.querySelector('.pagination__current-page')
+      if (currentPageEl) currentPageEl.textContent = String(currentPage)
 	}
 
 	function showPage(page) {
-	  const rows = getVisibleRows()
-	  const totalPages = Math.max(1, Math.ceil(rows.length / itemsPerPage))
+      const rows = getEligibleRows()
+      const totalPages = Math.max(1, Math.ceil(rows.length / itemsPerPage))
 	  const targetPage = Math.max(1, Math.min(page, totalPages))
 	  const start = (targetPage - 1) * itemsPerPage
 	  const end = start + itemsPerPage
 
-	  // Primero ocultar todas las filas visibles actuales
-	  getAllRows().forEach(row => { if (row.style.display !== 'none') row.style.display = 'none' })
+      // Ocultar todas las filas y luego mostrar solo el subconjunto elegible de la página
+      getAllRows().forEach(row => { row.style.display = 'none' })
 	  // Volver a mostrar solo el subset de filas correspondientes
 	  rows.forEach((row, index) => {
 		if (index >= start && index < end) row.style.display = ''
 	  })
 
-	  currentPage = targetPage
-	  pageButtons.forEach((button, index) => {
-		button.classList.toggle("pagination__button--active", index + 1 === currentPage)
-	  })
+		currentPage = targetPage
+		// Actualizar estado activo de botones
+		Array.from(document.querySelectorAll('.pagination__controls .pagination__button'))
+			.filter(btn => !btn.classList.contains('pagination__button--prev') && !btn.classList.contains('pagination__button--next'))
+			.forEach(btn => {
+				btn.classList.toggle('pagination__button--active', btn.textContent === String(currentPage))
+			})
 	  if (prevBtn) prevBtn.disabled = currentPage === 1
 	  if (nextBtn) nextBtn.disabled = currentPage === totalPages
+      const currentPageEl = document.querySelector('.pagination__current-page')
+      if (currentPageEl) currentPageEl.textContent = String(currentPage)
 	}
 
 	// Inicialización
@@ -839,21 +874,17 @@ function setupProductionStatusCard() {
 	showPage(currentPage)
 
 	// Event listeners para botones de paginación
-	if (prevBtn) {
-	  prevBtn.addEventListener("click", () => {
-		if (currentPage > 1) showPage(currentPage - 1)
-	  })
-	}
+		if (prevBtn) {
+			prevBtn.addEventListener("click", () => {
+				if (currentPage > 1) showPage(currentPage - 1)
+			})
+		}
 
-	if (nextBtn) {
-	  nextBtn.addEventListener("click", () => {
-		showPage(currentPage + 1)
-	  })
-	}
-
-	pageButtons.forEach((button, index) => {
-	  button.addEventListener("click", () => showPage(index + 1))
-	})
+		if (nextBtn) {
+			nextBtn.addEventListener("click", () => {
+				showPage(currentPage + 1)
+			})
+		}
 
 	// Escuchar reinicio de paginación tras un filtrado
 	document.addEventListener('paginationReset', () => {
@@ -865,7 +896,16 @@ function setupProductionStatusCard() {
   
   // Añadir esta función después de setupPagination()
   function setupSeleccionMultiple() {
-	const checkboxHeader = document.querySelector(".table__checkbox-header");
+    if (window.__multiSelectInitialized) {
+      if (typeof window.__actualizarSeleccionProducciones === 'function') {
+        window.__actualizarSeleccionProducciones();
+      }
+      return;
+    }
+    window.__multiSelectInitialized = true;
+
+    const checkboxHeader = document.querySelector(".table__checkbox-header");
+    const checkboxActionBar = document.querySelector(".actions-bar__checkbox");
 	const actionBar = document.querySelector(".actions-bar");
 	const enableBtn = document.querySelector(".button--enable");
 	const disableBtn = document.querySelector(".button--disable");
@@ -873,8 +913,8 @@ function setupProductionStatusCard() {
 	const countTotal = document.querySelector(".actions-bar__count--total");
 	
 	// Variables para seguimiento
-	let seleccionadas = [];
-	let totalProducciones = 0;
+    let seleccionadas = [];
+    let totalProducciones = 0;
 	
 	// Función para actualizar contadores
 	function actualizarContadores() {
@@ -888,47 +928,81 @@ function setupProductionStatusCard() {
 	}
 	
 	// Función para actualizar selección
-	function actualizarSeleccion() {
-	  seleccionadas = [];
-	  const checkboxes = document.querySelectorAll(".table__checkbox");
-	  totalProducciones = checkboxes.length;
-	  
-	  checkboxes.forEach(checkbox => {
-		if (checkbox.checked) {
-		  const row = checkbox.closest(".table__row");
-		  const id = row.querySelector("td:nth-child(2)").textContent;
-		  seleccionadas.push(id);
-		}
-	  });
-	  
-	  actualizarContadores();
-	}
+  function actualizarSeleccion() {
+      seleccionadas = [];
+      const allCheckboxes = Array.from(document.querySelectorAll(".table__checkbox"));
+      // Conjuntos: todos elegibles vs visibles (página actual)
+      const eligibleAllCheckboxes = allCheckboxes.filter(cb => {
+        const row = cb.closest('.table__row');
+        return row && row.dataset.filtered !== 'true';
+      });
+      const eligibleVisibleCheckboxes = eligibleAllCheckboxes.filter(cb => {
+        const row = cb.closest('.table__row');
+        return row && row.style.display !== 'none';
+      });
+
+      // Total global (en barra) = todos elegibles
+      totalProducciones = eligibleAllCheckboxes.length;
+
+      // Seleccionadas = todas las elegibles marcadas (en cualquier página)
+      eligibleAllCheckboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+          const row = checkbox.closest(".table__row");
+          const idCell = row && row.querySelector("td:nth-child(2)");
+          const id = idCell ? idCell.textContent : '';
+          if (id) seleccionadas.push(id);
+        }
+      });
+
+      // Sincronizar select-all cabecera según visibles
+      const allCheckedVisible = eligibleVisibleCheckboxes.length > 0 && eligibleVisibleCheckboxes.every(cb => cb.checked);
+      const someCheckedVisible = eligibleVisibleCheckboxes.some(cb => cb.checked);
+      if (checkboxHeader) {
+        checkboxHeader.checked = allCheckedVisible;
+        checkboxHeader.indeterminate = someCheckedVisible && !allCheckedVisible;
+      }
+
+      // Sincronizar select-all barra según todos elegibles
+      const allCheckedAll = eligibleAllCheckboxes.length > 0 && eligibleAllCheckboxes.every(cb => cb.checked);
+      const someCheckedAll = eligibleAllCheckboxes.some(cb => cb.checked);
+      if (checkboxActionBar) {
+        checkboxActionBar.checked = allCheckedAll;
+        checkboxActionBar.indeterminate = someCheckedAll && !allCheckedAll;
+      }
+
+      actualizarContadores();
+    }
 	
 	// Seleccionar/deseleccionar todos
-	if (checkboxHeader) {
-	  checkboxHeader.addEventListener("change", function() {
-		const checkboxes = document.querySelectorAll(".table__checkbox");
-		checkboxes.forEach(checkbox => {
-		  checkbox.checked = this.checked;
-		});
-		actualizarSeleccion();
-	  });
-	}
+    if (checkboxHeader) {
+      checkboxHeader.addEventListener("change", function() {
+        const eligibleCheckboxes = Array.from(document.querySelectorAll('.table__row'))
+          .filter(r => r.dataset.filtered !== 'true' && r.style.display !== 'none')
+          .map(r => r.querySelector('.table__checkbox'))
+          .filter(Boolean);
+        eligibleCheckboxes.forEach(checkbox => { checkbox.checked = this.checked; });
+        if (checkboxActionBar) checkboxActionBar.checked = this.checked;
+        actualizarSeleccion();
+      });
+    }
+
+    if (checkboxActionBar) {
+      checkboxActionBar.addEventListener("change", function() {
+        const eligibleCheckboxes = Array.from(document.querySelectorAll('.table__row'))
+          .filter(r => r.dataset.filtered !== 'true')
+          .map(r => r.querySelector('.table__checkbox'))
+          .filter(Boolean);
+        eligibleCheckboxes.forEach(checkbox => { checkbox.checked = this.checked; });
+        if (checkboxHeader) checkboxHeader.checked = this.checked;
+        actualizarSeleccion();
+      });
+    }
 	
 	// Event delegation para checkboxes individuales
-	document.addEventListener("change", function(e) {
+    document.addEventListener("change", function(e) {
 	  if (e.target && e.target.classList.contains("table__checkbox")) {
 		actualizarSeleccion();
-		
-		// Actualizar checkbox de cabecera
-		if (checkboxHeader) {
-		  const checkboxes = document.querySelectorAll(".table__checkbox");
-		  const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-		  const someChecked = Array.from(checkboxes).some(cb => cb.checked);
-		  
-		  checkboxHeader.checked = allChecked;
-		  checkboxHeader.indeterminate = someChecked && !allChecked;
-		}
+        // No más sincronización manual aquí; actualizarSeleccion ya gestiona ambos select-all
 	  }
 	});
 	
@@ -956,8 +1030,10 @@ function setupProductionStatusCard() {
 	  });
 	}
 	
-	// Inicializar contadores
-	actualizarSeleccion();
+    // Inicializar contadores
+    actualizarSeleccion();
+    // Exponer función para que paginación pueda recalcular al cambiar de página
+    window.__actualizarSeleccionProducciones = actualizarSeleccion;
   }
   
   // Función para habilitar múltiples producciones
@@ -973,11 +1049,12 @@ function setupProductionStatusCard() {
 		`;
 	  }
 	  
-	  // Llamada al endpoint para habilitar múltiples producciones
-	  const response = await fetch("http://localhost:5000/producciones/habilitar-multiples", {
-		method: "POST",
+      // Llamada al endpoint para habilitar múltiples producciones (backend espera PUT)
+      const response = await fetch("http://localhost:5000/producciones/estados/habilitado", {
+        method: "PUT",
 		headers: {
-		  "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('token') || ''}`
 		},
 		body: JSON.stringify({ ids })
 	  });
@@ -1022,11 +1099,12 @@ function setupProductionStatusCard() {
 		`;
 	  }
 	  
-	  // Llamada al endpoint para deshabilitar múltiples producciones
-	  const response = await fetch("http://localhost:5000/producciones/deshabilitar-multiples", {
-		method: "POST",
+      // Llamada al endpoint para deshabilitar múltiples producciones (backend espera PUT)
+      const response = await fetch("http://localhost:5000/producciones/deshabilitar", {
+        method: "PUT",
 		headers: {
-		  "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('token') || ''}`
 		},
 		body: JSON.stringify({ ids })
 	  });
@@ -1088,12 +1166,15 @@ function setupProductionStatusCard() {
   
   // Función para actualizar la paginación después de filtrar
   function updatePaginationAfterFilter() {
-	const visibleRows = document.querySelectorAll('.table__row:not([style*="display: none"])')
-	const totalItems = visibleRows.length
-	const itemsPerPage = 6
-  
-	document.querySelector(".pagination__total-items").textContent = totalItems
-	document.querySelector(".pagination__total-pages").textContent = Math.ceil(totalItems / itemsPerPage)
+    const allRows = Array.from(document.querySelectorAll('.table__row'))
+    const eligibleRows = allRows.filter(r => r.dataset.filtered !== 'true')
+    const totalItems = eligibleRows.length
+    const itemsPerPage = 6
+
+    const totalItemsEl = document.querySelector('.pagination__total-items')
+    if (totalItemsEl) totalItemsEl.textContent = String(totalItems)
+    const totalPagesEl = document.querySelector('.pagination__total-pages')
+    if (totalPagesEl) totalPagesEl.textContent = String(Math.max(1, Math.ceil(totalItems / itemsPerPage)))
   
 	// Resetear a la primera página
 	const paginationEvent = new Event("paginationReset")
@@ -1317,6 +1398,8 @@ function setupProductionStatusCard() {
 	  // Fechas para cálculo de progreso en tiempo real
 	  row.dataset.startDate = produccion.fecha_de_inicio || ""
 	  row.dataset.endDate = produccion.fecha_fin || ""
+      // Marcar como no filtrada por defecto (elegible para paginación)
+      row.dataset.filtered = "false"
   
 	  row.innerHTML = `
 		<td class="table__cell table__cell--checkbox">
@@ -1817,10 +1900,11 @@ function setupProductionStatusCard() {
   async function cambiarEstadoProduccion(id, estadoActual) {
 	try {
   
-	  const response = await fetch(`http://localhost:5000/producciones/${id}/estado`, {
+      const response = await fetch(`http://localhost:5000/producciones/${id}/estado`, {
 		method: "PUT",
 		headers: {
-		  "Content-Type": "application/json",
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('token') || ''}`
 		},
 		body: JSON.stringify({ estado: estadoActual }),
 	  });

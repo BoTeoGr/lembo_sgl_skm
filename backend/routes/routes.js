@@ -59,10 +59,11 @@ router.get('/producciones/usuario/:id', obtenerProduccionesPorUsuario);
 router.get('/producciones/sensor/:id', obtenerProduccionesPorSensor);
 router.get('/producciones', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), verProducciones);
 router.post('/producciones', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), crearProduccion);
+// Rutas mas específicas para operaciones masivas deben declararse ANTES de las rutas con :id
+router.put('/producciones/estados/habilitado', actualizarEstadosProduccionHabilitado);
+router.put('/producciones/deshabilitar', deshabilitarProducciones);
 router.get('/producciones/:id', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), obtenerProduccionPorId);
 router.put('/producciones/:id', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), actualizarProduccion);
 router.delete('/producciones/:id', eliminarProduccion);
 router.put('/producciones/:id/estado', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), actualizarEstadoProduccion);
-router.put('/producciones/estados/habilitado', actualizarEstadosProduccionHabilitado);
-router.put('/producciones/deshabilitar', deshabilitarProducciones);
 export default router
