@@ -571,10 +571,7 @@ export default function injectProfileModal() {
       // Get the current user data to ensure we have all required fields
       const currentEmail = document.getElementById('profileEmail').textContent.trim();
       const currentRol = document.getElementById('profileRol').textContent.trim();
-      
-      // Get the current estado value from the profile view or use a default
-      const currentEstado = document.getElementById('profileEstado')?.textContent.trim() || 'Activo';
-      
+            
       // Prepare the complete user data with all required fields
       const formData = {
         tipo_documento: tipoDocShort,
@@ -583,11 +580,8 @@ export default function injectProfileModal() {
         telefono: document.getElementById('editTelefono').value.trim(),
         correo: currentEmail,  // Include email from profile view
         rol: currentRol,      // Include role from profile view
-        estado: currentEstado === 'Activo' ? 1 : 0  // Convert to 1 or 0 for the backend
       };
-      
-      console.log('Form data with estado:', formData);
-      
+            
       try {
         // If there's a new password, we'll let the backend handle the hashing
         if (newPassword) {
@@ -619,12 +613,6 @@ export default function injectProfileModal() {
         document.getElementById('profileName').textContent = formData.nombre || 'No especificado';
         document.getElementById('profileEmail').textContent = formData.correo || 'No especificado';
         document.getElementById('profileRol').textContent = formData.rol || 'No especificado';
-        
-        // Only update estado if the element exists
-        const estadoElement = document.getElementById('profileEstado');
-        if (estadoElement) {
-          estadoElement.textContent = formData.estado === 1 ? 'Activo' : 'Inactivo';
-        }
         
         document.getElementById('profileTelefono').textContent = formData.telefono || 'No especificado';
         document.getElementById('profileTipoDoc').textContent = {
