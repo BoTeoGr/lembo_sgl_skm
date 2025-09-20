@@ -31,6 +31,7 @@
 				const userRole = localStorage.getItem('userRol') || '';
 				const normalizedRole = String(userRole).toLowerCase().trim();
 				const isAdmin = ['administrador', 'super administrador', 'admin', 'superadmin'].includes(normalizedRole);
+				const isVisitante = normalizedRole === 'visitante';
 
 				// Hide buttons if not admin
 				if (!isAdmin) {
@@ -41,6 +42,12 @@
 					// Hide 'Ir a Cultivos' button in the dashboard (more specific selector)
 					const cultivosButton = document.querySelector('.dashboard a[href*="listar-cultivos.html"]');
 					if (cultivosButton) cultivosButton.style.display = 'none';
+				}
+
+				// Hide Tasks card for visitante
+				if (isVisitante) {
+					const tasksCard = document.getElementById('tasksCard');
+					if (tasksCard) tasksCard.style.display = 'none';
 				}
 			});
 		</script>
@@ -303,7 +310,7 @@
 				</div>
 
 				<!-- Tasks Card -->
-				<div class="card card--wide card-animated">
+				<div class="card card--wide card-animated" id="tasksCard">
 					<div class="card__header">
 						<div>
 							<h2 class="card__title">Tareas pendientes</h2>

@@ -218,9 +218,33 @@ export function loginUsuario(req, res) {
             if (!isMatch) {
                 return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
             }
-            // Generar JWT
-            const token = jwt.sign({ id: usuario.id, correo: usuario.correo, rol: usuario.rol }, process.env.JWT_SECRET, { expiresIn: '2h' });
-            res.status(200).json({ token, usuario: { id: usuario.id, nombre: usuario.nombre, correo: usuario.correo, rol: usuario.rol } });
+            // Generar Access Token (corto) y Refresh Token (largo)
+            const accessToken = jwt.sign(
+                { id: usuario.id, correo: usuario.correo, rol: usuario.rol },
+                process.env.JWT_SECRET || 'tu_clave_secreta',
+                { expiresIn: process.env.JWT_ACCESS_EXPIRES || '15m' }
+            );
+
+            const refreshToken = jwt.sign(
+                { id: usuario.id },
+                process.env.REFRESH_TOKEN_SECRET || (process.env.JWT_SECRET || 'tu_clave_secreta') + '_refresh',
+                { expiresIn: process.env.JWT_REFRESH_EXPIRES || '30d' }
+            );
+
+            // Configurar cookie httpOnly para refresh token
+            const isProd = (process.env.NODE_ENV === 'production');
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                secure: isProd,
+                sameSite: isProd ? 'strict' : 'lax',
+                path: '/',
+                maxAge: 30 * 24 * 60 * 60 * 1000 // 30 días
+            });
+
+            res.status(200).json({
+                token: accessToken,
+                usuario: { id: usuario.id, nombre: usuario.nombre, correo: usuario.correo, rol: usuario.rol }
+            });
         });
     });
 }
@@ -544,4 +568,61 @@ export function actualizarUsuario(req, res) {
             res.status(200).json({ message: 'Usuario actualizado correctamente' });
         });
     }
+}
+
+// =====================
+//  Refresh & Logout
+// =====================
+
+export function refreshAccessToken(req, res) {
+    try {
+        const tokenFromCookie = req.cookies?.refreshToken;
+        if (!tokenFromCookie) {
+            return res.status(401).json({ error: 'Refresh token no proporcionado' });
+        }
+
+        const payload = jwt.verify(
+            tokenFromCookie,
+            process.env.REFRESH_TOKEN_SECRET || (process.env.JWT_SECRET || 'tu_clave_secreta') + '_refresh'
+        );
+
+        const newAccessToken = jwt.sign(
+            { id: payload.id, correo: payload.correo, rol: payload.rol },
+            process.env.JWT_SECRET || 'tu_clave_secreta',
+            { expiresIn: process.env.JWT_ACCESS_EXPIRES || '15s' }
+        );
+
+        const newRefreshToken = jwt.sign(
+            { id: payload.id },
+            process.env.REFRESH_TOKEN_SECRET || (process.env.JWT_SECRET || 'tu_clave_secreta') + '_refresh',
+            { expiresIn: process.env.JWT_REFRESH_EXPIRES || '30d' }
+        );
+
+        const isProd = (process.env.NODE_ENV === 'production');
+        res.cookie('refreshToken', newRefreshToken, {
+            httpOnly: true,
+            secure: isProd,
+            sameSite: isProd ? 'strict' : 'lax',
+            path: '/',
+            maxAge: 30 * 24 * 60 * 60 * 1000
+        });
+
+        return res.status(200).json({ token: newAccessToken });
+    } catch (error) {
+        if (error?.name === 'TokenExpiredError') {
+            return res.status(401).json({ error: 'Refresh token expirado' });
+        }
+        return res.status(401).json({ error: 'Refresh token inválido' });
+    }
+}
+
+export function logoutUsuario(req, res) {
+    const isProd = (process.env.NODE_ENV === 'production');
+    res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? 'strict' : 'lax',
+        path: '/'
+    });
+    return res.status(200).json({ message: 'Sesión cerrada' });
 }
