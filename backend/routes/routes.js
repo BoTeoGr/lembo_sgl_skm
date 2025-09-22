@@ -1,6 +1,6 @@
-import express from 'express'
-import {loginUsuario, crearUsuario, VerUsuarios, actualizarEstadoUsuario, actualizarUsuario, obtenerUsuarioPorId, solicitarRecuperacionContrasena, verificarCodigoRecuperacion, restablecerContrasena, refreshAccessToken, logoutUsuario} from '../controllers/user.controller.js'
 
+import express from 'express'
+import {loginUsuario, crearUsuario, VerUsuarios, actualizarEstadoUsuario, actualizarUsuario, obtenerUsuarioPorId, solicitarRecuperacionContrasena, verificarCodigoRecuperacion, restablecerContrasena} from '../controllers/user.controller.js'
 import {VerSensores, crearSensor, actualizarEstadoSensor, actualizarSensor, obtenerSensorPorId} from '../controllers/sensor.controller.js'
 import {crearInsumo,VerInsumos,actualizarEstadoInsumo, actualizarInsumo, obtenerInsumoPorId, obtenerResumenInsumos, reponerStockInsumo} from '../controllers/insumo.controller.js'
 import {crearCultivo,VerCultivos,actualizarEstadoCultivo, actualizarCultivo, obtenerCultivoPorId} from '../controllers/cultivo.controller.js'
@@ -12,10 +12,6 @@ const router = express.Router()
 
 // Ruta para iniciar sesion
 router.post('/login', loginUsuario);
-// Refresh access token
-router.post('/refresh-token', refreshAccessToken);
-// Logout (clear refresh cookie)
-router.post('/logout', logoutUsuario);
 
 // Rutas para recuperación de contraseña
 router.post('/solicitar-recuperacion', solicitarRecuperacionContrasena);

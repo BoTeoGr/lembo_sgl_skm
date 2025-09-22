@@ -7,7 +7,6 @@ export default function Navbar() {
 	const normalizedRole = String(userRole).toLowerCase().trim();
 	const isAdmin = ['administrador', 'super administrador', 'admin', 'superadmin'].includes(normalizedRole);
 	const isVisitante = ['visitante', 'Visitante'].includes(normalizedRole);
-	const isApoyo = ['personal de apoyo', 'apoyo'].includes(normalizedRole);
 	console.log('User role:', `'${userRole}'`, 'Is admin?', isAdmin, 'Is visitante?', isVisitante);
 
 	const isSelected = (linkPath) => {
@@ -30,42 +29,20 @@ export default function Navbar() {
                             </a>
                         </li>
                         
-                        <li class="nav__item ${(isVisitante || isApoyo) ? '' : 'nav__item--dropdown'}">
-							<a href="listar-sensores.html" class="nav__link ${isSelected('listar-sensores.html')}">
-								<span class="material-symbols-outlined">sensors</span>
-								<span>Sensores</span>
-								${(!isVisitante && !isApoyo) ? `
-									<span class="material-symbols-outlined nav__arrow">expand_more</span>
-									<div class="nav__dropdown-content">
-										<a href="listar-sensores.html" class="nav__dropdown-link">Lista de Sensores</a>
-										<a href="crear-sensor.html" class="nav__dropdown-link">Agregar Sensor</a>
-									</div>
-								` : ''}
-							</a>
-						</li>
+                        <li class="nav__item ${isVisitante ? '' : 'nav__item--dropdown'}">
+                            <a href="listar-sensores.html" class="nav__link ${isSelected('listar-sensores.html')}">
+                                <span class="material-symbols-outlined">sensors</span>
+                                <span>Sensores</span>
+                                ${!isVisitante ? `
+                                    <span class="material-symbols-outlined nav__arrow">expand_more</span>
+                                    <div class="nav__dropdown-content">
+                                        <a href="listar-sensores.html" class="nav__dropdown-link">Lista de Sensores</a>
+                                        <a href="crear-sensor.html" class="nav__dropdown-link">Agregar Sensor</a>
+                                    </div>
+                                ` : ''}
+                            </a>
+                        </li>
 
-						${(isAdmin || isVisitante) ? `
-						<li class="nav__item ${isVisitante ? '' : 'nav__item--dropdown'}">
-							${isVisitante ? `
-								<a href="listar-cultivos.html" class="nav__link ${isSelected('listar-cultivos.html')}">
-									<span class="material-symbols-outlined">agriculture</span>
-									<span>Cultivos</span>
-								</a>
-							` : `
-								<button class="nav__dropdown-btn ${isSelected('listar-cultivos.html')}">
-									<span class="material-symbols-outlined">agriculture</span>
-									<span>Cultivos</span>
-									<span class="material-symbols-outlined nav__arrow">expand_more</span>
-								</button>
-								<div class="nav__dropdown-content">
-									<a href="listar-cultivos.html" class="nav__dropdown-link">Lista de Cultivos</a>
-									<a href="crear-cultivo.html" class="nav__dropdown-link">Agregar Cultivo</a>
-									<a href="listar-ciclos-cultivos.html" class="nav__dropdown-link">Lista de Ciclos</a>
-									<a href="crear-ciclo-cultivo.html" class="nav__dropdown-link">Agregar Ciclo</a>
-								</div>
-							`}
-						</li>
-						` : ''}
                         ${isAdmin ? `
                         <li class="nav__item nav__item--dropdown">
                             <button class="nav__dropdown-btn ${isSelected(
@@ -79,6 +56,29 @@ export default function Navbar() {
                                 <a href="listar-usuarios.html" class="nav__dropdown-link">Lista de Usuarios</a>
                                 <a href="crear-usuario.html" class="nav__dropdown-link">Registrar Usuario</a>
                             </div>
+                        </li>
+
+                        <li class="nav__item ${isVisitante ? '' : 'nav__item--dropdown'}">
+                            ${isVisitante ? `
+                                <a href="listar-cultivos.html" class="nav__link ${isSelected('listar-cultivos.html')}">
+                                    <span class="material-symbols-outlined">agriculture</span>
+                                    <span>Cultivos</span>
+                                </a>
+                            ` : `
+                                <button class="nav__dropdown-btn ${isSelected('listar-cultivos.html')}">
+                                    <span class="material-symbols-outlined">agriculture</span>
+                                    <span>Cultivos</span>
+                                    <span class="material-symbols-outlined nav__arrow">expand_more</span>
+                                </button>
+                                <div class="nav__dropdown-content">
+                                    <a href="listar-cultivos.html" class="nav__dropdown-link">Lista de Cultivos</a>
+                                    ${!isVisitante ? `
+                                        <a href="crear-cultivo.html" class="nav__dropdown-link">Agregar Cultivo</a>
+                                        <a href="listar-ciclos-cultivos.html" class="nav__dropdown-link">Lista de Ciclos</a>
+                                        <a href="crear-ciclo-cultivo.html" class="nav__dropdown-link">Agregar Ciclo</a>
+                                    ` : ''}
+                                </div>
+                            `}
                         </li>
 
                         <li class="nav__item nav__item--dropdown">
@@ -152,31 +152,11 @@ export default function Navbar() {
                     <span class="material-symbols-outlined">sensors</span>
                     <span>Lista de Sensores</span>
                 </a>
-                ${isAdmin ? `
-				<a href="crear-sensor.html" class="nav__mobile-link">
-					<span class="material-symbols-outlined">add_circle</span>
-					<span>Agregar Sensor</span>
-				</a>` : ''}
-                ${(isAdmin || isVisitante) ? `
-				<a href="listar-cultivos.html" class="nav__mobile-link">
-					<span class="material-symbols-outlined">agriculture</span>
-					<span>Lista de Cultivos</span>
-				</a>
-				${isAdmin ? `
-					<a href="crear-cultivo.html" class="nav__mobile-link">
-						<span class="material-symbols-outlined">add</span>
-						<span>Agregar Cultivo</span>
-					</a>
-					<a href="listar-ciclos-cultivos.html" class="nav__mobile-link">
-						<span class="material-symbols-outlined">cycle</span>
-						<span>Lista de Ciclos</span>
-					</a>
-					<a href="crear-ciclo-cultivo.html" class="nav__mobile-link">
-						<span class="material-symbols-outlined">add_circle</span>
-						<span>Agregar Ciclo</span>
-					</a>
-				` : ''}
-				` : ''}
+                ${!isVisitante ? `
+                <a href="crear-sensor.html" class="nav__mobile-link">
+                    <span class="material-symbols-outlined">add_circle</span>
+                    <span>Agregar Sensor</span>
+                </a>` : ''}
                 ${isAdmin ? `
                 <a href="listar-usuarios.html" class="nav__mobile-link">
                     <span class="material-symbols-outlined">group</span>
@@ -195,6 +175,25 @@ export default function Navbar() {
                     <span>Agregar Insumo</span>
                 </a>` : ''}
                 
+                <!-- Cultivos Section - Visible to all users -->
+                <a href="listar-cultivos.html" class="nav__mobile-link">
+                    <span class="material-symbols-outlined">agriculture</span>
+                    <span>Lista de Cultivos</span>
+                </a>
+                ${!isVisitante ? `
+                    <a href="crear-cultivo.html" class="nav__mobile-link">
+                        <span class="material-symbols-outlined">add</span>
+                        <span>Agregar Cultivo</span>
+                    </a>
+                    <a href="listar-ciclos-cultivos.html" class="nav__mobile-link">
+                        <span class="material-symbols-outlined">cycle</span>
+                        <span>Lista de Ciclos</span>
+                    </a>
+                    <a href="crear-ciclo-cultivo.html" class="nav__mobile-link">
+                        <span class="material-symbols-outlined">add_circle</span>
+                        <span>Agregar Ciclo</span>
+                    </a>
+                ` : ''}
                 ${isAdmin ? `
                 <a href="listar-producciones.html" class="nav__mobile-link">
                     <span class="material-symbols-outlined">manufacturing</span>
