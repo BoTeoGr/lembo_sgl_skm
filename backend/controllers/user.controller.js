@@ -464,84 +464,98 @@ export function actualizarEstadoUsuario(req, res) {
 export function actualizarUsuario(req, res) {
     const { id } = req.params;
     const { tipo_documento, nombre, numero_documento, telefono, correo, rol, estado, password } = req.body;
-
-    if (!id || !tipo_documento || !nombre || !numero_documento || !telefono || !correo || !rol) {
-        return res.status(400).json({ error: 'Todos los campos son requeridos' });
-    }
     
     // Normalizar el rol del usuario (case-insensitive y manejo de espacios)
     const normalizeRole = (role) => {
         if (!role) return '';
-        return role.toString().toLowerCase().replace(/\s+/g, ' ').trim();
+        // "Super administrador" -> "superadministrador"
+        return role.toString().toLowerCase().replace(/\s+/g, '').trim();
     };
     
     const userRole = normalizeRole(req.user?.rol);
-    const isSuperAdmin = ['superadmin', 'super administrador', 'superadministrador'].includes(userRole);
+    const isSuperAdmin = ['superadmin', 'superadministrador'].includes(userRole);
     
     console.log('Rol normalizado:', userRole, 'Es super admin:', isSuperAdmin);
-    
-    console.log('User role in update:', userRole, 'Is super admin:', isSuperAdmin);
-    
-    // Si se está intentando modificar el estado, verificar permisos de Super Administrador
-    if (estado) {
-        if (!isSuperAdmin) {
-            console.warn('Intento de modificar estado sin permisos de Super Administrador');
-            return res.status(403).json({ 
-                error: 'Solo los Super Administradores pueden modificar el estado de los usuarios' 
-            });
-        }
-        // Si es Super Admin, asegurarse de que el rol no sea modificado a uno superior
-        if (rol && rol.toLowerCase() !== 'super administrador' && rol.toLowerCase() !== 'superadmin') {
-            return res.status(403).json({
-                error: 'No se puede cambiar el rol de un Super Administrador a un rol inferior'
-            });
-        }
-    }
 
-    // Construir la consulta base
-    let query = 'UPDATE usuarios SET tipo_documento = ?, nombre = ?, numero_documento = ?, telefono = ?, correo = ?, rol = ?';
-    const values = [tipo_documento, nombre, numero_documento, telefono, correo, rol];
-    
-    // Si es superadmin y se proporcionó un estado, incluirlo en la actualización
-    if (isSuperAdmin && estado) {
-        query += ', estado = ?';
-        values.push(estado);
-    }
+    // --- INICIO: Nueva Validación de Duplicados ---
+    const checkDuplicateQuery = 'SELECT id, correo, numero_documento FROM usuarios WHERE (correo = ? OR numero_documento = ?) AND id != ?';
+    const checkValues = [correo, numero_documento, id];
 
-    // Si se proporciona una nueva contraseña, agregarla a la actualización
-    if (password) {
-        bcrypt.hash(password, 10, (err, hashedPassword) => {
-            if (err) {
-                console.error('Error al hashear contraseña:', err);
-                return res.status(500).json({ error: 'Error al procesar la contraseña' });
+    db.query(checkDuplicateQuery, checkValues, (err, results) => {
+        if (err) {
+            console.error('Error al verificar duplicados:', err);
+            return res.status(500).json({ error: 'Error al verificar datos del usuario' });
+        }
+
+        if (results.length > 0) {
+            const duplicateUser = results[0];
+            if (duplicateUser.correo === correo) {
+                return res.status(409).json({ error: 'El correo electrónico ya está en uso por otro usuario.' });
             }
+            if (duplicateUser.numero_documento === numero_documento) {
+                return res.status(409).json({ error: 'El número de documento ya está en uso por otro usuario.' });
+            }
+        }
+        // --- FIN: Nueva Validación de Duplicados ---
 
-            query += ', password = ?';
-            values.push(hashedPassword);
-            
-            // Agregar el ID al final
-            query += ' WHERE id = ?';
-            values.push(id);
+        // Si no hay duplicados, proceder con la actualización
+        let queryFields = [];
+        const values = [];
 
-            db.query(query, values, (err, result) => {
+        if (tipo_documento) { queryFields.push('tipo_documento = ?'); values.push(tipo_documento); }
+        if (nombre) { queryFields.push('nombre = ?'); values.push(nombre); }
+        if (numero_documento) { queryFields.push('numero_documento = ?'); values.push(numero_documento); }
+        if (telefono) { queryFields.push('telefono = ?'); values.push(telefono); }
+        if (correo) { queryFields.push('correo = ?'); values.push(correo); }
+        if (rol) { queryFields.push('rol = ?'); values.push(rol); }
+
+        if (isSuperAdmin && estado) {
+            queryFields.push('estado = ?');
+            values.push(estado);
+        }
+
+        if (queryFields.length === 0 && !password) {
+            return res.status(400).json({ error: 'No hay campos válidos para actualizar.' });
+        }
+
+        const executeUpdate = (finalQuery, finalValues) => {
+            db.query(finalQuery, finalValues, (err, result) => {
                 if (err) {
+                    // Manejar errores de duplicado que puedan pasar el primer filtro (raro, pero posible)
+                    if (err.code === 'ER_DUP_ENTRY') {
+                        if (err.sqlMessage.includes('correo')) {
+                            return res.status(409).json({ error: 'El correo electrónico ya está en uso.' });
+                        }
+                        if (err.sqlMessage.includes('numero_documento')) {
+                            return res.status(409).json({ error: 'El número de documento ya está en uso.' });
+                        }
+                    }
                     console.error('Error al actualizar usuario:', err);
                     return res.status(500).json({ error: 'Error al actualizar usuario' });
                 }
+                if (result.affectedRows === 0) {
+                    return res.status(404).json({ error: 'Usuario no encontrado' });
+                }
                 res.status(200).json({ message: 'Usuario actualizado correctamente' });
             });
-        });
-    } else {
-        // Si no se proporciona contraseña, solo actualizar los otros campos
-        query += ' WHERE id = ?';
-        values.push(id);
+        };
 
-        db.query(query, values, (err, result) => {
-            if (err) {
-                console.error('Error al actualizar usuario:', err);
-                return res.status(500).json({ error: 'Error al actualizar usuario' });
-            }
-            res.status(200).json({ message: 'Usuario actualizado correctamente' });
-        });
-    }
+        if (password) {
+            bcrypt.hash(password, 10, (err, hashedPassword) => {
+                if (err) {
+                    console.error('Error al hashear contraseña:', err);
+                    return res.status(500).json({ error: 'Error al procesar la contraseña' });
+                }
+                queryFields.push('password = ?');
+                values.push(hashedPassword);
+                const query = `UPDATE usuarios SET ${queryFields.join(', ')} WHERE id = ?`;
+                values.push(id);
+                executeUpdate(query, values);
+            });
+        } else {
+            const query = `UPDATE usuarios SET ${queryFields.join(', ')} WHERE id = ?`;
+            values.push(id);
+            executeUpdate(query, values);
+        }
+    });
 }

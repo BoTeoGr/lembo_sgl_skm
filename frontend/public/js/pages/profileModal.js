@@ -578,8 +578,8 @@ export default function injectProfileModal() {
         nombre: document.getElementById('editName').value.trim(),
         numero_documento: document.getElementById('editNumDoc').value.trim(),
         telefono: document.getElementById('editTelefono').value.trim(),
-        correo: currentEmail,  // Include email from profile view
-        rol: currentRol,      // Include role from profile view
+        correo: document.getElementById('editEmail').value.trim(),  // Use the value from the form field
+        rol: currentRol,      // Keep role from profile view as it's not editable here
       };
             
       try {
@@ -658,6 +658,28 @@ export default function injectProfileModal() {
         console.error('Error stack:', error.stack);
         showToast('Error', `No se pudo actualizar el perfil: ${error.message || 'Error desconocido'}`, 'error');
       }
+    });
+
+    // Logout button
+    document.getElementById('logoutBtn').addEventListener('click', (e) => {
+      e.preventDefault(); // Prevenir la redirección inmediata del enlace
+
+      console.log('Cerrando sesión...');
+
+      // Limpiar todos los datos de la sesión del localStorage
+      localStorage.removeItem('token');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('userName');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userRol');
+      localStorage.removeItem('userRole'); // Por si se usa esta otra clave
+
+      showToast('Sesión cerrada', 'Has cerrado sesión exitosamente.', 'info');
+
+      // Redirigir al login después de un breve momento
+      setTimeout(() => {
+        window.location.href = 'index.html'; // O la ruta a tu página de login
+      }, 1500);
     });
 
     // Close when clicking outside modal content

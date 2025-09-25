@@ -1708,10 +1708,17 @@ createSensorForm.addEventListener("submit", async (e) => {
       estado: modalSensorData.estado
     };
 
-    const response = await fetch("http://localhost:5000/sensor", {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      showToast("Error", "No se encontró el token de autenticación", "error");
+      return;
+    }
+
+    const response = await fetch(`${API_URL}/sensor`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
       },
       body: JSON.stringify(sensorData)
     });
@@ -1931,10 +1938,17 @@ createSupplyForm.addEventListener("submit", async (e) => {
       estado: modalSupplyData.estado
     };
 
-    const response = await fetch("http://localhost:5000/insumos", {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      showToast("Error", "No se encontró el token de autenticación", "error");
+      return;
+    }
+
+    const response = await fetch(`${API_URL}/insumos`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
       },
       body: JSON.stringify(insumoData)
     });
@@ -2200,10 +2214,17 @@ createCropCycleForm.addEventListener("submit", async (e) => {
       estado: modalCropCycleData.estado
     };
 
-    const response = await fetch("http://localhost:5000/ciclo_cultivo", {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      showToast("Error", "No se encontró el token de autenticación", "error");
+      return;
+    }
+
+    const response = await fetch(`${API_URL}/ciclo_cultivo`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
       },
       body: JSON.stringify(cicloData)
     });
