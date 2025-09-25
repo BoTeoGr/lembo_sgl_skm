@@ -134,8 +134,15 @@ body {
   grid-column: span 2;
 }
 
+.card--xwide {
+  grid-column: span 3;
+}
+
 @media (max-width: 768px) {
   .card--wide {
+    grid-column: span 1;
+  }
+  .card--xwide {
     grid-column: span 1;
   }
   

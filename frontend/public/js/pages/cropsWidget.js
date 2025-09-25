@@ -66,17 +66,27 @@
 
         console.log('Actualizando UI con:', { habilitados, deshabilitados, total, nuevosEstaSemana });
 
-        // Actualizar el subtítulo
-        const subtitle = document.querySelector('.card__subtitle');
+        // Localizar específicamente la card de "Vista de Cultivos"
+        const cropsCard = Array.from(document.querySelectorAll('.card__title'))
+            .find(el => el.textContent && el.textContent.includes('Cultivos'))
+            ?.closest('.card');
+
+        if (!cropsCard) {
+            console.warn('No se pudo localizar la card de Cultivos para actualizar.');
+            return;
+        }
+
+        // Actualizar el subtítulo SOLO dentro de la card de Cultivos
+        const subtitle = cropsCard.querySelector('.card__subtitle');
         if (subtitle) {
             subtitle.textContent = `Total: ${total} cultivos`;
         }
 
-        // Actualizar contadores
-        const enabledCount = document.querySelector('.enabled-count');
-        const disabledCount = document.querySelector('.disabled-count');
-        const newThisWeek = document.querySelector('.new-this-week');
-        const totalCrops = document.querySelector('.total-crops');
+        // Actualizar contadores SOLO dentro de la card de Cultivos
+        const enabledCount = cropsCard.querySelector('.enabled-count');
+        const disabledCount = cropsCard.querySelector('.disabled-count');
+        const newThisWeek = cropsCard.querySelector('.new-this-week');
+        const totalCrops = cropsCard.querySelector('.total-crops');
 
         if (enabledCount) enabledCount.textContent = habilitados;
         if (disabledCount) disabledCount.textContent = deshabilitados;
