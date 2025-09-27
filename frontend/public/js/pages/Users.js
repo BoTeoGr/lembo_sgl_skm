@@ -67,9 +67,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   let currentPage = 1;
   const itemsPerPage = usersConfig.table.itemsPerPage || 10;
   let filteredUsers = [];
+  let allUsers = [];
+
+  // Normaliza cualquier representación de estado a forma canónica para comparar
+  function normalizeStatusForCompare(value) {
+    if (value === null || value === undefined) return '';
+    if (typeof value === 'boolean') return value ? 'activo' : 'inactivo';
+    if (typeof value === 'number') return value === 1 ? 'activo' : 'inactivo';
+    const str = String(value).trim().toLowerCase();
+    if (['habilitado', 'activo', 'true', '1', 'enable', 'enabled'].includes(str)) return 'activo';
+    if (['deshabilitado', 'inactivo', 'false', '0', 'disable', 'disabled'].includes(str)) return 'inactivo';
+    return str;
+  }
 
   // Cargar datos iniciales
   filteredUsers = await fetchUsersFromAPI();
+  allUsers = Array.isArray(filteredUsers) ? [...filteredUsers] : [];
   // Si fetchUsersFromAPI retorna null, significa que no hay permiso y ya se mostró el mensaje
   if (filteredUsers === null) return;
   renderPaginatedTable(filteredUsers);
@@ -100,14 +113,24 @@ document.addEventListener('DOMContentLoaded', async () => {
       const usuariosArr = data.usuarios || [];
       // Normalizar campos y estado
       return usuariosArr.map(user => {
-        let status = user.estado || '';
-        if (typeof status === 'string') {
+        let status = user.estado;
+        // Normalización de estado flexible
+        if (typeof status === 'boolean') {
+          status = status ? 'Activo' : 'Inactivo';
+        } else if (typeof status === 'number') {
+          status = status === 1 ? 'Activo' : 'Inactivo';
+        } else if (typeof status === 'string') {
           const estadoLower = status.trim().toLowerCase();
-          if (["habilitado", "activo"].includes(estadoLower)) {
+          if (['habilitado', 'activo', 'true', '1'].includes(estadoLower)) {
             status = 'Activo';
-          } else if (["deshabilitado", "inactivo"].includes(estadoLower)) {
+          } else if (['deshabilitado', 'inactivo', 'false', '0'].includes(estadoLower)) {
             status = 'Inactivo';
+          } else {
+            // Valor no reconocido: mantener como está pero capitalizar si coincide
+            status = status.charAt(0).toUpperCase() + status.slice(1);
           }
+        } else {
+          status = 'Inactivo';
         }
         return {
           id: user.id || user.numero_documento || '',
@@ -170,11 +193,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       // Si no hay filtros aplicados, devolver todos los usuarios
       if (!search && !rol && !estado) {
-        return filteredUsers;
+        return Array.isArray(allUsers) ? [...allUsers] : [];
       }
 
       // Aplicar filtros
-      return filteredUsers.filter(user => {
+      const source = Array.isArray(allUsers) ? allUsers : [];
+      return source.filter(user => {
         // Filtrar por búsqueda (nombre o ID)
         const matchesSearch = !search || 
           (user.nombre && user.nombre.toLowerCase().includes(search)) || 
@@ -184,8 +208,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Filtrar por rol
         const matchesRol = !rol || (user.rol && user.rol === rol);
         
-        // Filtrar por estado
-        const matchesEstado = !estado || (user.estado && user.estado === estado);
+        // Filtrar por estado (comparación robusta)
+        const matchesEstado = !estado || (
+          normalizeStatusForCompare(user.estado) === normalizeStatusForCompare(estado)
+        );
         
         return matchesSearch && matchesRol && matchesEstado;
       });
@@ -290,7 +316,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       currentPage = 1; // Reset to first page when filters change
       const filtered = await getFilteredUsers();
-      renderPaginatedTable(filtered);
+      // Actualizar dataset actual para que la paginación use el filtrado
+      filteredUsers = filtered;
+      renderPaginatedTable(filteredUsers);
       
       // Actualizar el contador de resultados
       const resultCount = document.querySelector('.pagination__total-items');
@@ -335,15 +363,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   estadoSelect?.addEventListener('change', applyFilters);
   
   // Limpiar filtros
-  clearBtn?.addEventListener('click', () => {
+  clearBtn?.addEventListener('click', async () => {
     if (searchInput) searchInput.value = '';
     if (rolSelect) rolSelect.value = '';
     if (estadoSelect) estadoSelect.value = '';
-    filteredUsers = fetchUsersFromAPI().then(users => {
-      if (users !== null) {
-        renderPaginatedTable(users);
-      }
-    });
+    // Restaurar desde allUsers sin convertir filteredUsers en una promesa
+    filteredUsers = Array.isArray(allUsers) ? [...allUsers] : [];
     currentPage = 1;
     renderPaginatedTable(filteredUsers);
   });
@@ -460,8 +485,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Mostrar mensaje de éxito
       showToast('Éxito', `El estado del usuario ha sido actualizado a ${newStatus}`, 'success');
       
-      // Actualizar la lista de usuarios
+      // Actualizar la lista de usuarios y el respaldo
       filteredUsers = await fetchUsersFromAPI();
+      allUsers = Array.isArray(filteredUsers) ? [...filteredUsers] : [];
       return true;
     } catch (error) {
       console.error('Error al cambiar el estado del usuario:', error);

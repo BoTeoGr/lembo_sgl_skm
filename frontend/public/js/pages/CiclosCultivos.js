@@ -28,12 +28,27 @@ document.addEventListener('DOMContentLoaded', async () => {
   let filteredCiclos = allCiclos;
   let selectedIds = [];
 
+  function normalizeEstado(val) {
+    if (val === null || val === undefined) return '';
+    if (typeof val === 'boolean') return val ? 'activo' : 'inactivo';
+    if (typeof val === 'number') return val === 1 ? 'activo' : 'inactivo';
+    const v = String(val).trim().toLowerCase();
+    if (['activo', 'habilitado', 'true', '1', 'enabled'].includes(v)) return 'activo';
+    if (['inactivo', 'deshabilitado', 'false', '0', 'disabled'].includes(v)) return 'inactivo';
+    return v;
+  }
+
   function getFilteredCiclos() {
     const searchInput = document.querySelector('.filters__search');
+    const estadoSelect = document.querySelector('.filters__select[placeholder="Estado"]');
     const q = searchInput ? searchInput.value.trim().toLowerCase() : '';
-    return allCiclos.filter(c =>
-      c.nombre.toLowerCase().includes(q) || String(c.id).toLowerCase().includes(q)
-    );
+    const estadoSel = estadoSelect ? estadoSelect.value : '';
+    const estadoCanon = normalizeEstado(estadoSel);
+    return allCiclos.filter(c => {
+      const matchesSearch = !q || c.nombre.toLowerCase().includes(q) || String(c.id).toLowerCase().includes(q);
+      const matchesEstado = !estadoSel || normalizeEstado(c.estado) === estadoCanon;
+      return matchesSearch && matchesEstado;
+    });
   }
 
   function renderPaginatedTable(list) {
@@ -83,6 +98,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Filtros
   const searchInput = document.querySelector('.filters__search');
   const clearBtn = document.querySelector('.button--clear');
+  const filterButton = document.querySelector('.button--filter');
+  const filtersClose = document.querySelector('.filters__close');
+  const filtersPanel = document.querySelector('.filters');
+  
+  // Abrir/cerrar panel de filtros
+  if (filterButton && filtersPanel) {
+    filterButton.addEventListener('click', () => {
+      filtersPanel.classList.toggle('hidden');
+    });
+  }
+  if (filtersClose && filtersPanel) {
+    filtersClose.addEventListener('click', () => {
+      filtersPanel.classList.add('hidden');
+    });
+  }
+  const estadoSelect = document.querySelector('.filters__select[placeholder="Estado"]');
   if (searchInput) {
     searchInput.addEventListener('input', () => {
       filteredCiclos = getFilteredCiclos();
@@ -90,12 +121,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       renderPaginatedTable(filteredCiclos);
     });
   }
-  if (clearBtn && searchInput) {
-    clearBtn.onclick = () => {
-      searchInput.value = '';
+  if (estadoSelect) {
+    estadoSelect.addEventListener('change', () => {
       filteredCiclos = getFilteredCiclos();
       currentPage = 1;
       renderPaginatedTable(filteredCiclos);
+    });
+  }
+  if (clearBtn) {
+    clearBtn.onclick = () => {
+      if (searchInput) searchInput.value = '';
+      if (estadoSelect) estadoSelect.value = '';
+      filteredCiclos = getFilteredCiclos();
+      currentPage = 1;
+      renderPaginatedTable(filteredCiclos);
+      if (filtersPanel) filtersPanel.classList.add('hidden');
     };
   }
 

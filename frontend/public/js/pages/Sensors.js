@@ -310,6 +310,16 @@ class Sensors {
             statusFilter,
             typeFilter
         });
+        // Helper para normalizar estado entre UI (Activo/Inactivo) y datos (habilitado/deshabilitado)
+        const normalizeStatus = (val) => {
+            const v = String(val || '').trim().toLowerCase();
+            if (['activo', 'habilitado', 'true', '1', 'enabled'].includes(v)) return 'activo';
+            if (['inactivo', 'deshabilitado', 'false', '0', 'disabled'].includes(v)) return 'inactivo';
+            return v;
+        };
+
+        const normalizedSelectedStatus = normalizeStatus(statusFilter);
+
         this.filteredData = this.filteredData.filter(sensor => {
             // Ensure all values are strings before calling toLowerCase()
             const searchFields = [
@@ -323,8 +333,9 @@ class Sensors {
             const matchesSearch = !searchTerm || 
                 searchFields.some(field => field.includes(searchTerm));
                 
-            const matchesStatus = !statusFilter || 
-                (sensor.estado && String(sensor.estado).toLowerCase() === statusFilter.toLowerCase());
+            const matchesStatus = !statusFilter || (
+                normalizeStatus(sensor.estado) === normalizedSelectedStatus
+            );
                 
             const sensorType = String(sensor.tipo || sensor.tipo_sensor || '').toLowerCase().trim();
             const filterType = typeFilter.toLowerCase().trim();

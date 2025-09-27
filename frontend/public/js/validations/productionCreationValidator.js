@@ -142,7 +142,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   await initializeForm()
   setupEventListeners()
   console.log("Formulario inicializado")
+  // Establecer estado inicial del botón crear según validación actual
+  updateCreateButtonState()
 })
+
+// Flag para evitar envíos múltiples del formulario
+let isSubmitting = false;
 
 // Función para obtener todos los items de un endpoint paginado
 async function getAllItems(endpoint, limit = 100) {
@@ -447,6 +452,21 @@ function setupEventListeners() {
       }
     })
   }
+
+  // Validación en tiempo real para habilitar/deshabilitar el botón de crear
+  const realtimeFieldIds = [
+    "productionName","productionType","location","quantity","description",
+    "crop","cropCycle","responsible","startDate","endDate"
+  ];
+  realtimeFieldIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      const eventName = (el.tagName === 'SELECT' || el.type === 'date' || el.type === 'number') ? 'change' : 'input';
+      el.addEventListener(eventName, () => {
+        updateCreateButtonState();
+      });
+    }
+  });
 }
 
 // Add these validation functions after the existing validateForm function
@@ -593,7 +613,7 @@ function validateInvestmentAndProfit() {
 }
 
 // Update the validateForm function to include the new validations
-function validateForm() {
+function validateForm(silent = false) {
   console.log("Validando formulario")
   let isValid = true
   const errorMessages = []
@@ -621,14 +641,25 @@ function validateForm() {
   ]
 
   // Verificar campos requeridos
+  const missingFields = []
   requiredFields.forEach(field => {
     const element = document.getElementById(field.id)
-    if (!element || element.value.trim() === "") {
+    if (!element || String(element.value || "").trim() === "") {
       console.log(`Campo requerido faltante: ${field.id}`)
-      errorMessages.push(`El campo ${field.name} es requerido`)
+      missingFields.push(field.name)
       isValid = false
     }
   })
+
+  // Validar cantidad > 0
+  const qtyEl = document.getElementById("quantity")
+  if (qtyEl) {
+    const qty = parseFloat(qtyEl.value)
+    if (isNaN(qty) || qty <= 0) {
+      isValid = false
+      if (!missingFields.includes("Cantidad")) errorMessages.push("La cantidad debe ser mayor que 0")
+    }
+  }
 
   // Verificar máximo de sensores (solo advertencia)
   if (selectedSensors.size > 3) {
@@ -654,20 +685,26 @@ function validateForm() {
   }
 
   // Verificar que haya al menos un insumo seleccionado
-  const hasSupplies = productionData.insumos_ids.length > 0
-  if (!hasSupplies) {
-    console.log("No hay insumos seleccionados")
-    errorMessages.push("Debe seleccionar al menos un insumo")
+  // Verificar que haya al menos un insumo seleccionado con cantidad válida
+  const hasValidSupply = Array.isArray(selectedSupplies) && selectedSupplies.some(s => s && Number(s.cantidad_usar) > 0)
+  if (!hasValidSupply) {
+    console.log("No hay insumos seleccionados con cantidad válida")
+    errorMessages.push("Debe agregar al menos un insumo con cantidad válida")
     isValid = false
   }
 
   // Mostrar mensajes de error si los hay
-  if (errorMessages.length > 0) {
-    showToast("Error", errorMessages[0], "error")
+  // Mostrar listado de campos faltantes en un solo toast
+  if (missingFields.length > 0) {
+    const list = `Faltan: ${missingFields.join(", ")}`
+    errorMessages.unshift(list)
+  }
+  if (!silent && errorMessages.length > 0) {
+    showToast("Campos requeridos", errorMessages.join("\n"), "error")
   }
 
   // El formulario es válido solo si todos los campos están completos
-  const formIsValid = isValid && hasValidSensors && datesValid && investmentValid && hasSupplies
+  const formIsValid = isValid && hasValidSensors && datesValid && investmentValid && hasValidSupply
   console.log("Formulario válido:", formIsValid)
 
   return formIsValid
@@ -992,6 +1029,10 @@ function addSelectedSupply() {
 async function createProduction(e) {
   e.preventDefault();
 
+  if (isSubmitting) {
+    return;
+  }
+
   // Filtrar los insumos válidos (con cantidad_usar > 0)
   const validSupplies = selectedSupplies.filter(s => s.id && s.cantidad_usar && !isNaN(s.cantidad_usar) && s.cantidad_usar > 0);
 
@@ -1059,7 +1100,16 @@ async function createProduction(e) {
     meta_ganancia: parseFloat(document.getElementById("estimatedProfit").value)
   };
 
+  const createBtn = document.getElementById('createBtn');
+  const loadingIndicator = document.getElementById('loadingIndicator');
+
   try {
+    isSubmitting = true;
+    if (createBtn) createBtn.disabled = true;
+    if (loadingIndicator) {
+      loadingIndicator.classList.remove('hidden');
+      loadingIndicator.style.display = 'inline-flex';
+    }
     // Enviar la producción al backend
     const token = localStorage.getItem('token');
     if (!token) {
@@ -1110,10 +1160,13 @@ async function createProduction(e) {
     showToast("Error", "Error al crear la producción: " + error.message, "error");
     showToast("Error", error.message || "No se pudo crear la producción", "error");
   } finally {
-    // Ocultar indicador de carga
+    // Ocultar indicador de carga y reactivar botón
     if (loadingIndicator) {
       loadingIndicator.style.display = "none";
+      loadingIndicator.classList.add('hidden');
     }
+    if (createBtn) createBtn.disabled = false;
+    isSubmitting = false;
   }
 }
 
@@ -2346,7 +2399,7 @@ createCropCycleForm.addEventListener("submit", async (e) => {
 
 
 function updateCreateButtonState() {
-  const isValid = validateForm()
+  const isValid = validateForm(true)
   const createBtn = document.getElementById("createBtn")
   if (createBtn) {
     createBtn.disabled = !isValid
