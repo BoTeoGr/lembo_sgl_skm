@@ -24,8 +24,23 @@
             return false;
         }
     }
+    // Función para verificar si el usuario es super administrador
+    function isSuperAdmin() {
+        try {
+            const userRole = localStorage.getItem('userRole') || localStorage.getItem('userRol');
+            if (!userRole) return false;
+            
+            const normalizedRole = String(userRole).trim().toLowerCase();
+            return ['super administrador', 'superadmin'].includes(normalizedRole);
+        } catch (e) {
+            console.error('Error verificando rol de super administrador');
+            return false;
+        }
+    }
+
     async function fetchStats() {
         const isAdmin = isAdminUser();
+        const isSuperAdminUser = isSuperAdmin();
         
         // Si el usuario no es administrador, no intentar cargar datos
         if (!isAdmin) {
@@ -72,15 +87,22 @@
             const now = new Date();
             const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
+            // Contar usuarios
             usuarios.forEach(user => {
                 // Contar usuarios habilitados/deshabilitados
                 if (user.estado === 'habilitado') {
                     stats.habilitados++;
+                    
                     // Solo contar roles para usuarios habilitados
                     const rol = user.rol || 'Visitante';
-                    if (stats.hasOwnProperty(rol)) {
+                    
+                    // Si el usuario actual no es super admin y el rol es super admin, no lo contamos
+                    if (rol === 'Super administrador' && !isSuperAdminUser) {
+                        // No incrementamos el contador de super administradores
+                    } else if (stats.hasOwnProperty(rol)) {
                         stats[rol]++;
                     }
+                    
                     // Contar usuarios nuevos de esta semana
                     const fechaCreacion = new Date(user.fecha_creacion || now);
                     if (fechaCreacion >= oneWeekAgo) {
@@ -92,6 +114,11 @@
                 
                 stats.total = stats.habilitados + stats.deshabilitados;
             });
+
+            // Si el usuario no es super admin, ocultamos el contador de super administradores
+            if (!isSuperAdminUser) {
+                delete stats['Super administrador'];
+            }
 
             return stats;
         } catch (error) {
@@ -153,9 +180,24 @@
             return;
         }
         
-
-        // Actualizar estadísticas por rol
+        // Ocultar el elemento de super administrador si el usuario no es super admin
+        const isSuperAdminUser = isSuperAdmin();
         const roleElements = userCard.querySelectorAll('.stats-list__item');
+        
+        // Primero ocultar o mostrar elementos según el rol
+        roleElements.forEach(item => {
+            const labelEl = item.querySelector('.stats-list__label');
+            if (labelEl) {
+                const rol = labelEl.textContent.trim();
+                if (rol === 'Super administrador' && !isSuperAdminUser) {
+                    item.style.display = 'none';
+                } else {
+                    item.style.display = '';
+                }
+            }
+        });
+
+        // Luego actualizar los valores visibles
         roleElements.forEach(item => {
             const labelEl = item.querySelector('.stats-list__label');
             const numberEl = item.querySelector('.stats-list__number');

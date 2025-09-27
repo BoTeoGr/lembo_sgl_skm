@@ -1,6 +1,25 @@
 import { fetchCiclosCultivoFromAPI, renderCiclosCultivoTable, updateCicloCultivoEstadoAPI, ciclosCultivosConfig } from '../config/ciclosCultivosConfig.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // Verificar si el usuario es visitante
+  const userRole = localStorage.getItem('userRol') || '';
+  const isVisitante = ['visitante', 'Visitante'].includes(userRole);
+  
+  // Ocultar elementos que no debe ver el visitante
+  if (isVisitante) {
+    const actionsBar = document.querySelector('.actions-bar');
+    const createButton = document.querySelector('.button--create');
+    const reportButton = document.querySelector('.button--report');
+    const filterButton = document.querySelector('.button--filter');
+    const tableCheckbox = document.querySelector('.table__checkbox-header');
+    
+    if (actionsBar) actionsBar.style.display = 'none';
+    if (createButton) createButton.style.display = 'none';
+    if (reportButton) reportButton.style.display = 'none';
+    if (filterButton) filterButton.style.display = 'none';
+    if (tableCheckbox) tableCheckbox.style.display = 'none';
+  }
+  
   let currentPage = 1;
   const itemsPerPage = ciclosCultivosConfig.table.itemsPerPage || 10;
   let allCiclos = await fetchCiclosCultivoFromAPI();

@@ -1,19 +1,20 @@
 export default function Navbar() {
-	const currentPath = window.location.pathname.split("/").pop();
+    const currentPath = window.location.pathname.split("/").pop();
 
-	// Obtener el rol del usuario desde localStorage
-	const userRole = localStorage.getItem('userRol') || '';  // Note: 'userRol' is the correct key used in the app
-	console.log('User role from localStorage:', userRole);
-	const normalizedRole = String(userRole).toLowerCase().trim();
-	const isAdmin = ['administrador', 'super administrador', 'admin', 'superadmin'].includes(normalizedRole);
-	const isVisitante = ['visitante', 'Visitante'].includes(normalizedRole);
-	console.log('User role:', `'${userRole}'`, 'Is admin?', isAdmin, 'Is visitante?', isVisitante);
+    // Obtener el rol del usuario desde localStorage
+    const userRole = localStorage.getItem('userRol') || '';  // Note: 'userRol' is the correct key used in the app
+    console.log('User role from localStorage:', userRole);
+    const normalizedRole = String(userRole).toLowerCase().trim();
+    const isAdmin = ['administrador', 'super administrador', 'admin', 'superadmin'].includes(normalizedRole);
+    const isVisitante = ['visitante', 'Visitante'].includes(normalizedRole);
+    const isPersonalApoyo = ['personal de apoyo', 'Personal de Apoyo', 'apoyo', 'Apoyo'].includes(normalizedRole);
+    console.log('User role:', `'${userRole}'`, 'Is admin?', isAdmin, 'Is visitante?', isVisitante, 'Is personal de apoyo?', isPersonalApoyo);
 
-	const isSelected = (linkPath) => {
-		return currentPath === linkPath ? "nav__link--selected" : "";
-	};
+    const isSelected = (linkPath) => {
+        return currentPath === linkPath ? "nav__link--selected" : "";
+    };
 
-	return `
+    return `
         <div class="nav">
             <div class="nav__left">
                 <img src="../imgs/logoSena.svg" alt="Logo Sena" class="nav__logo" />
@@ -22,42 +23,35 @@ export default function Navbar() {
                     <ul class="nav__list">
                         <li class="nav__item">
                             <a href="home.html" class="nav__link ${isSelected(
-															"home.html"
-														)}">
+        "home.html"
+    )}">
                                 <span class="material-symbols-outlined">home</span>
                                 <span>Inicio</span>
                             </a>
                         </li>
                         
-                        <li class="nav__item ${isVisitante ? '' : 'nav__item--dropdown'}">
-                            <a href="listar-sensores.html" class="nav__link ${isSelected('listar-sensores.html')}">
-                                <span class="material-symbols-outlined">sensors</span>
-                                <span>Sensores</span>
-                                ${!isVisitante ? `
+                        <!-- Menú de Sensores - Visible para todos los roles -->
+                        <li class="nav__item ${(isVisitante || isPersonalApoyo) ? '' : 'nav__item--dropdown'}">
+                            ${(isVisitante || isPersonalApoyo) ? `
+                                <a href="listar-sensores.html" class="nav__link ${isSelected('listar-sensores.html')}">
+                                    <span class="material-symbols-outlined">sensors</span>
+                                    <span>Sensores</span>
+                                </a>
+                            ` : `
+                                <button class="nav__dropdown-btn ${isSelected('listar-sensores.html')}">
+                                    <span class="material-symbols-outlined">sensors</span>
+                                    <span>Sensores</span>
                                     <span class="material-symbols-outlined nav__arrow">expand_more</span>
-                                    <div class="nav__dropdown-content">
-                                        <a href="listar-sensores.html" class="nav__dropdown-link">Lista de Sensores</a>
-                                        <a href="crear-sensor.html" class="nav__dropdown-link">Agregar Sensor</a>
-                                    </div>
-                                ` : ''}
-                            </a>
+                                </button>
+                                <div class="nav__dropdown-content">
+                                    <a href="listar-sensores.html" class="nav__dropdown-link">Lista de Sensores</a>
+                                    <a href="crear-sensor.html" class="nav__dropdown-link">Agregar Sensor</a>
+                                </div>
+                            `}
                         </li>
-
-                        ${isAdmin ? `
-                        <li class="nav__item nav__item--dropdown">
-                            <button class="nav__dropdown-btn ${isSelected(
-													"listar-usuarios.html"
-												)}">
-                                <span class="material-symbols-outlined">group</span>
-                                <span>Usuarios</span>
-                                <span class="material-symbols-outlined nav__arrow">expand_more</span>
-                            </button>
-                            <div class="nav__dropdown-content">
-                                <a href="listar-usuarios.html" class="nav__dropdown-link">Lista de Usuarios</a>
-                                <a href="crear-usuario.html" class="nav__dropdown-link">Registrar Usuario</a>
-                            </div>
-                        </li>
-
+                        
+                        <!-- Menú de Cultivos - Visible para todos excepto Personal de Apoyo -->
+                        ${!isPersonalApoyo ? `
                         <li class="nav__item ${isVisitante ? '' : 'nav__item--dropdown'}">
                             ${isVisitante ? `
                                 <a href="listar-cultivos.html" class="nav__link ${isSelected('listar-cultivos.html')}">
@@ -72,19 +66,43 @@ export default function Navbar() {
                                 </button>
                                 <div class="nav__dropdown-content">
                                     <a href="listar-cultivos.html" class="nav__dropdown-link">Lista de Cultivos</a>
-                                    ${!isVisitante ? `
-                                        <a href="crear-cultivo.html" class="nav__dropdown-link">Agregar Cultivo</a>
-                                        <a href="listar-ciclos-cultivos.html" class="nav__dropdown-link">Lista de Ciclos</a>
-                                        <a href="crear-ciclo-cultivo.html" class="nav__dropdown-link">Agregar Ciclo</a>
-                                    ` : ''}
+                                    <a href="crear-cultivo.html" class="nav__dropdown-link">Agregar Cultivo</a>
+                                    <a href="listar-ciclos-cultivos.html" class="nav__dropdown-link">Lista de Ciclos</a>
+                                    <a href="crear-ciclo-cultivo.html" class="nav__dropdown-link">Agregar Ciclo</a>
                                 </div>
                             `}
+                        </li>
+                        
+                        <!-- Menú de Ciclos de Cultivo (solo para visitantes) -->
+                        ${isVisitante ? `
+                        <li class="nav__item">
+                            <a href="listar-ciclos-cultivos.html" class="nav__link ${isSelected('listar-ciclos-cultivos.html')}">
+                                <span class="material-symbols-outlined">cycle</span>
+                                <span>Ciclos de Cultivo</span>
+                            </a>
+                        </li>
+                        ` : ''}
+                        ` : ''}
+                        
+                        ${isAdmin ? `
+                        <li class="nav__item nav__item--dropdown">
+                            <button class="nav__dropdown-btn ${isSelected(
+        "listar-usuarios.html"
+    )}">
+                                <span class="material-symbols-outlined">group</span>
+                                <span>Usuarios</span>
+                                <span class="material-symbols-outlined nav__arrow">expand_more</span>
+                            </button>
+                            <div class="nav__dropdown-content">
+                                <a href="listar-usuarios.html" class="nav__dropdown-link">Lista de Usuarios</a>
+                                <a href="crear-usuario.html" class="nav__dropdown-link">Registrar Usuario</a>
+                            </div>
                         </li>
 
                         <li class="nav__item nav__item--dropdown">
                             <button class="nav__dropdown-btn ${isSelected(
-													"listar-insumos.html"
-												)}">
+        "listar-insumos.html"
+    )}">
                                 <span class="material-symbols-outlined">inventory</span>
                                 <span>Insumos</span>
                                 <span class="material-symbols-outlined nav__arrow">expand_more</span>
@@ -97,8 +115,8 @@ export default function Navbar() {
 
                         <li class="nav__item nav__item--dropdown">
                             <button class="nav__dropdown-btn ${isSelected(
-													"listar-producciones.html"
-												)}">
+        "listar-producciones.html"
+    )}">
                                 <span class="material-symbols-outlined">manufacturing</span>
                                 <span>Producciones</span>
                                 <span class="material-symbols-outlined nav__arrow">expand_more</span>
@@ -130,6 +148,7 @@ export default function Navbar() {
             </div>
         </div>
 
+        <!-- Vista movil -->
         <div class="nav__mobile-menu-container">
             <div class="nav__overlay"></div>
             <nav class="nav__mobile-nav">
@@ -144,20 +163,34 @@ export default function Navbar() {
                     </div>
                     <span class="material-symbols-outlined nav__mobile-profile-icon">chevron_right</span>
                 </div>
+                <!-- Menú móvil - Inicio -->
                 <a href="home.html" class="nav__mobile-link">
                     <span class="material-symbols-outlined">home</span>
                     <span>Inicio</span>
                 </a>
+                
+                <!-- Menú móvil - Sensores -->
                 <a href="listar-sensores.html" class="nav__mobile-link">
                     <span class="material-symbols-outlined">sensors</span>
                     <span>Lista de Sensores</span>
                 </a>
-                ${!isVisitante ? `
+                
+                ${!isVisitante && !isPersonalApoyo ? `
+                <!-- Opciones adicionales de sensores para roles que no son visitante ni personal de apoyo -->
                 <a href="crear-sensor.html" class="nav__mobile-link">
                     <span class="material-symbols-outlined">add_circle</span>
                     <span>Agregar Sensor</span>
                 </a>` : ''}
+                
+                ${isVisitante ? `
+                <!-- Opciones para visitantes -->
+                <a href="listar-ciclos-cultivos.html" class="nav__mobile-link">
+                    <span class="material-symbols-outlined">cycle</span>
+                    <span>Lista de Ciclos</span>
+                </a>` : ''}
+                
                 ${isAdmin ? `
+                <!-- Opciones para administradores -->
                 <a href="listar-usuarios.html" class="nav__mobile-link">
                     <span class="material-symbols-outlined">group</span>
                     <span>Lista de Usuarios</span>
@@ -175,7 +208,8 @@ export default function Navbar() {
                     <span>Agregar Insumo</span>
                 </a>` : ''}
                 
-                <!-- Cultivos Section - Visible to all users -->
+                ${!isPersonalApoyo ? `
+                <!-- Sección de Cultivos - No visible para personal de apoyo -->
                 <a href="listar-cultivos.html" class="nav__mobile-link">
                     <span class="material-symbols-outlined">agriculture</span>
                     <span>Lista de Cultivos</span>
@@ -202,7 +236,7 @@ export default function Navbar() {
                 <a href="crear-produccion.html" class="nav__mobile-link">
                     <span class="material-symbols-outlined">add_circle</span>
                     <span>Agregar Producción</span>
-                </a>
+                </a>` : ''}
                 ` : ''}
 
                 <a href="#" class="nav__mobile-link" id="mobileProfileLink">

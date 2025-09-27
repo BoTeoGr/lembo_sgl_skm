@@ -35,23 +35,30 @@ form.addEventListener("submit", async function (e) {
 	try {
 		// Enviar el email como userEmail para el backend
 		const data = await loginUser(emailValue, passwordValue);
-		// Guardar el token en localStorage para futuras peticiones
-		if (data.token) {
-			localStorage.setItem('token', data.token);
-		}
+		
+		// Mostrar mensaje de éxito
 		showAlert("Inicio de sesión exitoso");
-		// Redirigir según el rol
+		
+		// Redirigir según la URL guardada o según el rol por defecto
 		setTimeout(() => {
-			if (data.usuario.rol === 'superadmin'|| data.usuario.rol === 'Super administrador') {
-				window.location.href = 'home.html';
-			} else if (data.usuario.rol === 'admin' || data.usuario.rol === 'Administrador') {
-				window.location.href = 'home.html';
-			} else if (data.usuario.rol === 'apoyo' || data.usuario.rol === 'Personal de Apoyo') {
-				window.location.href = 'listar-sensores.html';
-			} else if (data.usuario.rol === 'visitante' || data.usuario.rol === 'Visitante') {
-				window.location.href = 'home.html';
+			// Verificar si hay una URL guardada para redirección
+			const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
+			if (redirectUrl) {
+				sessionStorage.removeItem('redirectAfterLogin');
+				window.location.href = redirectUrl;
 			} else {
-				error.message = "Rol de usuario no reconocido. Contacta al administrador.";
+				// Redirigir según el rol si no hay URL guardada
+				if (data.usuario.rol === 'superadmin' || data.usuario.rol === 'Super administrador') {
+					window.location.href = 'home.html';
+				} else if (data.usuario.rol === 'admin' || data.usuario.rol === 'Administrador') {
+					window.location.href = 'home.html';
+				} else if (data.usuario.rol === 'apoyo' || data.usuario.rol === 'Personal de Apoyo') {
+					window.location.href = 'listar-sensores.html';
+				} else if (data.usuario.rol === 'visitante' || data.usuario.rol === 'Visitante') {
+					window.location.href = 'home.html';
+				} else {
+					error.message = "Rol de usuario no reconocido. Contacta al administrador.";
+				}
 			}
 		}, 1000);
 	} catch (error) {

@@ -571,9 +571,10 @@ class Crops {
         // Mantener sincronizados contadores y checkboxes maestros tras cada render
         this.updateSelectedCount();
         this.updateHeaderCheckbox();
+        this.updateUIForVisitante();
     }
 
-        updateUIForVisitante() {
+    updateUIForVisitante() {
         if (!this.isVisitante) return;
         
         // Hide action buttons

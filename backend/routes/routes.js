@@ -47,8 +47,8 @@ router.put('/cultivos/:id/estado', verificarRol(['admin', 'Administrador', 'supe
 router.put('/cultivos/:id', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), actualizarCultivo);
 router.get('/cultivos/:id', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador', 'Visitante','visitante']), obtenerCultivoPorId); 
 // Rutas para ciclos de cultivo
-router.get('/ciclo_cultivo', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), VerCiclosCultivo);
-router.get('/ciclo_cultivo/:id', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), obtenerCicloCultivoPorId);
+router.get('/ciclo_cultivo', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador','Visitante','visitante']), VerCiclosCultivo);
+router.get('/ciclo_cultivo/:id', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador','Visitante','visitante']), obtenerCicloCultivoPorId);
 router.post('/ciclo_cultivo', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), crearCicloCultivo);
 router.put('/ciclo_cultivo/:id',verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), actualizarCicloCultivo);
 router.put('/ciclo_cultivo/:id/estado', verificarRol(['admin', 'Administrador', 'superadmin', 'Super Administrador']), actualizarEstadoCicloCultivo);

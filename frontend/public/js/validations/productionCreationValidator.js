@@ -595,38 +595,39 @@ function validateInvestmentAndProfit() {
 // Update the validateForm function to include the new validations
 function validateForm() {
   console.log("Validando formulario")
+  let isValid = true
+  const errorMessages = []
 
   // Validar nombre de producción
   const nombreProduccion = document.getElementById("productionName").value.trim()
   const validacionNombre = validarNombreProduccion(nombreProduccion)
   if (!validacionNombre.valido) {
-    showToast("Error", validacionNombre.mensaje, "error")
-    return false
+    errorMessages.push(validacionNombre.mensaje)
+    isValid = false
   }
 
   // Validar campos requeridos básicos
   const requiredFields = [
-    "productionType",
-    "location",
-    "description",
-    "crop",
-    "cropCycle",
-    "responsible",
-    "startDate",
-    "endDate",
-    "totalInvestment",
-    "estimatedProfit",
+    { id: "productionName", name: "Nombre de producción" },
+    { id: "productionType", name: "Tipo de producción" },
+    { id: "location", name: "Ubicación" },
+    { id: "quantity", name: "Cantidad" },
+    { id: "description", name: "Descripción" },
+    { id: "crop", name: "Cultivo" },
+    { id: "cropCycle", name: "Ciclo de cultivo" },
+    { id: "responsible", name: "Responsable" },
+    { id: "startDate", name: "Fecha de inicio" },
+    { id: "endDate", name: "Fecha de fin" },
   ]
 
   // Verificar campos requeridos
-  const basicFieldsValid = requiredFields.every((field) => {
-    const element = document.getElementById(field)
-    const isValid = element && element.value.trim() !== ""
-    if (!isValid) {
-      console.log(`Campo requerido no válido: ${field}`)
-      showToast("Error", `El campo ${field} es requerido`, "error")
+  requiredFields.forEach(field => {
+    const element = document.getElementById(field.id)
+    if (!element || element.value.trim() === "") {
+      console.log(`Campo requerido faltante: ${field.id}`)
+      errorMessages.push(`El campo ${field.name} es requerido`)
+      isValid = false
     }
-    return isValid
   })
 
   // Verificar máximo de sensores (solo advertencia)
@@ -640,33 +641,36 @@ function validateForm() {
   const datesValid = validateDates()
   if (!datesValid) {
     console.log("Fechas no válidas")
+    errorMessages.push("Las fechas no son válidas")
+    isValid = false
   }
 
   // Validar inversión y meta de ganancias
   const investmentValid = validateInvestmentAndProfit()
   if (!investmentValid) {
     console.log("Inversión o meta de ganancias no válidas")
+    errorMessages.push("La inversión y/o meta de ganancias no son válidas")
+    isValid = false
   }
 
   // Verificar que haya al menos un insumo seleccionado
   const hasSupplies = productionData.insumos_ids.length > 0
   if (!hasSupplies) {
     console.log("No hay insumos seleccionados")
-    showToast("Error", "Debe seleccionar al menos un insumo", "error")
+    errorMessages.push("Debe seleccionar al menos un insumo")
+    isValid = false
   }
 
-  // El formulario es válido solo si todos los campos están completos y no se excede el máximo de sensores
-  const isValid = basicFieldsValid && hasValidSensors && datesValid && investmentValid && hasSupplies
-  console.log("Formulario válido:", isValid)
-
-  // Habilitar/deshabilitar el botón de crear
-  const createBtn = document.getElementById("createBtn")
-  if (createBtn) {
-    createBtn.disabled = !isValid
-    console.log("Estado del botón de crear:", createBtn.disabled ? "deshabilitado" : "habilitado")
+  // Mostrar mensajes de error si los hay
+  if (errorMessages.length > 0) {
+    showToast("Error", errorMessages[0], "error")
   }
 
-  return isValid
+  // El formulario es válido solo si todos los campos están completos
+  const formIsValid = isValid && hasValidSensors && datesValid && investmentValid && hasSupplies
+  console.log("Formulario válido:", formIsValid)
+
+  return formIsValid
 }
 
 // Funciones para manejar la selección de sensores e insumos

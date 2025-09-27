@@ -100,8 +100,6 @@ function readText(e) {
 	} else if (e.target.classList.contains("form__input--total-value")) {
 		insumoData.totalValue = e.target.value;
 	}
-
-	console.log(insumoData); // Ver los valores almacenados en insumoData
 }
 
 // Función para mostrar alertas en el formulario

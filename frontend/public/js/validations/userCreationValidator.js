@@ -238,7 +238,6 @@ function readText(e) {
 	} else if (e.target.classList.contains("form__select--user-rol")) {
 		userData.userRol = e.target.value;
 	}
-	console.log(userData); // Ver los valores almacenados en userData para asegurarte de que se actualicen correctamente
 }
 
 // Función general para mostrar toasts

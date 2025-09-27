@@ -495,43 +495,6 @@ class Sensors {
         this.updateUIForVisitante();
         this.updateActionsBar();
     }
-    
-    // updateUIForVisitante() {
-    //     if (!this.isVisitante) return;
-        
-    //     // Hide action buttons except view
-    //     const actionButtons = document.querySelectorAll('.button--add, .button--delete, .button--edit, .button--enable, .button--disable');
-    //     actionButtons.forEach(btn => {
-    //         if (btn) btn.style.display = 'none';
-    //     });
-        
-    //     // Hide all Create Sensor buttons (using multiple selectors to be safe)
-    //     const createButtons = [
-    //         document.querySelector('.button--add'),
-    //         document.querySelector('.button--create'),
-    //         document.querySelector('.button.button--secondary.button--create')
-    //     ];
-        
-    //     createButtons.forEach(btn => {
-    //         if (btn) btn.style.display = 'none';
-    //     });
-        
-    //     // La visibilidad de los elementos de navegación ahora se maneja en topNavigationBar.js
-        
-    //     // Hide checkboxes
-    //     const checkboxes = document.querySelectorAll('.table__checkbox, .table__checkbox-header');
-    //     checkboxes.forEach(checkbox => {
-    //         if (checkbox) checkbox.style.display = 'none';
-    //     });
-        
-    //     // Hide report button if it exists
-    //     const reportButton = document.querySelector('.button--report');
-    //     if (reportButton) reportButton.style.display = 'none';
-        
-    //     // Hide filter button if it exists
-    //     const filterButton = document.querySelector('.button--filter');
-    //     if (filterButton) filterButton.style.display = 'none';
-    // }
 
     updateUIForVisitante() {
         if (!this.isVisitante) return;

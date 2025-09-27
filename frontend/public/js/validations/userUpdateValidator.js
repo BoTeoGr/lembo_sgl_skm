@@ -247,8 +247,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             ...(userData.password && { password: userData.password })
         };
 
-        console.log('Enviando datos al servidor:', datosActualizados);
-
         submitButton.disabled = true;
 
         try {

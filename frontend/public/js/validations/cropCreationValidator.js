@@ -86,7 +86,6 @@ function readText(e) {
 	} else if (e.target.classList.contains("form__input--cultive-size")) {
 		cultiveData.cultiveSize = e.target.value;
 	}
-	console.log(cultiveData); // Ver los valores almacenados en cultiveData
 }
 
 // Función para mostrar alertas en el formulario

@@ -50,7 +50,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!response.ok) throw new Error("No se pudo obtener el insumo");
 
         insumoActual = await response.json();
-        console.log("Insumo recibido:", insumoActual); // Verifica que valor_total esté en los datos
 
         nombreInput.value = insumoActual.nombre;
         tipoInput.value = insumoActual.tipo;

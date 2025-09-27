@@ -69,7 +69,6 @@ function readText(e) {
 	} else if (e.target.classList.contains("form__textarea--cycle-updates")) {
 		cycleData.cycleUpdates = e.target.value;
 	}
-	console.log(cycleData); // Ver los valores almacenados en cycleData
 }
 
 // Función para mostrar alertas en el formulario
