@@ -64,10 +64,12 @@ function showToast(title, message, type = 'success') {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  let currentPage = 1;
-  const itemsPerPage = usersConfig.table.itemsPerPage || 10;
-  let filteredUsers = [];
-  let allUsers = [];
+  // Pequeño delay para asegurar que todos los componentes estén cargados
+  setTimeout(async () => {
+    let currentPage = 1;
+    const itemsPerPage = usersConfig.table.itemsPerPage || 10;
+    let filteredUsers = [];
+    let allUsers = [];
 
   // Normaliza cualquier representación de estado a forma canónica para comparar
   function normalizeStatusForCompare(value) {
@@ -373,6 +375,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderPaginatedTable(filteredUsers);
   });
 
+  // Event listeners para mostrar/ocultar panel de filtros
+  const toggleFiltersBtn = document.getElementById('toggleFiltersBtn');
+  const filtersPanel = document.getElementById('filtersPanel');
+  const closeFiltersBtn = document.getElementById('closeFiltersBtn');
+
+  if (toggleFiltersBtn && filtersPanel) {
+    toggleFiltersBtn.addEventListener('click', () => {
+      filtersPanel.classList.toggle('hidden');
+    });
+  }
+
+  if (closeFiltersBtn && filtersPanel) {
+    closeFiltersBtn.addEventListener('click', () => {
+      filtersPanel.classList.add('hidden');
+    });
+  }
+
   // Sincronización de checkbox general y de tabla
   document.querySelector('.table__body').addEventListener('change', updateSelectionCount);
 
@@ -611,4 +630,263 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('closeViewUsuarioBtn').onclick = () => {
     document.getElementById('viewUsuarioModal').classList.remove('modal--active');
   };
+
+  // --- FUNCIONALIDAD DEL MODAL DE REPORTES ---
+  const reportModal = document.getElementById('reportModal');
+  const reportBtn = document.querySelector('.button--report');
+  const cancelReportBtn = document.getElementById('cancelReportBtn');
+  const generateReportBtn = document.getElementById('generateReportBtn');
+  const closeReportModal = document.getElementById('closeReportModal');
+  
+  // Debug: verificar que se encuentren todos los elementos
+  if (!reportModal || !reportBtn || !generateReportBtn) {
+    console.error('Faltan elementos del modal de reportes:', {
+      reportModal: !!reportModal,
+      reportBtn: !!reportBtn, 
+      generateReportBtn: !!generateReportBtn
+    });
+  }
+
+  // Mostrar modal de reportes
+  if (reportBtn && reportModal) {
+    reportBtn.addEventListener('click', () => {
+      reportModal.classList.add('modal--active');
+      // Establecer fecha por defecto (último mes)
+      const today = new Date();
+      const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
+      
+      const startDateInput = document.getElementById('reportStartDate');
+      const endDateInput = document.getElementById('reportEndDate');
+      
+      if (startDateInput) startDateInput.value = lastMonth.toISOString().split('T')[0];
+      if (endDateInput) endDateInput.value = today.toISOString().split('T')[0];
+    });
+  }
+
+  // Cerrar modal de reportes
+  if (cancelReportBtn && reportModal) {
+    cancelReportBtn.addEventListener('click', () => {
+      reportModal.classList.remove('modal--active');
+    });
+  }
+
+  if (closeReportModal && reportModal) {
+    closeReportModal.addEventListener('click', () => {
+      reportModal.classList.remove('modal--active');
+    });
+  }
+
+  // Cerrar modal al hacer clic fuera de él
+  if (reportModal) {
+    reportModal.addEventListener('click', (e) => {
+      if (e.target === reportModal) {
+        reportModal.classList.remove('modal--active');
+      }
+    });
+  }
+
+  // Generar reporte
+  if (generateReportBtn && reportModal) {
+    generateReportBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      
+      try {
+        const format = document.getElementById('reportFormat')?.value || 'excel';
+        const includeInactive = document.getElementById('includeInactive')?.checked || false;
+        const includeRoles = document.getElementById('includeRoles')?.checked || false;
+        const startDate = document.getElementById('reportStartDate')?.value;
+        const endDate = document.getElementById('reportEndDate')?.value;
+
+        console.log('Generando reporte:', { format, includeInactive, includeRoles, usuarios: allUsers.length });
+
+        // Determinar qué usuarios incluir en el reporte
+        let reportUsers = [];
+        if (includeInactive) {
+          // Incluir todos los usuarios (activos e inactivos)
+          reportUsers = [...allUsers];
+        } else {
+          // Solo usuarios activos
+          reportUsers = allUsers.filter(user => user.estado === 'Activo');
+        }
+
+        if (reportUsers.length === 0) {
+          showToast('Advertencia', 'No hay usuarios para incluir en el reporte', 'warning');
+          return;
+        }
+
+        // Definir las columnas del reporte
+        const baseColumns = ['ID', 'Nombre', 'Correo', 'Teléfono', 'Estado'];
+        if (includeRoles) {
+          baseColumns.splice(4, 0, 'Rol'); // Insertar Rol antes de Estado
+        }
+
+        // Preparar los datos para el reporte
+        const reportData = reportUsers.map(user => {
+          const row = {
+            'ID': user.id || '',
+            'Nombre': user.nombre || '',
+            'Correo': user.correo || '',
+            'Teléfono': user.telefono || ''
+          };
+          
+          if (includeRoles) {
+            row['Rol'] = user.rol || '';
+          }
+          
+          row['Estado'] = user.estado || 'Inactivo';
+          
+          return row;
+        });
+
+        // Generar el reporte según el formato seleccionado
+        const fecha = new Date().toLocaleDateString('es-ES').replace(/\//g, '-');
+        const filename = `reporte_usuarios_${fecha}`;
+
+        if (format === 'csv') {
+          generateCSVReport(reportData, baseColumns, filename);
+        } else if (format === 'excel') {
+          generateExcelReport(reportData, baseColumns, filename);
+        } else if (format === 'pdf') {
+          generatePDFReport(reportData, baseColumns, filename);
+        } else {
+          console.error('Formato no reconocido:', format);
+          showToast('Error', 'Formato de reporte no válido', 'error');
+          return;
+        }
+
+        showToast('Éxito', 'Reporte generado exitosamente', 'success');
+        reportModal.classList.remove('modal--active');
+
+      } catch (error) {
+        console.error('Error al generar reporte:', error);
+        showToast('Error', 'No se pudo generar el reporte', 'error');
+      }
+    });
+  }
+
+  // Funciones para generar reportes en diferentes formatos
+  function generateCSVReport(data, columns, filename) {
+    const BOM = '\uFEFF'; // Byte Order Mark para UTF-8
+    const header = columns.map(col => `"${col}"`).join(',');
+    const rows = data.map(row => 
+      columns.map(col => `"${String(row[col] || '').replace(/"/g, '""')}"`).join(',')
+    ).join('\n');
+    
+    const csv = `${BOM}${header}\n${rows}`;
+    downloadFile(csv, `${filename}.csv`, 'text/csv;charset=utf-8');
+  }
+
+  function generateExcelReport(data, columns, filename) {
+    // Implementación simple de Excel usando formato XML
+    const xmlHeader = `<?xml version="1.0"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+<Worksheet ss:Name="Usuarios">
+<Table>`;
+
+    const xmlFooter = `</Table>
+</Worksheet>
+</Workbook>`;
+
+    // Generar header
+    const headerRow = `<Row>${columns.map(col => `<Cell><Data ss:Type="String">${escapeXml(col)}</Data></Cell>`).join('')}</Row>`;
+    
+    // Generar filas de datos
+    const dataRows = data.map(row => 
+      `<Row>${columns.map(col => `<Cell><Data ss:Type="String">${escapeXml(String(row[col] || ''))}</Data></Cell>`).join('')}</Row>`
+    ).join('');
+
+    const xmlContent = xmlHeader + headerRow + dataRows + xmlFooter;
+    
+    downloadFile(xmlContent, `${filename}.xlsx`, 'application/vnd.ms-excel');
+  }
+
+  function escapeXml(text) {
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function generatePDFReport(data, columns, filename) {
+    // Generar HTML que se puede imprimir como PDF
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Usuarios</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #39a900; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #39a900; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .header-info { margin-bottom: 20px; }
+        @media print {
+            body { margin: 0; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header-info">
+        <h1>Reporte de Usuarios</h1>
+        <p><strong>Fecha de generación:</strong> ${new Date().toLocaleDateString('es-ES')}</p>
+        <p><strong>Total de usuarios:</strong> ${data.length}</p>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                ${columns.map(col => `<th>${col}</th>`).join('')}
+            </tr>
+        </thead>
+        <tbody>
+            ${data.map(row => `
+                <tr>
+                    ${columns.map(col => `<td>${row[col] || ''}</td>`).join('')}
+                </tr>
+            `).join('')}
+        </tbody>
+    </table>
+    
+    <div class="no-print" style="margin-top: 20px; text-align: center;">
+        <p>Para guardar como PDF: Ctrl+P → Destino: Guardar como PDF</p>
+        <button onclick="window.print()">Imprimir / Guardar como PDF</button>
+        <button onclick="window.close()">Cerrar</button>
+    </div>
+</body>
+</html>`;
+
+    // Abrir en nueva ventana para imprimir/guardar como PDF
+    const newWindow = window.open('', '_blank');
+    newWindow.document.write(htmlContent);
+    newWindow.document.close();
+    
+    // Auto-trigger print dialog after a short delay
+    setTimeout(() => {
+        newWindow.print();
+    }, 500);
+  }
+
+  function downloadFile(content, filename, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+  
+  }, 100); // Delay de 100ms para asegurar que todos los componentes estén cargados
 });
