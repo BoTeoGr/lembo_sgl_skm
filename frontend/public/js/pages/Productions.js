@@ -1243,20 +1243,24 @@ function setupProductionStatusCard() {
 	  return { data: mapped, cols: selectedCols }
 	}
 
-	function renderPreview() {
-	  const { data } = collectReportData()
-	  const prev = document.getElementById('reportPreview')
-	  if (!prev) return
-	  const count = data.length
-	  prev.innerHTML = count > 0
-	    ? `Se descargarán <strong>${count}</strong> producciones.`
-	    : '<em>No hay datos para exportar</em>'
-	}
+  function renderPreview() {
+      const { data } = collectReportData()
+      const prev = document.getElementById('reportPreview')
+      if (!prev) return
+      const count = data.length
+      // Resumen adicional: columnas seleccionadas y formato
+      const selectedCols = Array.from(document.querySelectorAll('.col-check:checked')).map(i => i.getAttribute('data-col'))
+      const format = (document.getElementById('reportFormat')?.value || '').toUpperCase()
+      prev.innerHTML = count > 0
+        ? `Se exportarán <strong>${count}</strong> producciones en <strong>${format || 'CSV'}</strong> con <strong>${selectedCols.length}</strong> columnas.`
+        : '<em>No hay datos para exportar</em>'
+  }
 
     // Auto-actualizar vista previa al cambiar opciones
 	document.getElementById('includeInactive')?.addEventListener('change', renderPreview)
-	document.getElementById('dateFrom')?.addEventListener('change', renderPreview)
-	document.getElementById('dateTo')?.addEventListener('change', renderPreview)
+    document.getElementById('dateFrom')?.addEventListener('change', renderPreview)
+    document.getElementById('dateTo')?.addEventListener('change', renderPreview)
+    document.getElementById('reportFormat')?.addEventListener('change', renderPreview)
 	Array.from(document.querySelectorAll('.col-check')).forEach(el => el.addEventListener('change', renderPreview))
 
 	// Generar reporte
@@ -1292,36 +1296,35 @@ function setupProductionStatusCard() {
 		return
 	  }
 
-	  if (format === 'xlsx') {
-		// Generación simple de XLSX sin librería: fallback a CSV con extensión xlsx
-		const header = cols.join(',')
-		const rows = data.map(row => cols.map(c => String(row[c]??'')).join(',')).join('\n')
-		const csv = `${header}\n${rows}`
-		const blob = new Blob([csv], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
-		const url = URL.createObjectURL(blob)
-		const a = document.createElement('a')
-		a.href = url; a.download = `reporte_producciones_${fecha}.xlsx`
-		document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url)
-		reportModal.style.display = 'none'
-		return
-	  }
+  if (format === 'xlsx' || format === 'excel') {
+    if (window.ReportGenerator) {
+      const columns = cols.map(c => ({ header: c[0].toUpperCase()+c.slice(1), key: c }))
+      window.ReportGenerator.generateReport({ columns, data, format: 'excel', filename: `reporte_producciones_${fecha}` })
+      reportModal.style.display = 'none'
+    } else {
+      // Fallback mínimo a CSV si no está el generador
+      const header = cols.join(',')
+      const rows = data.map(row => cols.map(c => String(row[c]??'')).join(',')).join('\n')
+      const csv = `${header}\n${rows}`
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.download = `reporte_producciones_${fecha}.csv`
+      document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url)
+    }
+    return
+  }
 
-	  if (format === 'pdf') {
-		// Renderizar tabla a un HTML e imprimir. Alternativa simple sin librerías: abrir nueva ventana y usar print
-		const tableHtml = `<table style="width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:12px;">
-		  <thead><tr>${cols.map(c=>`<th style='border:1px solid #ddd;padding:6px;background:#f3f4f6;text-align:left;'>${c[0].toUpperCase()+c.slice(1)}</th>`).join('')}</tr></thead>
-		  <tbody>${data.map(r=>`<tr>${cols.map(c=>`<td style='border:1px solid #eee;padding:6px;'>${String(r[c]??'')}</td>`).join('')}</tr>`).join('')}</tbody>
-		</table>`
-		const w = window.open('', '_blank')
-		if (w) {
-		  w.document.write(`<html><head><title>Reporte de Producciones</title></head><body>${tableHtml}<script>window.onload=()=>{window.print(); setTimeout(()=>window.close(), 300);}</script></body></html>`)
-		  w.document.close()
-		  reportModal.style.display = 'none'
-		} else {
-		  mostrarError('No se pudo abrir la ventana para imprimir PDF')
-		}
-		return
-	  }
+  if (format === 'pdf') {
+    if (window.ReportGenerator) {
+      const columns = cols.map(c => ({ header: c[0].toUpperCase()+c.slice(1), key: c }))
+      window.ReportGenerator.generateReport({ columns, data, format: 'pdf', filename: `reporte_producciones_${fecha}` })
+      reportModal.style.display = 'none'
+    } else {
+      mostrarError('Generador de reportes no disponible')
+    }
+    return
+  }
 	})
   
 	// Cerrar modal al hacer clic fuera

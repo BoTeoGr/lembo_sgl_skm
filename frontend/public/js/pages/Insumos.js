@@ -351,6 +351,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       reportModal.style.display = '';
       reportModal.style.alignItems = '';
       reportModal.style.justifyContent = '';
+      try { renderPreview(); } catch(_) {}
     });
   }
   if (cancelReportBtn && reportModal) {
@@ -368,37 +369,69 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (generateReportBtn) {
     generateReportBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      const includeInactive = document.getElementById('includeInactive').checked;
-      const includeDetails = document.getElementById('includeDetails').checked;
-      let reportData = filteredInsumos.filter(i => {
-        if (!includeInactive && i.estado === 'deshabilitado') return false;
-        return true;
+      const format = (document.getElementById('reportFormat')?.value || 'excel').toLowerCase();
+      const includeInactive = document.getElementById('includeInactive')?.checked;
+      const includeDetails = document.getElementById('includeDetails')?.checked;
+      // Preparar dataset según filtros
+      const base = Array.isArray(filteredInsumos) ? filteredInsumos : [];
+      const data = base.filter(i => includeInactive ? true : i.estado !== 'deshabilitado');
+      // Definir columnas
+      const columns = includeDetails
+        ? [
+            { header: 'ID', key: 'id' },
+            { header: 'Nombre', key: 'nombre' },
+            { header: 'Tipo', key: 'tipo' },
+            { header: 'Cantidad', key: 'cantidad' },
+            { header: 'Estado', key: 'estado' },
+          ]
+        : [
+            { header: 'ID', key: 'id' },
+            { header: 'Nombre', key: 'nombre' },
+            { header: 'Estado', key: 'estado' },
+          ];
+      // Mapear datos a objeto plano
+      const rows = data.map(i => {
+        const row = { id: i.id, nombre: i.nombre, estado: i.estado };
+        if (includeDetails) {
+          row.tipo = i.tipo;
+          row.cantidad = i.cantidad;
+        }
+        return row;
       });
-      let csv = '';
-      if (includeDetails) {
-        csv += 'ID,Nombre,Tipo,Cantidad,Estado\n';
-        reportData.forEach(i => {
-          csv += `"${i.id}","${i.nombre}","${i.tipo}",${i.cantidad},"${i.estado}"\n`;
-        });
+      const filename = `reporte_insumos_${new Date().toLocaleDateString('es-ES').replace(/\//g,'-')}`;
+      if (window.ReportGenerator) {
+        window.ReportGenerator.generateReport({ columns, data: rows, format, filename });
       } else {
-        csv += 'ID,Nombre,Estado\n';
-        reportData.forEach(i => {
-          csv += `"${i.id}","${i.nombre}","${i.estado}"\n`;
-        });
+        // Fallback simple a CSV
+        const header = columns.map(c => `"${c.header}"`).join(',');
+        const csvRows = rows.map(r => columns.map(c => `"${String(r[c.key] ?? '').replace(/"/g,'""')}"`).join(',')).join('\n');
+        const csv = `\uFEFF${header}\n${csvRows}`;
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `${filename}.csv`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
       }
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `reporte_insumos_${new Date().toISOString().slice(0,10)}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
       reportModal.classList.remove('modal--active');
       reportModal.style.display = '';
     });
   }
+
+  // Vista previa dinámica
+  function renderPreview() {
+    const prev = document.getElementById('reportPreview');
+    if (!prev) return;
+    const includeInactive = document.getElementById('includeInactive')?.checked;
+    const data = (Array.isArray(filteredInsumos) ? filteredInsumos : []).filter(i => includeInactive ? true : i.estado !== 'deshabilitado');
+    const format = (document.getElementById('reportFormat')?.value || 'CSV').toUpperCase();
+    const colCount = (document.getElementById('includeDetails')?.checked) ? 5 : 3;
+    prev.innerHTML = data.length > 0
+      ? `Se exportarán <strong>${data.length}</strong> insumos en <strong>${format}</strong> con <strong>${colCount}</strong> columnas.`
+      : '<em>No hay datos para exportar</em>';
+  }
+  document.getElementById('includeInactive')?.addEventListener('change', renderPreview);
+  document.getElementById('includeDetails')?.addEventListener('change', renderPreview);
+  document.getElementById('reportFormat')?.addEventListener('change', renderPreview);
 
   // Aplicar filtros
   function applyFilters() {

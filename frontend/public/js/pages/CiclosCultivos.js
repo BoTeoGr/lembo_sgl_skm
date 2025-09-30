@@ -277,6 +277,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (openReportBtn && reportModal) {
     openReportBtn.onclick = () => reportModal.classList.add('modal--active');
+    // Render inicial
+    try {
+      const prev = document.getElementById('reportPreview');
+      if (prev) prev.innerHTML = '';
+    } catch(_) {}
   }
   if (closeReportBtn && reportModal) {
     closeReportBtn.onclick = () => reportModal.classList.remove('modal--active');
@@ -290,38 +295,48 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (generateReportBtn && reportModal) {
     generateReportBtn.onclick = (e) => {
       e.preventDefault();
-      // Obtener configuración del formulario
-      const format = document.getElementById('reportFormat').value;
-      const includeInactive = document.getElementById('includeInactive').checked;
-      const includeDetails = document.getElementById('includeDetails').checked;
-      const includeSensors = document.getElementById('includeSensors').checked;
-      const includeSupplies = document.getElementById('includeSupplies').checked;
-      // Filtrar datos según opciones (ejemplo: solo activos si no incluye inactivos)
-      let data = filteredCiclos;
-      if (!includeInactive) {
-        data = data.filter(c => c.estado === 'Activo');
-      }
-      // Generar solo CSV (otros formatos pueden implementarse después)
-      if (format === 'csv') {
-        const headers = ['ID', 'Nombre', 'Periodo Inicio', 'Periodo Final', 'Estado'];
-        const rows = data.map(c => [c.id, c.nombre, c.periodoInicio, c.periodoFinal, c.estado]);
-        let csvContent = headers.join(',') + '\n';
-        csvContent += rows.map(r => r.map(field => '"' + String(field).replace(/"/g, '""') + '"').join(',')).join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv' });
+      const format = (document.getElementById('reportFormat')?.value || 'excel').toLowerCase();
+      const includeInactive = document.getElementById('includeInactive')?.checked;
+      let data = Array.isArray(filteredCiclos) ? filteredCiclos : [];
+      if (!includeInactive) data = data.filter(c => c.estado === 'Activo');
+      const columns = [
+        { header: 'ID', key: 'id' },
+        { header: 'Nombre', key: 'nombre' },
+        { header: 'Periodo Inicio', key: 'periodoInicio' },
+        { header: 'Periodo Final', key: 'periodoFinal' },
+        { header: 'Estado', key: 'estado' },
+      ];
+      const rows = data.map(c => ({ id: c.id, nombre: c.nombre, periodoInicio: c.periodoInicio, periodoFinal: c.periodoFinal, estado: c.estado }));
+      const filename = `reporte_ciclos_cultivos_${new Date().toLocaleDateString('es-ES').replace(/\//g,'-')}`;
+      if (window.ReportGenerator) {
+        window.ReportGenerator.generateReport({ columns, data: rows, format, filename });
+      } else {
+        const header = columns.map(c => `"${c.header}"`).join(',');
+        const csvRows = rows.map(r => columns.map(c => `"${String(r[c.key] ?? '').replace(/"/g,'""')}"`).join(',')).join('\n');
+        const csv = `\uFEFF${header}\n${csvRows}`;
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
-        a.download = 'reporte_ciclos_cultivos.csv';
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => {
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        }, 100);
-      } else {
-        alert('Por ahora solo está disponible la descarga en formato CSV.');
+        a.href = url; a.download = `${filename}.csv`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
       }
       reportModal.classList.remove('modal--active');
     };
   }
+
+  // Vista previa dinámica
+  function renderPreview() {
+    const prev = document.getElementById('reportPreview');
+    if (!prev) return;
+    const includeInactive = document.getElementById('includeInactive')?.checked;
+    let data = Array.isArray(filteredCiclos) ? filteredCiclos : [];
+    if (!includeInactive) data = data.filter(c => c.estado === 'Activo');
+    const cols = 5; // id, nombre, inicio, final, estado
+    const format = (document.getElementById('reportFormat')?.value || 'CSV').toUpperCase();
+    prev.innerHTML = data.length > 0
+      ? `Se exportarán <strong>${data.length}</strong> ciclos en <strong>${format}</strong> con <strong>${cols}</strong> columnas.`
+      : '<em>No hay datos para exportar</em>';
+  }
+  document.getElementById('includeInactive')?.addEventListener('change', renderPreview);
+  document.getElementById('reportFormat')?.addEventListener('change', renderPreview);
 });

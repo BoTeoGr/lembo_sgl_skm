@@ -203,13 +203,20 @@ class Sensors {
             this.showReportModal();
         });
 
-        document.getElementById('generateReportBtn').addEventListener('click', () => {
+        document.getElementById('generateReportBtn').addEventListener('click', (e) => {
+            e.preventDefault();
             this.generateReport();
         });
 
         document.getElementById('cancelReportBtn').addEventListener('click', () => {
             this.hideReportModal();
         });
+
+        // Actualizar preview al abrir y al cambiar opciones
+        const openPreview = () => { try { this.renderReportPreview(); } catch(_) {} };
+        document.querySelector('.button--report')?.addEventListener('click', openPreview);
+        document.getElementById('includeInactive')?.addEventListener('change', () => this.renderReportPreview());
+        document.getElementById('reportFormat')?.addEventListener('change', () => this.renderReportPreview());
 
         // Acción ver sensor
         document.querySelector('.table__body').addEventListener('click', (e) => {
@@ -621,26 +628,68 @@ class Sensors {
     }
 
     generateReport() {
-        const format = document.getElementById('reportFormat').value;
-        const includeInactive = document.getElementById('includeInactive').checked;
-        const includeReadings = document.getElementById('includeReadings').checked;
-        const includeMaintenance = document.getElementById('includeMaintenance').checked;
-        const includeAlerts = document.getElementById('includeAlerts').checked;
-        const startDate = document.getElementById('reportStartDate').value;
-        const endDate = document.getElementById('reportEndDate').value;
+        const format = (document.getElementById('reportFormat')?.value || 'excel').toLowerCase();
+        const includeInactive = document.getElementById('includeInactive')?.checked;
+        const includeReadings = document.getElementById('includeReadings')?.checked;
+        const includeMaintenance = document.getElementById('includeMaintenance')?.checked;
+        const includeAlerts = document.getElementById('includeAlerts')?.checked;
+        const startDate = document.getElementById('reportStartDate')?.value;
+        const endDate = document.getElementById('reportEndDate')?.value;
 
-        // Aquí iría la lógica para generar el reporte
-        console.log('Generando reporte con las siguientes opciones:', {
-            format,
-            includeInactive,
-            includeReadings,
-            includeMaintenance,
-            includeAlerts,
-            startDate,
-            endDate
-        });
+        // Filtrar dataset
+        let dataset = [...this.filteredData];
+        if (!includeInactive) dataset = dataset.filter(s => String(s.estado).toLowerCase() !== 'deshabilitado');
+
+        // Definir columnas base
+        const columns = [
+            { header: 'ID', key: 'id' },
+            { header: 'Nombre', key: 'nombre' },
+            { header: 'Tipo', key: 'tipo' },
+            { header: 'Unidad', key: 'unidad_medida' },
+            { header: 'Escaneo', key: 'tiempo_escaneo' },
+            { header: 'Estado', key: 'estado' }
+        ];
+
+        // Mapear filas
+        const rows = dataset.map(s => ({
+            id: s.id,
+            nombre: s.nombre,
+            tipo: s.tipo,
+            unidad_medida: s.unidad_medida || '',
+            tiempo_escaneo: s.tiempo_escaneo || '',
+            estado: s.estado
+        }));
+
+        const filename = `reporte_sensores_${new Date().toLocaleDateString('es-ES').replace(/\//g,'-')}`;
+        if (window.ReportGenerator) {
+            window.ReportGenerator.generateReport({ columns, data: rows, format, filename });
+        } else {
+            // Fallback CSV
+            const header = columns.map(c => `"${c.header}"`).join(',');
+            const csvRows = rows.map(r => columns.map(c => `"${String(r[c.key] ?? '').replace(/"/g,'""')}"`).join(',')).join('\n');
+            const csv = `\uFEFF${header}\n${csvRows}`;
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `${filename}.csv`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+        }
 
         this.hideReportModal();
+    }
+
+    // Vista previa dinámica similar a Producciones
+    renderReportPreview() {
+        const prev = document.getElementById('reportPreview');
+        if (!prev) return;
+        const includeInactive = document.getElementById('includeInactive')?.checked;
+        let dataset = [...this.filteredData];
+        if (!includeInactive) dataset = dataset.filter(s => String(s.estado).toLowerCase() !== 'deshabilitado');
+        const selectedCols = ['id','nombre','tipo','unidad_medida','tiempo_escaneo','estado'];
+        const format = (document.getElementById('reportFormat')?.value || 'CSV').toUpperCase();
+        prev.innerHTML = dataset.length > 0
+          ? `Se exportarán <strong>${dataset.length}</strong> sensores en <strong>${format}</strong> con <strong>${selectedCols.length}</strong> columnas.`
+          : '<em>No hay datos para exportar</em>';
     }
 }
 

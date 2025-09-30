@@ -1,3 +1,20 @@
+/* Minimal, light modal theme (shared) */
+.modal .modal__header.modal__header--confirm { background: #f8fafc; color: #111827; padding: 12px 16px; border-bottom: 1px solid #e5e7eb; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+.modal .modal__title { font-weight: 600; }
+.modal .modal__content { border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+.modal .form-field { margin-bottom: 10px; }
+.modal .form-field__label { font-weight: 600; color: #1f2937; }
+.modal .form-field__select,
+.modal .filters__date,
+.modal .form-field__date-range input[type="date"] { border: 1px solid #e5e7eb; padding: 8px 10px; border-radius: 6px; outline: none; background: #ffffff; }
+.modal .form-field__select:focus,
+.modal .filters__date:focus,
+.modal .form-field__date-range input[type="date"]:focus { border-color: #86efac; box-shadow: 0 0 0 2px rgba(134,239,172,.35); }
+.modal .columns-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px 16px; }
+.modal .report-preview { margin-top: 6px; color: #6b7280; font-size: .92rem; }
+.modal .modal__footer.modal__footer--confirm { display: flex; justify-content: flex-end; gap: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb; }
+.modal .button.button--primary { background-color: #22c55e; border-color: #22c55e; }
+.modal .button.button--primary:hover { filter: brightness(.97); }
 @import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Quicksand:wght@300..700&family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap");
 
 :root {

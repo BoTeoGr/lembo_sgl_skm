@@ -1,3 +1,19 @@
+// Helper para redirigir si el rol no coincide
+export function requireRole(allowedRoles = []) {
+  try {
+    const role = (localStorage.getItem('userRol') || '').toLowerCase().trim();
+    if (allowedRoles.length === 0) return true;
+    const ok = allowedRoles.some(r => role === String(r).toLowerCase().trim());
+    if (!ok) {
+      window.location.href = '../views/acceso-denegado.html?r=role';
+      return false;
+    }
+    return true;
+  } catch (_) {
+    window.location.href = '../views/acceso-denegado.html?r=route';
+    return false;
+  }
+}
 // Código específico para manejar las acciones de los roles
 const ROLE_CATEGORIES = {
     'Super administrador': {

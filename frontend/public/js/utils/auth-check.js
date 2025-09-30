@@ -13,7 +13,8 @@ function checkAuth() {
     if (!localStorage.getItem('token')) {
         // Guardar la URL actual para redirigir después del login
         sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
-        window.location.href = 'index.html';
+        window.location.href = 'acceso-denegado.html?r=unauth';
+        return;
     }
 }
 

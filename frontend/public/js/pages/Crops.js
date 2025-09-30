@@ -387,63 +387,66 @@ class Crops {
             if (generateReportBtn) {
                 generateReportBtn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    const format = document.getElementById('reportFormat').value;
-                    const includeInactive = document.getElementById('includeInactive').checked;
-                    const includeDetails = document.getElementById('includeDetails').checked;
-                    const includeSensors = document.getElementById('includeSensors').checked;
-                    const includeSupplies = document.getElementById('includeSupplies').checked;
+                    const format = (document.getElementById('reportFormat')?.value || 'excel').toLowerCase();
+                    const includeInactive = document.getElementById('includeInactive')?.checked;
+                    const includeDetails = document.getElementById('includeDetails')?.checked;
+                    const includeSensors = document.getElementById('includeSensors')?.checked;
+                    const includeSupplies = document.getElementById('includeSupplies')?.checked;
                     // Filtra los cultivos a incluir
-                    let crops = this.filteredData;
-                    if (!includeInactive) {
-                        crops = crops.filter(crop => crop.status === 'Activo');
-                    }
-                    // Genera los datos del reporte
-                    let csv = 'Nombre,Tipo,Tamaño,Ubicación,Estado';
-                    if (includeDetails) csv += ',Detalles';
-                    if (includeSensors) csv += ',Sensores';
-                    if (includeSupplies) csv += ',Insumos';
-                    csv += '\n';
-                    crops.forEach(crop => {
-                        let row = `${crop.name},${crop.type},${crop.area},${crop.location},${crop.status}`;
-                        if (includeDetails) row += ',"Detalles de ejemplo"';
-                        if (includeSensors) row += ',"Sensores de ejemplo"';
-                        if (includeSupplies) row += ',"Insumos de ejemplo"';
-                        csv += row + '\n';
-                    });
-                    if (format === 'csv') {
-                        const blob = new Blob([csv], { type: 'text/csv' });
+                    let crops = Array.isArray(this.filteredData) ? this.filteredData : [];
+                    if (!includeInactive) crops = crops.filter(crop => crop.status === 'Activo');
+                    // Definir columnas
+                    const columns = [
+                        { header: 'Nombre', key: 'name' },
+                        { header: 'Tipo', key: 'type' },
+                        { header: 'Tamaño', key: 'area' },
+                        { header: 'Ubicación', key: 'location' },
+                        { header: 'Estado', key: 'status' }
+                    ];
+                    // Mapear filas
+                    const rows = crops.map(crop => ({
+                        name: crop.name,
+                        type: crop.type,
+                        area: crop.area,
+                        location: crop.location,
+                        status: crop.status
+                    }));
+                    const filename = `reporte_cultivos_${new Date().toLocaleDateString('es-ES').replace(/\//g,'-')}`;
+                    if (window.ReportGenerator) {
+                        window.ReportGenerator.generateReport({ columns, data: rows, format, filename });
+                    } else {
+                        // Fallback CSV
+                        const header = columns.map(c => `"${c.header}"`).join(',');
+                        const csvRows = rows.map(r => columns.map(c => `"${String(r[c.key] ?? '').replace(/"/g,'""')}"`).join(',')).join('\n');
+                        const csv = `\uFEFF${header}\n${csvRows}`;
+                        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement('a');
-                        a.href = url;
-                        a.download = 'reporte_cultivos.csv';
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                    } else if (format === 'excel') {
-                        // Genera un archivo Excel simple usando CSV
-                        const blob = new Blob([csv], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = 'reporte_cultivos.xlsx';
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                    } else if (format === 'pdf') {
-                        // Genera un PDF simple usando window.print()
-                        const win = window.open('', '_blank');
-                        win.document.write('<html><head><title>Reporte de Cultivos</title></head><body>');
-                        win.document.write('<h2>Reporte de Cultivos</h2>');
-                        win.document.write('<pre>' + csv + '</pre>');
-                        win.document.write('</body></html>');
-                        win.document.close();
-                        win.print();
+                        a.href = url; a.download = `${filename}.csv`;
+                        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
                     }
                     reportModal.classList.remove('modal--active');
                 });
             }
+
+            // Preview dinámico
+            const renderPreview = () => {
+                try {
+                    const prev = document.getElementById('reportPreview');
+                    if (!prev) return;
+                    const includeInactive = document.getElementById('includeInactive')?.checked;
+                    const crops = Array.isArray(this.filteredData) ? this.filteredData : [];
+                    const filtered = includeInactive ? crops : crops.filter(c => c.status === 'Activo');
+                    const cols = 5; // nombre,tipo,tamaño,ubicación,estado
+                    const format = (document.getElementById('reportFormat')?.value || 'CSV').toUpperCase();
+                    prev.innerHTML = filtered.length > 0
+                      ? `Se exportarán <strong>${filtered.length}</strong> cultivos en <strong>${format}</strong> con <strong>${cols}</strong> columnas.`
+                      : '<em>No hay datos para exportar</em>'
+                } catch(_) {}
+            }
+            document.querySelector('.button--report')?.addEventListener('click', renderPreview);
+            document.getElementById('includeInactive')?.addEventListener('change', renderPreview);
+            document.getElementById('reportFormat')?.addEventListener('change', renderPreview);
             // --- Cerrar modal de visualizar cultivo ---
             if (closeViewCropModal) {
                 closeViewCropModal.addEventListener('click', () => {

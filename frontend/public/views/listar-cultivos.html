@@ -97,8 +97,8 @@
 						<form id="reportForm" class="form">
 							<div class="form-field">
 								<label class="form-field__label">Formato</label>
-								<select class="form-field__select" id="reportFormat">
-									<option value="excel">Excel (.xlsx)</option>
+							<select class="form-field__select" id="reportFormat">
+								<option value="excel">Excel (.xls)</option>
 									<option value="pdf">PDF</option>
 									<option value="csv">CSV</option>
 								</select>
@@ -124,6 +124,15 @@
 									</label>
 								</div>
 							</div>
+						<div class="form-field">
+							<label class="form-field__label">Período</label>
+							<div class="form-field__date-range">
+								<input type="date" id="reportStartDate" />
+								<span>a</span>
+								<input type="date" id="reportEndDate" />
+							</div>
+						</div>
+						<div id="reportPreview" class="report-preview"></div>
 							<div class="form-field">
 								<p id="confirmMessage" class="modal__confirm-message">
 									¿Está seguro que desea generar el reporte con estas
@@ -238,6 +247,7 @@
 			</div>
 		</main>
 
+		<script src="../js/pages/ReportGenerator.js"></script>
 		<!-- Script para verificar autenticación antes demostrar la vista -->
 		<script src="../js/utils/auth-check.js"></script>
 	</body>
