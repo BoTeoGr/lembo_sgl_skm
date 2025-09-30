@@ -11,12 +11,12 @@ if (footer) {
 
 const nav = document.querySelector(".nav-render");
 if (nav) {
-    nav.innerHTML = Navbar();
-    MenuNav();
-    // Initialize profile modal after a small delay to ensure DOM is ready
-    setTimeout(() => {
-        injectProfileModal();
-    }, 100);
+	nav.innerHTML = Navbar();
+	MenuNav();
+	// Inicializar el modal de perfil después de un pequeño retraso para asegurar que el DOM esté listo
+	setTimeout(() => {
+		injectProfileModal();
+	}, 100);
 }
 
 const headerRoot = document.querySelector(".header");
@@ -24,5 +24,3 @@ if (headerRoot) {
 	const title = headerRoot.dataset.title;
 	headerRoot.innerHTML = Header(title);
 }
-
-

@@ -1,12 +1,14 @@
 // Bloquear números en los campos 'userName' y 'typeCrop'
-document.querySelectorAll(".form__input--cultive-name, .form__input--cultive-type").forEach(function (element) {
-	element.addEventListener("keydown", function (e) {
-		if (e.key >= "0" && e.key <= "9") {
-			e.preventDefault();
-			console.log("Número bloqueado en el campo");
-		}
+document
+	.querySelectorAll(".form__input--cultive-name, .form__input--cultive-type")
+	.forEach(function (element) {
+		element.addEventListener("keydown", function (e) {
+			if (e.key >= "0" && e.key <= "9") {
+				e.preventDefault();
+				console.log("Número bloqueado en el campo");
+			}
+		});
 	});
-});
 
 // Bloquear Enter en el botón para evitar recargas accidentales
 document
@@ -22,7 +24,11 @@ document
 document
 	.querySelector(".form__input--cultive-size")
 	.addEventListener("keydown", function (e) {
-		if ((e.key < "0" || e.key > "9") && e.key !== "." && e.key !== "Backspace") {
+		if (
+			(e.key < "0" || e.key > "9") &&
+			e.key !== "." &&
+			e.key !== "Backspace"
+		) {
 			e.preventDefault();
 		}
 	});
@@ -47,11 +53,15 @@ const cultivoForm = document.querySelector(".form__container");
 const cultiveName = document.querySelector(".form__input--cultive-name");
 const cultiveType = document.querySelector(".form__input--cultive-type");
 const cultiveImage = document.querySelector(".form__file--cultive-image");
-const cultiveLocation = document.querySelector(".form__input--cultive-location");
-const cultiveDescription = document.querySelector(".form__textarea--cultive-description");
+const cultiveLocation = document.querySelector(
+	".form__input--cultive-location"
+);
+const cultiveDescription = document.querySelector(
+	".form__textarea--cultive-description"
+);
 const cultiveSize = document.querySelector(".form__input--cultive-size");
 const estadoRadios = document.querySelectorAll(
-    'input[name="estado-habilitado"]'
+	'input[name="estado-habilitado"]'
 );
 const submitButton = document.querySelector(".button--submit");
 
@@ -65,10 +75,10 @@ cultiveDescription.addEventListener("input", readText);
 
 // Capturar el estado seleccionado en tiempo real
 estadoRadios.forEach((radio) => {
-    radio.addEventListener("change", (e) => {
-        cultiveData.estado = e.target.value;
-        console.log(cultiveData); // Mostrar en consola cuando cambia el estado
-    });
+	radio.addEventListener("change", (e) => {
+		cultiveData.estado = e.target.value;
+		console.log(cultiveData); // Mostrar en consola cuando cambia el estado
+	});
 });
 
 // Función para capturar los valores de los inputs
@@ -81,7 +91,9 @@ function readText(e) {
 		cultiveData.cultiveImage = e.target.value;
 	} else if (e.target.classList.contains("form__input--cultive-location")) {
 		cultiveData.cultiveLocation = e.target.value;
-	} else if (e.target.classList.contains("form__textarea--cultive-description")) {
+	} else if (
+		e.target.classList.contains("form__textarea--cultive-description")
+	) {
 		cultiveData.cultiveDescription = e.target.value;
 	} else if (e.target.classList.contains("form__input--cultive-size")) {
 		cultiveData.cultiveSize = e.target.value;
@@ -125,10 +137,12 @@ cultivoForm.addEventListener("submit", function (e) {
 		usuario_id === "" ||
 		!isValidSize(cultiveSize)
 	) {
-		showAlert("Todos los campos son obligatorios y el tamaño debe estar entre 10 y 10000 m²", true);
+		showAlert(
+			"Todos los campos son obligatorios y el tamaño debe estar entre 10 y 10000 m²",
+			true
+		);
 		return;
 	}
-	
 });
 
 // Función para validar el tamaño del cultivo
@@ -156,25 +170,29 @@ submitButton.addEventListener("click", async () => {
 		// Deshabilitar el botón durante el envío
 		submitButton.disabled = true;
 		submitButton.textContent = "Creando...";
-		const token = localStorage.getItem('token');
+		const token = localStorage.getItem("token");
 		const response = await fetch("http://localhost:5000/cultivos", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
-				"Authorization": `Bearer ${token}`
+				Authorization: `Bearer ${token}`,
 			},
 			body: JSON.stringify(cultiveData),
 		});
 		const data = await response.json();
 
 		if (response.ok) {
-			showToast("Cultivo creado", "El cultivo ha sido creado correctamente", "success");
+			showToast(
+				"Cultivo creado",
+				"El cultivo ha sido creado correctamente",
+				"success"
+			);
 			// Limpiar el formulario
 			resetForm();
 			// Redirigir a la lista de cultivos
-            setTimeout(() => {
-                window.location.href = "listar-cultivos.html";
-            }, 2000); // Espera 2 segundos para mostrar el toast antes de redirigir
+			setTimeout(() => {
+				window.location.href = "listar-cultivos.html";
+			}, 2000); // Espera 2 segundos para mostrar el toast antes de redirigir
 		} else {
 			showToast("Error", data.error || "Error al crear el cultivo", "error");
 		}
@@ -188,76 +206,77 @@ submitButton.addEventListener("click", async () => {
 	}
 });
 
-
 // Función para limpiar el formulario
 function resetForm() {
-    // Limpiar los valores del objeto cultiveData
-    Object.keys(cultiveData).forEach(key => {
-        if (key !== 'usuario_id' && key !== 'estado') {
-            cultiveData[key] = '';
-        }
-    });
-    
-    // Restablecer el estado a 'habilitado'
-    cultiveData.estado = 'habilitado';
-    
-    // Limpiar los campos del formulario
-    document.querySelectorAll('input[type="text"], input[type="file"], textarea').forEach(input => {
-        input.value = '';
-    });
-    
-    // Marcar el radio button de habilitado como seleccionado
-    const enabledRadio = document.querySelector('input[value="habilitado"]');
-    if (enabledRadio) {
-        enabledRadio.checked = true;
-    }
-    
-    console.log('Formulario limpiado');
+	// Limpiar los valores del objeto cultiveData
+	Object.keys(cultiveData).forEach((key) => {
+		if (key !== "usuario_id" && key !== "estado") {
+			cultiveData[key] = "";
+		}
+	});
+
+	// Restablecer el estado a 'habilitado'
+	cultiveData.estado = "habilitado";
+
+	// Limpiar los campos del formulario
+	document
+		.querySelectorAll('input[type="text"], input[type="file"], textarea')
+		.forEach((input) => {
+			input.value = "";
+		});
+
+	// Marcar el radio button de habilitado como seleccionado
+	const enabledRadio = document.querySelector('input[value="habilitado"]');
+	if (enabledRadio) {
+		enabledRadio.checked = true;
+	}
+
+	console.log("Formulario limpiado");
 }
 
 // Función general para mostrar toasts
-function showToast(title, message, type = 'success') {
-    const toast = document.getElementById('toast');
-    const toastTitle = document.getElementById('toastTitle');
-    const toastDescription = document.getElementById('toastDescription');
-    const toastIcon = document.getElementById('toastIcon');
-    const toastProgress = document.querySelector('.toast-progress');
+function showToast(title, message, type = "success") {
+	const toast = document.getElementById("toast");
+	const toastTitle = document.getElementById("toastTitle");
+	const toastDescription = document.getElementById("toastDescription");
+	const toastIcon = document.getElementById("toastIcon");
+	const toastProgress = document.querySelector(".toast-progress");
 
-    // Establecer el contenido del toast
-    toastTitle.textContent = title;
-    toastDescription.textContent = message;
-    
-    // Establecer el icono según el tipo
-    switch(type) {
-        case 'success':
-            toastIcon.className = 'fas fa-check-circle';
-            break;
-        case 'error':
-            toastIcon.className = 'fas fa-exclamation-circle';
-            break;
-        case 'warning':
-            toastIcon.className = 'fas fa-exclamation-triangle';
-            break;
-        case 'info':
-            toastIcon.className = 'fas fa-info-circle';
-            break;
-    }
+	// Establecer el contenido del toast
+	toastTitle.textContent = title;
+	toastDescription.textContent = message;
 
-    // Mostrar el toast
-    toast.classList.remove('hidden');
-    
-    // Animación de la barra de progreso
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-        progress += 2;
-        toastProgress.style.width = `${progress}%`;
-        if (progress >= 100) {
-            clearInterval(progressInterval);
-            // Ocultar el toast después de 5 segundos
-            setTimeout(() => {
-                toast.classList.add('hidden');
-                toastProgress.style.width = '0%';
-            }, 3400);
-        }
-    }, 30);
+	// Establecer el icono según el tipo
+	switch (type) {
+		case "success":
+			toastIcon.className = "fas fa-check-circle";
+			break;
+		case "error":
+			toastIcon.className = "fas fa-exclamation-circle";
+			break;
+		case "warning":
+			toastIcon.className = "fas fa-exclamation-triangle";
+			break;
+		case "info":
+			toastIcon.className = "fas fa-info-circle";
+			break;
+	}
+
+	// Mostrar el toast
+	toast.classList.remove("hidden");
+
+	// Animación de la barra de progreso
+	let progress = 0;
+	const progressInterval = setInterval(() => {
+		progress += 2;
+		toastProgress.style.width = `${progress}%`;
+		if (progress >= 100) {
+			clearInterval(progressInterval);
+			// Ocultar el toast después de 5 segundos
+			setTimeout(() => {
+				toast.classList.add("hidden");
+				toastProgress.style.width = "0%";
+			}, 3400);
+		}
+	}, 30);
 }

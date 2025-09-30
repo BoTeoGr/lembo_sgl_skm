@@ -16,8 +16,8 @@
 
 	--secondary-green: #007832;
 	--secondary-blue: #50e5f9;
-	--warning: rgb(254,217,93);
-	--expired: rgb(253,195,0);
+	--warning: rgb(254, 217, 93);
+	--expired: rgb(253, 195, 0);
 
 	--gray-100: #313131;
 	--gray-80: #626262;
@@ -228,8 +228,8 @@ body {
 .main-content--login {
 	width: 60%;
 	display: flex;
-	justify-content: center; 
-	align-items: center; 
+	justify-content: center;
+	align-items: center;
 	background-color: var(--green-950);
 }
 
@@ -310,22 +310,22 @@ body {
 }
 
 .button--back {
-    display: inline-block;
-    padding: 0.4rem 1.1rem;
-    background: var(--green-50);
-    color: var(--green-700);
-    border-radius: 7px;
-    font-size: 1.4rem;
-    font-weight: 500;
-    text-decoration: none;
-    /* margin-bottom: 1.2rem; */
-    transition: background 0.18s, color 0.18s;
-    border: none;
-  }
-  .button--back:hover {
-    background: var(--green-100);
-    color: var(--green-800);
-  }
+	display: inline-block;
+	padding: 0.4rem 1.1rem;
+	background: var(--green-50);
+	color: var(--green-700);
+	border-radius: 7px;
+	font-size: 1.4rem;
+	font-weight: 500;
+	text-decoration: none;
+	/* margin-bottom: 1.2rem; */
+	transition: background 0.18s, color 0.18s;
+	border: none;
+}
+.button--back:hover {
+	background: var(--green-100);
+	color: var(--green-800);
+}
 
 /* logotipo de actuallizar-contraseña.html */
 .form__logo {
@@ -440,7 +440,7 @@ body {
 /* Botón de envío */
 .form__button-container {
 	text-align: center;
-	margin: 1rem 0; 
+	margin: 1rem 0;
 }
 
 .form__group--password {
@@ -448,25 +448,26 @@ body {
 }
 
 /* Boton para mostrar/ocultar contraseña (formulario de registro de usuario) */
-.toggle-password, .toggle-password-login {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(0%);
-    background: none;
-    border: none;
-    color: #666;
-    cursor: pointer;
-    padding: 5px;
+.toggle-password,
+.toggle-password-login {
+	position: absolute;
+	right: 10px;
+	top: 50%;
+	transform: translateY(0%);
+	background: none;
+	border: none;
+	color: #666;
+	cursor: pointer;
+	padding: 5px;
 }
 .toggle-password-login {
 	right: -10px;
-    top: 36%;
+	top: 36%;
 }
 
-
-.toggle-password:hover, .toggle-password-login:hover {
-    color: #333;
+.toggle-password:hover,
+.toggle-password-login:hover {
+	color: #333;
 }
 
 .button--submit {
@@ -524,13 +525,13 @@ body {
 	.form--login {
 		width: 100%;
 		height: 28rem;
-		padding: 4rem 2rem ;
+		padding: 4rem 2rem;
 		gap: 4rem;
 	}
 
 	.form__container--login {
 		padding: 2rem 0;
-		width: 100%;	
+		width: 100%;
 	}
 
 	.form__input--email,
@@ -569,7 +570,7 @@ body {
 	.main-content--login {
 		width: 100%;
 		height: 85%;
-		padding: 2rem ;
+		padding: 2rem;
 		order: 2;
 	}
 
@@ -585,7 +586,7 @@ body {
 	.form--login {
 		width: 100%;
 		height: 54rem;
-		padding: 4rem 2rem ;
+		padding: 4rem 2rem;
 		gap: 4rem;
 	}
 
@@ -632,9 +633,7 @@ body {
 .correct {
 	color: var(--expired);
 	border: none;
-	font-size: clamp(1.2rem,
-			1vw,
-			1.6rem);
+	font-size: clamp(1.2rem, 1vw, 1.6rem);
 	/* Ajusta el tamaño de fuente según sea necesario */
 	margin: 0;
 	text-align: center;
@@ -643,8 +642,6 @@ body {
 .correct {
 	color: var(--green-900);
 }
-
-
 
 /* Toast */
 .toast {
@@ -733,25 +730,24 @@ body {
 
 /* Estilos para los campos de selección y botones */
 .form__select-container {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	width: 100%;
 }
 
 .form__select {
-    width: 100%;
-    height: 40px;
-    padding: 8px 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 14px;
-    background-color: var(--white);
+	width: 100%;
+	height: 40px;
+	padding: 8px 12px;
+	border: 1px solid var(--border-color);
+	border-radius: 4px;
+	font-size: 14px;
+	background-color: var(--white);
 }
 
 .button-group {
-    display: flex;
-    gap: 8px;
-    width: 100%;
+	display: flex;
+	gap: 8px;
+	width: 100%;
 }
-

@@ -1,9 +1,11 @@
 import db from "./../db/config.db.js";
 
+// Lista todas las producciones con datos de usuario y cultivo
+
 export function verProducciones(req, res) {
-  try {
-    db.query(
-      `
+	try {
+		db.query(
+			`
             SELECT 
                 p.*,
                 u.nombre AS nombre_usuario,
@@ -15,266 +17,370 @@ export function verProducciones(req, res) {
             LEFT JOIN 
                 cultivos c ON p.cultivo_id = c.id
         `,
-      (err, results) => {
-        if (err) {
-          console.error("Error al obtener las producciones:", err);
-          return res
-            .status(500)
-            .json({
-              error: "Error al obtener las producciones: " + err.message,
-            });
-        }
-        res.status(200).json(results);
-      }
-    );
-  } catch (err) {
-    console.error("Error en el servidor:", err);
-    res.status(500).json({ error: "Error en el servidor: " + err.message });
-  }
+			(err, results) => {
+				if (err) {
+					console.error("Error al obtener las producciones:", err);
+					return res.status(500).json({
+						error: "Error al obtener las producciones: " + err.message,
+					});
+				}
+				res.status(200).json(results);
+			}
+		);
+	} catch (err) {
+		console.error("Error en el servidor:", err);
+		res.status(500).json({ error: "Error en el servidor: " + err.message });
+	}
 }
+// Crea una producción con insumos y sensores dentro de una transacción
 export function crearProduccion(req, res) {
-  try {
-    const {
-      nombre,
-      tipo,
-      ubicacion,
-      descripcion,
-      usuario_id,
-      cantidad,
-      cultivo_id,
-      ciclo_id,
-      insumos_ids,
-      sensores_ids,
-      fecha_de_inicio,
-      fecha_fin,
-      inversion,
-      meta_ganancia
-    } = req.body;
-    if (!nombre || !tipo || !ubicacion || !descripcion || !usuario_id ||
-      cantidad === undefined || !cultivo_id || !ciclo_id) {
-      return res.status(400).json({ error: "Todos los campos obligatorios deben ser proporcionados." });
-    }
+	try {
+		const {
+			nombre,
+			tipo,
+			ubicacion,
+			descripcion,
+			usuario_id,
+			cantidad,
+			cultivo_id,
+			ciclo_id,
+			insumos_ids,
+			sensores_ids,
+			fecha_de_inicio,
+			fecha_fin,
+			inversion,
+			meta_ganancia,
+		} = req.body;
+		if (
+			!nombre ||
+			!tipo ||
+			!ubicacion ||
+			!descripcion ||
+			!usuario_id ||
+			cantidad === undefined ||
+			!cultivo_id ||
+			!ciclo_id
+		) {
+			return res
+				.status(400)
+				.json({
+					error: "Todos los campos obligatorios deben ser proporcionados.",
+				});
+		}
 
-    if (!insumos_ids || insumos_ids.length === 0) {
-      return res.status(400).json({ error: "Se deben proporcionar los IDs de los insumos utilizados." });
-    }
+		if (!insumos_ids || insumos_ids.length === 0) {
+			return res
+				.status(400)
+				.json({
+					error: "Se deben proporcionar los IDs de los insumos utilizados.",
+				});
+		}
 
-    if (meta_ganancia !== undefined && inversion !== undefined && meta_ganancia < inversion) {
-      return res.status(400).json({ error: "La meta de ganancia debe ser mayor o igual a la inversión." });
-    }
+		if (
+			meta_ganancia !== undefined &&
+			inversion !== undefined &&
+			meta_ganancia < inversion
+		) {
+			return res
+				.status(400)
+				.json({
+					error: "La meta de ganancia debe ser mayor o igual a la inversión.",
+				});
+		}
 
-    // Start transaction
-    db.beginTransaction(transErr => {
-      if (transErr) {
-        console.error("Error al iniciar la transacción:", transErr);
-        return res.status(500).json({ error: "Error al iniciar la transacción." });
-      }
+		// Iniciar transacción
+		db.beginTransaction((transErr) => {
+			if (transErr) {
+				console.error("Error al iniciar la transacción:", transErr);
+				return res
+					.status(500)
+					.json({ error: "Error al iniciar la transacción." });
+			}
 
-      // Insert producción (solo campos válidos)
-      db.query(
-        `
+			// Insertar producción (solo campos válidos)
+			db.query(
+				`
               INSERT INTO producciones (
                   nombre, tipo, ubicacion, descripcion, 
                   usuario_id, cantidad, estado, cultivo_id, ciclo_id, 
                   fecha_de_inicio, fecha_fin, inversion, meta_ganancia
               ) VALUES (?, ?, ?, ?, ?, ?, 'habilitado', ?, ?, ?, ?, ?, ?)
               `,
-        [nombre, tipo, ubicacion, descripcion, usuario_id, cantidad,
-          cultivo_id, ciclo_id, fecha_de_inicio,
-          fecha_fin, inversion, meta_ganancia],
-        (prodErr, prodResults) => {
-          if (prodErr) {
-            return db.rollback(rollbackErr => {
-              if (rollbackErr) {
-                console.error("Error al hacer rollback:", rollbackErr);
-              }
-              console.error("Error al crear la producción:", prodErr);
-              return res.status(500).json({ error: "Error al crear la producción." });
-            });
-          }
+				[
+					nombre,
+					tipo,
+					ubicacion,
+					descripcion,
+					usuario_id,
+					cantidad,
+					cultivo_id,
+					ciclo_id,
+					fecha_de_inicio,
+					fecha_fin,
+					inversion,
+					meta_ganancia,
+				],
+				(prodErr, prodResults) => {
+					if (prodErr) {
+						return db.rollback((rollbackErr) => {
+							if (rollbackErr) {
+								console.error("Error al hacer rollback:", rollbackErr);
+							}
+							console.error("Error al crear la producción:", prodErr);
+							return res
+								.status(500)
+								.json({ error: "Error al crear la producción." });
+						});
+					}
 
-          const produccionId = prodResults.insertId;
+					const produccionId = prodResults.insertId;
 
-          // Save insumos usage in uso_insumo table
-          const saveInsumoUsage = () => {
-            if (Array.isArray(insumos_ids) && insumos_ids.length > 0) {
-              // Insert insumos into uso_insumo table
-              const insumosValues = insumos_ids.map(insumo => {
-                return [produccionId, insumo.id, insumo.cantidad_usar];
-              });
+					// Registrar uso de insumos en 'uso_insumo'
+					const saveInsumoUsage = () => {
+						if (Array.isArray(insumos_ids) && insumos_ids.length > 0) {
+							// Insertar insumos en 'uso_insumo'
+							const insumosValues = insumos_ids.map((insumo) => {
+								return [produccionId, insumo.id, insumo.cantidad_usar];
+							});
 
-              const placeholders = insumosValues.map(() => '(?, ?, ?)').join(', ');
-              const values = insumosValues.flat();
+							const placeholders = insumosValues
+								.map(() => "(?, ?, ?)")
+								.join(", ");
+							const values = insumosValues.flat();
 
-              db.query(
-                `INSERT INTO uso_insumo (produccion_id, insumo_id, cantidad_utilizada) VALUES ${placeholders}`,
-                values,
-                (insumoErr, insumoResults) => {
-                  if (insumoErr) {
-                    return db.rollback(rollbackErr => {
-                      if (rollbackErr) {
-                        console.error("Error al hacer rollback:", rollbackErr);
-                      }
-                      console.error("Error al guardar el uso de insumos:", insumoErr);
-                      return res.status(500).json({ error: "Error al guardar el uso de insumos." });
-                    });
-                  }
+							db.query(
+								`INSERT INTO uso_insumo (produccion_id, insumo_id, cantidad_utilizada) VALUES ${placeholders}`,
+								values,
+								(insumoErr, insumoResults) => {
+									if (insumoErr) {
+										return db.rollback((rollbackErr) => {
+											if (rollbackErr) {
+												console.error("Error al hacer rollback:", rollbackErr);
+											}
+											console.error(
+												"Error al guardar el uso de insumos:",
+												insumoErr
+											);
+											return res
+												.status(500)
+												.json({ error: "Error al guardar el uso de insumos." });
+										});
+									}
 
-                  // Update insumo quantities
-                  const insumoIds = insumos_ids.map(insumo => insumo.id);
-                  const insumoQuantities = insumos_ids.reduce((acc, insumo) => {
-                    acc[insumo.id] = insumo.cantidad_usar;
-                    return acc;
-                  }, {});
+									// Actualizar cantidades de insumos
+									const insumoIds = insumos_ids.map((insumo) => insumo.id);
+									const insumoQuantities = insumos_ids.reduce((acc, insumo) => {
+										acc[insumo.id] = insumo.cantidad_usar;
+										return acc;
+									}, {});
 
-                  const updatePromises = insumoIds.map(insumoId => {
-                    return new Promise((resolve, reject) => {
-                      const cantidadUsar = insumoQuantities[insumoId];
-                      db.query(
-                        'UPDATE insumos SET cantidad = cantidad - ? WHERE id = ?',
-                        [cantidadUsar, insumoId],
-                        (err, results) => {
-                          if (err) {
-                            reject(err);
-                          } else {
-                            resolve(results);
-                          }
-                        }
-                      );
-                    });
-                  });
+									const updatePromises = insumoIds.map((insumoId) => {
+										return new Promise((resolve, reject) => {
+											const cantidadUsar = insumoQuantities[insumoId];
+											db.query(
+												"UPDATE insumos SET cantidad = cantidad - ? WHERE id = ?",
+												[cantidadUsar, insumoId],
+												(err, results) => {
+													if (err) {
+														reject(err);
+													} else {
+														resolve(results);
+													}
+												}
+											);
+										});
+									});
 
-                  Promise.all(updatePromises)
-                    .then(() => {
-                      // Register sensors in uso_sensor table
-                      const sensorIds = Array.isArray(req.body.sensores_ids) ? req.body.sensores_ids.map(id => parseInt(id)) : [];
-                      
-                      if (sensorIds.length === 0) {
-                        // Si no hay sensores, crear un registro con sensor_id NULL
-                        db.query(
-                          `INSERT INTO uso_sensor (produccion_id, sensor_id) VALUES (?, NULL)`,
-                          [produccionId],
-                          (sensorErr, sensorResults) => {
-                            if (sensorErr) {
-                              return db.rollback(rollbackErr => {
-                                if (rollbackErr) {
-                                  console.error("Error al hacer rollback:", rollbackErr);
-                                }
-                                console.error("Error al guardar el uso de sensores:", sensorErr);
-                                return res.status(500).json({ error: "Error al guardar el uso de sensores." });
-                              });
-                            }
-                            // Commit transaction
-                            db.commit(commitErr => {
-                              if (commitErr) {
-                                return db.rollback(rollbackErr => {
-                                  if (rollbackErr) {
-                                    console.error("Error al hacer rollback:", rollbackErr);
-                                  }
-                                  console.error("Error al hacer commit:", commitErr);
-                                  return res.status(500).json({ error: "Error al finalizar la transacción." });
-                                });
-                              }
-                              return res.status(201).json({
-                                message: "Producción creada con éxito (sin sensor registrado).",
-                                produccion_id: produccionId
-                              });
-                            });
-                          }
-                        );
-                      } else {
-                        // Crear registros para cada sensor
-                        const sensorValues = sensorIds.map(sensorId => [produccionId, sensorId]);
-                        const sensorPlaceholders = sensorValues.map(() => '(?, ?)').join(', ');
-                        const sensorValuesFlat = sensorValues.flat();
+									Promise.all(updatePromises)
+										.then(() => {
+											// Registrar sensores en 'uso_sensor'
+											const sensorIds = Array.isArray(req.body.sensores_ids)
+												? req.body.sensores_ids.map((id) => parseInt(id))
+												: [];
 
-                        db.query(
-                          `INSERT INTO uso_sensor (produccion_id, sensor_id) VALUES ${sensorPlaceholders}`,
-                          sensorValuesFlat,
-                          (sensorErr, sensorResults) => {
-                            if (sensorErr) {
-                              return db.rollback(rollbackErr => {
-                                if (rollbackErr) {
-                                  console.error("Error al hacer rollback:", rollbackErr);
-                                }
-                                console.error("Error al guardar el uso de sensores:", sensorErr);
-                                return res.status(500).json({ error: "Error al guardar el uso de sensores." });
-                              });
-                            }
-                            // Commit transaction
-                            db.commit(commitErr => {
-                              if (commitErr) {
-                                return db.rollback(rollbackErr => {
-                                  if (rollbackErr) {
-                                    console.error("Error al hacer rollback:", rollbackErr);
-                                  }
-                                  console.error("Error al hacer commit:", commitErr);
-                                  return res.status(500).json({ error: "Error al finalizar la transacción." });
-                                });
-                              }
-                              return res.status(201).json({
-                                message: "Producción creada e insumos y sensores registrados con éxito.",
-                                produccion_id: produccionId
-                              });
-                            });
-                          }
-                        );
-                      }   
-                    })
-                    .catch(err => {
-                      return db.rollback(rollbackErr => {
-                        if (rollbackErr) {
-                          console.error("Error al hacer rollback:", rollbackErr);
-                        }
-                        console.error("Error al actualizar insumos:", err);
-                        return res.status(500).json({ error: "Error al actualizar insumos." });
-                      });
-                    });
-                }
-              );
-            } else {
-              // If no insumos, commit transaction
-              db.commit(commitErr => {
-                if (commitErr) {
-                  return db.rollback(rollbackErr => {
-                    if (rollbackErr) {
-                      console.error("Error al hacer rollback:", rollbackErr);
-                    }
-                    console.error("Error al hacer commit:", commitErr);
-                    return res.status(500).json({ error: "Error al finalizar la transacción." });
-                  });
-                }
+											if (sensorIds.length === 0) {
+												// Si no hay sensores, crear un registro con sensor_id NULL
+												db.query(
+													`INSERT INTO uso_sensor (produccion_id, sensor_id) VALUES (?, NULL)`,
+													[produccionId],
+													(sensorErr, sensorResults) => {
+														if (sensorErr) {
+															return db.rollback((rollbackErr) => {
+																if (rollbackErr) {
+																	console.error(
+																		"Error al hacer rollback:",
+																		rollbackErr
+																	);
+																}
+																console.error(
+																	"Error al guardar el uso de sensores:",
+																	sensorErr
+																);
+																return res
+																	.status(500)
+																	.json({
+																		error:
+																			"Error al guardar el uso de sensores.",
+																	});
+															});
+														}
+														// Confirmar transacción
+														db.commit((commitErr) => {
+															if (commitErr) {
+																return db.rollback((rollbackErr) => {
+																	if (rollbackErr) {
+																		console.error(
+																			"Error al hacer rollback:",
+																			rollbackErr
+																		);
+																	}
+																	console.error(
+																		"Error al hacer commit:",
+																		commitErr
+																	);
+																	return res
+																		.status(500)
+																		.json({
+																			error:
+																				"Error al finalizar la transacción.",
+																		});
+																});
+															}
+															return res.status(201).json({
+																message:
+																	"Producción creada con éxito (sin sensor registrado).",
+																produccion_id: produccionId,
+															});
+														});
+													}
+												);
+											} else {
+												// Crear registros para cada sensor
+												const sensorValues = sensorIds.map((sensorId) => [
+													produccionId,
+													sensorId,
+												]);
+												const sensorPlaceholders = sensorValues
+													.map(() => "(?, ?)")
+													.join(", ");
+												const sensorValuesFlat = sensorValues.flat();
 
-                return res.status(201).json({
-                  message: "Producción creada con éxito.",
-                  produccion_id: produccionId
-                });
-              });
-            }
-          };
+												db.query(
+													`INSERT INTO uso_sensor (produccion_id, sensor_id) VALUES ${sensorPlaceholders}`,
+													sensorValuesFlat,
+													(sensorErr, sensorResults) => {
+														if (sensorErr) {
+															return db.rollback((rollbackErr) => {
+																if (rollbackErr) {
+																	console.error(
+																		"Error al hacer rollback:",
+																		rollbackErr
+																	);
+																}
+																console.error(
+																	"Error al guardar el uso de sensores:",
+																	sensorErr
+																);
+																return res
+																	.status(500)
+																	.json({
+																		error:
+																			"Error al guardar el uso de sensores.",
+																	});
+															});
+														}
+														// Confirmar transacción
+														db.commit((commitErr) => {
+															if (commitErr) {
+																return db.rollback((rollbackErr) => {
+																	if (rollbackErr) {
+																		console.error(
+																			"Error al hacer rollback:",
+																			rollbackErr
+																		);
+																	}
+																	console.error(
+																		"Error al hacer commit:",
+																		commitErr
+																	);
+																	return res
+																		.status(500)
+																		.json({
+																			error:
+																				"Error al finalizar la transacción.",
+																		});
+																});
+															}
+															return res.status(201).json({
+																message:
+																	"Producción creada e insumos y sensores registrados con éxito.",
+																produccion_id: produccionId,
+															});
+														});
+													}
+												);
+											}
+										})
+										.catch((err) => {
+											return db.rollback((rollbackErr) => {
+												if (rollbackErr) {
+													console.error(
+														"Error al hacer rollback:",
+														rollbackErr
+													);
+												}
+												console.error("Error al actualizar insumos:", err);
+												return res
+													.status(500)
+													.json({ error: "Error al actualizar insumos." });
+											});
+										});
+								}
+							);
+						} else {
+							// Si no hay insumos, confirmar transacción
+							db.commit((commitErr) => {
+								if (commitErr) {
+									return db.rollback((rollbackErr) => {
+										if (rollbackErr) {
+											console.error("Error al hacer rollback:", rollbackErr);
+										}
+										console.error("Error al hacer commit:", commitErr);
+										return res
+											.status(500)
+											.json({ error: "Error al finalizar la transacción." });
+									});
+								}
 
-          saveInsumoUsage();
-        }
-      );
-    });
+								return res.status(201).json({
+									message: "Producción creada con éxito.",
+									produccion_id: produccionId,
+								});
+							});
+						}
+					};
 
-  } catch (error) {
-    console.error("Error en el servidor:", error);
-    return res.status(500).json({ error: "Error en el servidor." });
-  }
+					saveInsumoUsage();
+				}
+			);
+		});
+	} catch (error) {
+		console.error("Error en el servidor:", error);
+		return res.status(500).json({ error: "Error en el servidor." });
+	}
 }
 
 export function obtenerProduccionPorId(req, res) {
-  try {
-    const { id } = req.params;
+	try {
+		const { id } = req.params;
 
-    if (!id) {
-      return res
-        .status(400)
-        .json({ error: "Se requiere el ID de la producción" });
-    }
+		if (!id) {
+			return res
+				.status(400)
+				.json({ error: "Se requiere el ID de la producción" });
+		}
 
-    const query = `
+		const query = `
             SELECT p.*, 
                 u.nombre AS nombre_usuario,
                 c.nombre AS nombre_cultivo,
@@ -286,632 +392,766 @@ export function obtenerProduccionPorId(req, res) {
             WHERE p.id = ?
         `;
 
-    db.query(query, [id], (err, results) => {
-      if (err) {
-        console.error("Error al obtener la producción:", err);
-        return res
-          .status(500)
-          .json({ error: "Error al obtener la producción: " + err.message });
-      }
+		db.query(query, [id], (err, results) => {
+			if (err) {
+				console.error("Error al obtener la producción:", err);
+				return res
+					.status(500)
+					.json({ error: "Error al obtener la producción: " + err.message });
+			}
 
-      if (results.length === 0) {
-        return res.status(404).json({ error: "Producción no encontrada" });
-      }
+			if (results.length === 0) {
+				return res.status(404).json({ error: "Producción no encontrada" });
+			}
 
-      const produccion = results[0];
+			const produccion = results[0];
 
-      // Obtener insumos y sensores relacionados desde las tablas relacionales
-      const obtenerInsumos = new Promise((resolve) => {
-        db.query(
-          `SELECT ui.insumo_id AS id, i.nombre, i.valor_unitario, ui.cantidad_utilizada AS cantidad_usar
+			// Obtener insumos y sensores relacionados desde las tablas relacionales
+			const obtenerInsumos = new Promise((resolve) => {
+				db.query(
+					`SELECT ui.insumo_id AS id, i.nombre, i.valor_unitario, ui.cantidad_utilizada AS cantidad_usar
            FROM uso_insumo ui
            JOIN insumos i ON ui.insumo_id = i.id
            WHERE ui.produccion_id = ?`,
-          [id],
-          (err, insumos) => {
-            produccion.insumos = (!err && insumos) ? insumos : [];
-            resolve();
-          }
-        );
-      });
+					[id],
+					(err, insumos) => {
+						produccion.insumos = !err && insumos ? insumos : [];
+						resolve();
+					}
+				);
+			});
 
-      const obtenerSensores = new Promise((resolve) => {
-        db.query(
-          `SELECT us.sensor_id AS id, s.nombre_sensor, s.tipo_sensor
+			const obtenerSensores = new Promise((resolve) => {
+				db.query(
+					`SELECT us.sensor_id AS id, s.nombre_sensor, s.tipo_sensor
            FROM uso_sensor us
            JOIN sensores s ON us.sensor_id = s.id
            WHERE us.produccion_id = ?`,
-          [id],
-          (err, sensores) => {
-            produccion.sensores = (!err && sensores) ? sensores : [];
-            resolve();
-          }
-        );
-      });
+					[id],
+					(err, sensores) => {
+						produccion.sensores = !err && sensores ? sensores : [];
+						resolve();
+					}
+				);
+			});
 
-      Promise.all([obtenerInsumos, obtenerSensores])
-        .then(() => {
-          res.status(200).json(produccion);
-        })
-        .catch((error) => {
-          console.error("Error al procesar la producción:", error);
-          res.status(500).json({ error: "Error al procesar la producción: " + error.message });
-        });
-    });
-  } catch (error) {
-    console.error("Error al obtener producción por ID:", error);
-    res
-      .status(500)
-      .json({ error: "Error interno del servidor: " + error.message });
-  }
+			Promise.all([obtenerInsumos, obtenerSensores])
+				.then(() => {
+					res.status(200).json(produccion);
+				})
+				.catch((error) => {
+					console.error("Error al procesar la producción:", error);
+					res
+						.status(500)
+						.json({
+							error: "Error al procesar la producción: " + error.message,
+						});
+				});
+		});
+	} catch (error) {
+		console.error("Error al obtener producción por ID:", error);
+		res
+			.status(500)
+			.json({ error: "Error interno del servidor: " + error.message });
+	}
 }
 
 export function actualizarProduccion(req, res) {
-    const { id } = req.params;
-    const {
-      nombre,
-      tipo,
-      ubicacion,
-      descripcion,
-      usuario_id,
-      cantidad,
-      estado,
-      cultivo_id,
-      ciclo_id,
-      insumos_ids,
-      sensores_ids,
-      inversion,
-      meta_ganancia,
-      fecha_de_inicio,
-      fecha_fin
-    } = req.body;
+	const { id } = req.params;
+	const {
+		nombre,
+		tipo,
+		ubicacion,
+		descripcion,
+		usuario_id,
+		cantidad,
+		estado,
+		cultivo_id,
+		ciclo_id,
+		insumos_ids,
+		sensores_ids,
+		inversion,
+		meta_ganancia,
+		fecha_de_inicio,
+		fecha_fin,
+	} = req.body;
 
-    if (!id) {
-      return res.status(400).json({ error: "Se requiere el ID de la producción" });
-    }
+	if (!id) {
+		return res
+			.status(400)
+			.json({ error: "Se requiere el ID de la producción" });
+	}
 
-    // Verificar que la producción existe
-    db.query("SELECT * FROM producciones WHERE id = ?", [id], (err, results) => {
-      if (err) {
-        console.error("Error al verificar la producción:", err);
-        return res.status(500).json({ error: "Error al verificar la producción: " + err.message });
-      }
-      if (results.length === 0) {
-        return res.status(404).json({ error: "Producción no encontrada" });
-      }
+	// Verificar que la producción existe
+	db.query("SELECT * FROM producciones WHERE id = ?", [id], (err, results) => {
+		if (err) {
+			console.error("Error al verificar la producción:", err);
+			return res
+				.status(500)
+				.json({ error: "Error al verificar la producción: " + err.message });
+		}
+		if (results.length === 0) {
+			return res.status(404).json({ error: "Producción no encontrada" });
+		}
 
-      // Construir la consulta de actualización dinámicamente
-      let updateFields = [];
-      let updateValues = [];
-      if (nombre) { updateFields.push("nombre = ?"); updateValues.push(nombre); }
-      if (tipo) { updateFields.push("tipo = ?"); updateValues.push(tipo); }
-      if (ubicacion) { updateFields.push("ubicacion = ?"); updateValues.push(ubicacion); }
-      if (descripcion) { updateFields.push("descripcion = ?"); updateValues.push(descripcion); }
-      if (usuario_id) { updateFields.push("usuario_id = ?"); updateValues.push(usuario_id); }
-      if (cantidad !== undefined) {
-        const parsedQuantity = parseFloat(cantidad);
-        if (isNaN(parsedQuantity) || parsedQuantity < 1 || parsedQuantity > 1000000) {
-          return res.status(400).json({ error: "La cantidad de producción debe ser un número válido entre 1 y 1,000,000 kg" });
-        }
-        updateFields.push("cantidad = ?"); updateValues.push(parsedQuantity);
-      }
-      if (estado) {
-        if (estado !== "habilitado" && estado !== "deshabilitado") {
-          return res.status(400).json({ error: "Estado no válido" });
-        }
-        updateFields.push("estado = ?"); updateValues.push(estado);
-      }
-      if (inversion !== undefined) { updateFields.push("inversion = ?"); updateValues.push(inversion); }
-      if (meta_ganancia !== undefined) { updateFields.push("meta_ganancia = ?"); updateValues.push(meta_ganancia); }
-      if (fecha_de_inicio !== undefined) { updateFields.push("fecha_de_inicio = ?"); updateValues.push(fecha_de_inicio); }
-      if (fecha_fin !== undefined) { updateFields.push("fecha_fin = ?"); updateValues.push(fecha_fin); }
-      if (cultivo_id !== undefined) { updateFields.push("cultivo_id = ?"); updateValues.push(cultivo_id === null ? null : cultivo_id); }
-      if (ciclo_id !== undefined) { updateFields.push("ciclo_id = ?"); updateValues.push(ciclo_id === null ? null : ciclo_id); }
+		// Construir la consulta de actualización dinámicamente
+		let updateFields = [];
+		let updateValues = [];
+		if (nombre) {
+			updateFields.push("nombre = ?");
+			updateValues.push(nombre);
+		}
+		if (tipo) {
+			updateFields.push("tipo = ?");
+			updateValues.push(tipo);
+		}
+		if (ubicacion) {
+			updateFields.push("ubicacion = ?");
+			updateValues.push(ubicacion);
+		}
+		if (descripcion) {
+			updateFields.push("descripcion = ?");
+			updateValues.push(descripcion);
+		}
+		if (usuario_id) {
+			updateFields.push("usuario_id = ?");
+			updateValues.push(usuario_id);
+		}
+		if (cantidad !== undefined) {
+			const parsedQuantity = parseFloat(cantidad);
+			if (
+				isNaN(parsedQuantity) ||
+				parsedQuantity < 1 ||
+				parsedQuantity > 1000000
+			) {
+				return res
+					.status(400)
+					.json({
+						error:
+							"La cantidad de producción debe ser un número válido entre 1 y 1,000,000 kg",
+					});
+			}
+			updateFields.push("cantidad = ?");
+			updateValues.push(parsedQuantity);
+		}
+		if (estado) {
+			if (estado !== "habilitado" && estado !== "deshabilitado") {
+				return res.status(400).json({ error: "Estado no válido" });
+			}
+			updateFields.push("estado = ?");
+			updateValues.push(estado);
+		}
+		if (inversion !== undefined) {
+			updateFields.push("inversion = ?");
+			updateValues.push(inversion);
+		}
+		if (meta_ganancia !== undefined) {
+			updateFields.push("meta_ganancia = ?");
+			updateValues.push(meta_ganancia);
+		}
+		if (fecha_de_inicio !== undefined) {
+			updateFields.push("fecha_de_inicio = ?");
+			updateValues.push(fecha_de_inicio);
+		}
+		if (fecha_fin !== undefined) {
+			updateFields.push("fecha_fin = ?");
+			updateValues.push(fecha_fin);
+		}
+		if (cultivo_id !== undefined) {
+			updateFields.push("cultivo_id = ?");
+			updateValues.push(cultivo_id === null ? null : cultivo_id);
+		}
+		if (ciclo_id !== undefined) {
+			updateFields.push("ciclo_id = ?");
+			updateValues.push(ciclo_id === null ? null : ciclo_id);
+		}
 
-      if (updateFields.length === 0) {
-        return res.status(400).json({ error: "No se proporcionaron campos para actualizar" });
-      }
+		if (updateFields.length === 0) {
+			return res
+				.status(400)
+				.json({ error: "No se proporcionaron campos para actualizar" });
+		}
 
-      // Añadir el ID al final de los valores
-      updateValues.push(id);
-      const updateQuery = `UPDATE producciones SET ${updateFields.join(", ")} WHERE id = ?`;
-      db.query(updateQuery, updateValues, (err, results) => {
-        if (err) {
-          console.error("Error al actualizar la producción:", err);
-          return res.status(500).json({ error: "Error al actualizar la producción: " + err.message });
-        }
+		// Añadir el ID al final de los valores
+		updateValues.push(id);
+		const updateQuery = `UPDATE producciones SET ${updateFields.join(
+			", "
+		)} WHERE id = ?`;
+		db.query(updateQuery, updateValues, (err, results) => {
+			if (err) {
+				console.error("Error al actualizar la producción:", err);
+				return res
+					.status(500)
+					.json({ error: "Error al actualizar la producción: " + err.message });
+			}
 
-        // Actualizar insumos en uso_insumo
-        if (Array.isArray(insumos_ids)) {
-          // Eliminar insumos anteriores
-          db.query('DELETE FROM uso_insumo WHERE produccion_id = ?', [id], (delErr) => {
-            if (delErr) {
-              console.error("Error al eliminar insumos previos:", delErr);
-            }
-            if (insumos_ids.length > 0) {
-              const insumosValues = insumos_ids.map(insumo => [id, insumo.id, insumo.cantidad_usar]);
-              const placeholders = insumosValues.map(() => '(?, ?, ?)').join(', ');
-              const values = insumosValues.flat();
-              db.query(`INSERT INTO uso_insumo (produccion_id, insumo_id, cantidad_utilizada) VALUES ${placeholders}`, values, (insumoErr) => {
-                if (insumoErr) {
-                  console.error("Error al registrar insumos:", insumoErr);
-                } else {
-                  // Solo descontar la cantidad de insumos nuevos (esNuevo: true)
-                  const nuevosInsumos = Array.isArray(insumos_ids)
-                    ? insumos_ids.filter(insumo => insumo.esNuevo === true)
-                    : [];
-                  if (nuevosInsumos.length > 0) {
-                    const updatePromises = nuevosInsumos.map(insumo => {
-                      return new Promise((resolve, reject) => {
-                        db.query(
-                          'UPDATE insumos SET cantidad = cantidad - ? WHERE id = ?',
-                          [insumo.cantidad_usar, insumo.id],
-                          (err, results) => {
-                            if (err) {
-                              console.error(`Error al descontar insumo ${insumo.id}:`, err);
-                              reject(err);
-                            } else {
-                              resolve(results);
-                            }
-                          }
-                        );
-                      });
-                    });
-                    Promise.all(updatePromises)
-                      .then(() => {
-                        // Todo bien, continuar flujo normal
-                      })
-                      .catch((err) => {
-                        console.error('Error al actualizar cantidades de insumos:', err);
-                      });
-                  }
-                }
-              });
-            }
-          });
-        }
+			// Actualizar insumos en uso_insumo
+			if (Array.isArray(insumos_ids)) {
+				// Eliminar insumos anteriores
+				db.query(
+					"DELETE FROM uso_insumo WHERE produccion_id = ?",
+					[id],
+					(delErr) => {
+						if (delErr) {
+							console.error("Error al eliminar insumos previos:", delErr);
+						}
+						if (insumos_ids.length > 0) {
+							const insumosValues = insumos_ids.map((insumo) => [
+								id,
+								insumo.id,
+								insumo.cantidad_usar,
+							]);
+							const placeholders = insumosValues
+								.map(() => "(?, ?, ?)")
+								.join(", ");
+							const values = insumosValues.flat();
+							db.query(
+								`INSERT INTO uso_insumo (produccion_id, insumo_id, cantidad_utilizada) VALUES ${placeholders}`,
+								values,
+								(insumoErr) => {
+									if (insumoErr) {
+										console.error("Error al registrar insumos:", insumoErr);
+									} else {
+										// Solo descontar la cantidad de insumos nuevos (esNuevo: true)
+										const nuevosInsumos = Array.isArray(insumos_ids)
+											? insumos_ids.filter((insumo) => insumo.esNuevo === true)
+											: [];
+										if (nuevosInsumos.length > 0) {
+											const updatePromises = nuevosInsumos.map((insumo) => {
+												return new Promise((resolve, reject) => {
+													db.query(
+														"UPDATE insumos SET cantidad = cantidad - ? WHERE id = ?",
+														[insumo.cantidad_usar, insumo.id],
+														(err, results) => {
+															if (err) {
+																console.error(
+																	`Error al descontar insumo ${insumo.id}:`,
+																	err
+																);
+																reject(err);
+															} else {
+																resolve(results);
+															}
+														}
+													);
+												});
+											});
+											Promise.all(updatePromises)
+												.then(() => {
+													// Todo bien, continuar flujo normal
+												})
+												.catch((err) => {
+													console.error(
+														"Error al actualizar cantidades de insumos:",
+														err
+													);
+												});
+										}
+									}
+								}
+							);
+						}
+					}
+				);
+			}
 
-        // Actualizar sensores en uso_sensor
-        if (Array.isArray(sensores_ids)) {
-          // Eliminar sensores anteriores
-          db.query('DELETE FROM uso_sensor WHERE produccion_id = ?', [id], (delErr) => {
-            if (delErr) {
-              console.error("Error al eliminar sensores previos:", delErr);
-            }
-            if (sensores_ids.length > 0) {
-              const sensorValues = sensores_ids.map(sensorId => [id, sensorId]);
-              const sensorPlaceholders = sensorValues.map(() => '(?, ?)').join(', ');
-              const sensorValuesFlat = sensorValues.flat();
-              db.query(`INSERT INTO uso_sensor (produccion_id, sensor_id) VALUES ${sensorPlaceholders}`, sensorValuesFlat, (sensorErr) => {
-                if (sensorErr) {
-                  console.error("Error al registrar sensores:", sensorErr);
-                }
-              });
-            }
-          });
-        }
+			// Actualizar sensores en uso_sensor
+			if (Array.isArray(sensores_ids)) {
+				// Eliminar sensores anteriores
+				db.query(
+					"DELETE FROM uso_sensor WHERE produccion_id = ?",
+					[id],
+					(delErr) => {
+						if (delErr) {
+							console.error("Error al eliminar sensores previos:", delErr);
+						}
+						if (sensores_ids.length > 0) {
+							const sensorValues = sensores_ids.map((sensorId) => [
+								id,
+								sensorId,
+							]);
+							const sensorPlaceholders = sensorValues
+								.map(() => "(?, ?)")
+								.join(", ");
+							const sensorValuesFlat = sensorValues.flat();
+							db.query(
+								`INSERT INTO uso_sensor (produccion_id, sensor_id) VALUES ${sensorPlaceholders}`,
+								sensorValuesFlat,
+								(sensorErr) => {
+									if (sensorErr) {
+										console.error("Error al registrar sensores:", sensorErr);
+									}
+								}
+							);
+						}
+					}
+				);
+			}
 
-        // Obtener la producción actualizada y devolverla con insumos y sensores asociados
-        db.query(`SELECT * FROM producciones WHERE id = ?`, [id], (err, updatedResults) => {
-          if (err || !updatedResults || updatedResults.length === 0) {
-            return res.status(500).json({ error: "Error al obtener la producción actualizada" });
-          }
-          const produccion = updatedResults[0];
+			// Obtener la producción actualizada y devolverla con insumos y sensores asociados
+			db.query(
+				`SELECT * FROM producciones WHERE id = ?`,
+				[id],
+				(err, updatedResults) => {
+					if (err || !updatedResults || updatedResults.length === 0) {
+						return res
+							.status(500)
+							.json({ error: "Error al obtener la producción actualizada" });
+					}
+					const produccion = updatedResults[0];
 
-          // Obtener insumos relacionados desde uso_insumo
-          const obtenerInsumos = new Promise((resolve) => {
-            db.query(
-              `SELECT ui.insumo_id AS id, i.nombre, i.valor_unitario, ui.cantidad_utilizada AS cantidad_usar
+					// Obtener insumos relacionados desde uso_insumo
+					const obtenerInsumos = new Promise((resolve) => {
+						db.query(
+							`SELECT ui.insumo_id AS id, i.nombre, i.valor_unitario, ui.cantidad_utilizada AS cantidad_usar
                FROM uso_insumo ui
                JOIN insumos i ON ui.insumo_id = i.id
                WHERE ui.produccion_id = ?`,
-              [id],
-              (err, insumos) => {
-                produccion.insumos = (!err && insumos) ? insumos : [];
-                resolve();
-              }
-            );
-          });
+							[id],
+							(err, insumos) => {
+								produccion.insumos = !err && insumos ? insumos : [];
+								resolve();
+							}
+						);
+					});
 
-          // Obtener sensores relacionados desde uso_sensor
-          const obtenerSensores = new Promise((resolve) => {
-            db.query(
-              `SELECT us.sensor_id AS id, s.nombre_sensor, s.tipo_sensor
+					// Obtener sensores relacionados desde uso_sensor
+					const obtenerSensores = new Promise((resolve) => {
+						db.query(
+							`SELECT us.sensor_id AS id, s.nombre_sensor, s.tipo_sensor
                FROM uso_sensor us
                JOIN sensores s ON us.sensor_id = s.id
                WHERE us.produccion_id = ?`,
-              [id],
-              (err, sensores) => {
-                produccion.sensores = (!err && sensores) ? sensores : [];
-                resolve();
-              }
-            );
-          });
+							[id],
+							(err, sensores) => {
+								produccion.sensores = !err && sensores ? sensores : [];
+								resolve();
+							}
+						);
+					});
 
-          Promise.all([obtenerInsumos, obtenerSensores])
-            .then(() => {
-              res.status(200).json({
-                message: "Producción actualizada correctamente",
-                produccion,
-                affectedRows: results.affectedRows,
-              });
-            })
-            .catch((error) => {
-              res.status(500).json({ error: "Error al obtener insumos o sensores: " + error.message });
-            });
-        });
-      });
-    });
+					Promise.all([obtenerInsumos, obtenerSensores])
+						.then(() => {
+							res.status(200).json({
+								message: "Producción actualizada correctamente",
+								produccion,
+								affectedRows: results.affectedRows,
+							});
+						})
+						.catch((error) => {
+							res
+								.status(500)
+								.json({
+									error:
+										"Error al obtener insumos o sensores: " + error.message,
+								});
+						});
+				}
+			);
+		});
+	});
 }
 
 export function actualizarEstadoProduccion(req, res) {
-  try {
-    const { id } = req.params;
-    let { estado } = req.body;
-    console.log(estado);
-    if (!id || !estado) {
-      return res
-        .status(400)
-        .json({ error: "Faltan parámetros requeridos (id, estado)" });
-    }
-    if (!["habilitado", "deshabilitado"].includes(estado)) {
-      return res.status(400).json({ error: "Estado no válido" });
-    }
-    //intercambiar estados
-    if (estado === "habilitado") {
-      estado = "deshabilitado";
-    } else if (estado === "deshabilitado") {
-      estado = "habilitado";
-    }
-    console.log(estado)
+	try {
+		const { id } = req.params;
+		let { estado } = req.body;
+		console.log(estado);
+		if (!id || !estado) {
+			return res
+				.status(400)
+				.json({ error: "Faltan parámetros requeridos (id, estado)" });
+		}
+		if (!["habilitado", "deshabilitado"].includes(estado)) {
+			return res.status(400).json({ error: "Estado no válido" });
+		}
+		//intercambiar estados
+		if (estado === "habilitado") {
+			estado = "deshabilitado";
+		} else if (estado === "deshabilitado") {
+			estado = "habilitado";
+		}
+		console.log(estado);
 
-    const query = "UPDATE producciones SET estado = ? WHERE id = ?";
-    db.query(query, [estado, id], (err, result) => {
-      if (err) {
-        console.error("Error al actualizar estado de producción:", err);
-        return res
-          .status(500)
-          .json({
-            error: "Error al actualizar estado de producción: " + err.message,
-          });
-      }
-      res.status(200).json({ message: "Estado actualizado correctamente" });
-    });
-  } catch (error) {
-    console.error("Error en actualizarEstadoProduccion:", error);
-    res
-      .status(500)
-      .json({ error: "Error interno del servidor: " + error.message });
-  }
+		const query = "UPDATE producciones SET estado = ? WHERE id = ?";
+		db.query(query, [estado, id], (err, result) => {
+			if (err) {
+				console.error("Error al actualizar estado de producción:", err);
+				return res.status(500).json({
+					error: "Error al actualizar estado de producción: " + err.message,
+				});
+			}
+			res.status(200).json({ message: "Estado actualizado correctamente" });
+		});
+	} catch (error) {
+		console.error("Error en actualizarEstadoProduccion:", error);
+		res
+			.status(500)
+			.json({ error: "Error interno del servidor: " + error.message });
+	}
 }
 export function actualizarEstadosProduccionHabilitado(req, res) {
-  try {
-    const { ids } = req.body;
+	try {
+		const { ids } = req.body;
 
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return res
-        .status(400)
-        .json({ error: "Se requiere un array de IDs en el cuerpo de la solicitud." });
-    }
+		if (!ids || !Array.isArray(ids) || ids.length === 0) {
+			return res
+				.status(400)
+				.json({
+					error: "Se requiere un array de IDs en el cuerpo de la solicitud.",
+				});
+		}
 
-    const query = "UPDATE producciones SET estado = 'habilitado' WHERE id IN (?)";
+		const query =
+			"UPDATE producciones SET estado = 'habilitado' WHERE id IN (?)";
 
-    db.query(query, [ids], (err, result) => {
-      if (err) {
-        console.error("Error al actualizar estados de producción:", err);
-        return res
-          .status(500)
-          .json({
-            error: "Error al actualizar estados de producción: " + err.message,
-          });
-      }
+		db.query(query, [ids], (err, result) => {
+			if (err) {
+				console.error("Error al actualizar estados de producción:", err);
+				return res.status(500).json({
+					error: "Error al actualizar estados de producción: " + err.message,
+				});
+			}
 
-      if (result.affectedRows > 0) {
-        res
-          .status(200)
-          .json({ message: `${result.affectedRows} registro(s) actualizado(s) a 'habilitado' correctamente.` });
-      } else {
-        res.status(200).json({ message: "No se encontraron registros para los IDs proporcionados." });
-      }
-    });
-  } catch (error) {
-    console.error("Error en actualizarEstadosProduccion:", error);
-    res
-      .status(500)
-      .json({ error: "Error interno del servidor: " + error.message });
-  }
+			if (result.affectedRows > 0) {
+				res
+					.status(200)
+					.json({
+						message: `${result.affectedRows} registro(s) actualizado(s) a 'habilitado' correctamente.`,
+					});
+			} else {
+				res
+					.status(200)
+					.json({
+						message: "No se encontraron registros para los IDs proporcionados.",
+					});
+			}
+		});
+	} catch (error) {
+		console.error("Error en actualizarEstadosProduccion:", error);
+		res
+			.status(500)
+			.json({ error: "Error interno del servidor: " + error.message });
+	}
 }
 
 export function deshabilitarProducciones(req, res) {
-  try {
-    const { ids } = req.body;
+	try {
+		const { ids } = req.body;
 
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return res
-        .status(400)
-        .json({ error: "Se requiere un array de IDs en el cuerpo de la solicitud." });
-    }
+		if (!ids || !Array.isArray(ids) || ids.length === 0) {
+			return res
+				.status(400)
+				.json({
+					error: "Se requiere un array de IDs en el cuerpo de la solicitud.",
+				});
+		}
 
-    const query = "UPDATE producciones SET estado = 'deshabilitado' WHERE id IN (?)";
+		const query =
+			"UPDATE producciones SET estado = 'deshabilitado' WHERE id IN (?)";
 
-    db.query(query, [ids], (err, result) => {
-      if (err) {
-        console.error("Error al deshabilitar producciones:", err);
-        return res
-          .status(500)
-          .json({
-            error: "Error al deshabilitar producciones: " + err.message,
-          });
-      }
+		db.query(query, [ids], (err, result) => {
+			if (err) {
+				console.error("Error al deshabilitar producciones:", err);
+				return res.status(500).json({
+					error: "Error al deshabilitar producciones: " + err.message,
+				});
+			}
 
-      if (result.affectedRows > 0) {
-        res
-          .status(200)
-          .json({ message: `${result.affectedRows} registro(s) deshabilitado(s) correctamente.` });
-      } else {
-        res.status(200).json({ message: "No se encontraron registros para los IDs proporcionados." });
-      }
-    });
-  } catch (error) {
-    console.error("Error en deshabilitarProducciones:", error);
-    res
-      .status(500)
-      .json({ error: "Error interno del servidor: " + error.message });
-  }
+			if (result.affectedRows > 0) {
+				res
+					.status(200)
+					.json({
+						message: `${result.affectedRows} registro(s) deshabilitado(s) correctamente.`,
+					});
+			} else {
+				res
+					.status(200)
+					.json({
+						message: "No se encontraron registros para los IDs proporcionados.",
+					});
+			}
+		});
+	} catch (error) {
+		console.error("Error en deshabilitarProducciones:", error);
+		res
+			.status(500)
+			.json({ error: "Error interno del servidor: " + error.message });
+	}
 }
 
 export function eliminarProduccion(req, res) {
-  try {
-    const { id } = req.params;
+	try {
+		const { id } = req.params;
 
-    if (!id) {
-      return res
-        .status(400)
-        .json({ error: "Se requiere el ID de la producción" });
-    }
+		if (!id) {
+			return res
+				.status(400)
+				.json({ error: "Se requiere el ID de la producción" });
+		}
 
-    // Verificar que la producción existe
-    db.query(
-      "SELECT * FROM producciones WHERE id = ?",
-      [id],
-      (err, results) => {
-        if (err) {
-          console.error("Error al verificar la producción:", err);
-          return res
-            .status(500)
-            .json({
-              error: "Error al verificar la producción: " + err.message,
-            });
-        }
+		// Verificar que la producción existe
+		db.query(
+			"SELECT * FROM producciones WHERE id = ?",
+			[id],
+			(err, results) => {
+				if (err) {
+					console.error("Error al verificar la producción:", err);
+					return res.status(500).json({
+						error: "Error al verificar la producción: " + err.message,
+					});
+				}
 
-        if (results.length === 0) {
-          return res.status(404).json({ error: "Producción no encontrada" });
-        }
+				if (results.length === 0) {
+					return res.status(404).json({ error: "Producción no encontrada" });
+				}
 
-        // Eliminar la producción
-        db.query(
-          "DELETE FROM producciones WHERE id = ?",
-          [id],
-          (err, results) => {
-            if (err) {
-              console.error("Error al eliminar la producción:", err);
-              return res
-                .status(500)
-                .json({
-                  error: "Error al eliminar la producción: " + err.message,
-                });
-            }
+				// Eliminar la producción
+				db.query(
+					"DELETE FROM producciones WHERE id = ?",
+					[id],
+					(err, results) => {
+						if (err) {
+							console.error("Error al eliminar la producción:", err);
+							return res.status(500).json({
+								error: "Error al eliminar la producción: " + err.message,
+							});
+						}
 
-            res.status(200).json({
-              message: "Producción eliminada correctamente",
-              produccionId: id,
-              affectedRows: results.affectedRows,
-            });
-          }
-        );
-      }
-    );
-  } catch (error) {
-    console.error("Error al eliminar producción:", error);
-    res
-      .status(500)
-      .json({ error: "Error interno del servidor: " + error.message });
-  }
+						res.status(200).json({
+							message: "Producción eliminada correctamente",
+							produccionId: id,
+							affectedRows: results.affectedRows,
+						});
+					}
+				);
+			}
+		);
+	} catch (error) {
+		console.error("Error al eliminar producción:", error);
+		res
+			.status(500)
+			.json({ error: "Error interno del servidor: " + error.message });
+	}
 }
 export function obtenerProduccionesPorUsuario(req, res) {
-  const usuarioId = req.params.id;
+	const usuarioId = req.params.id;
 
-  // Primero, obtén la información del usuario
-  db.query('SELECT id, nombre, correo, telefono, rol FROM usuarios WHERE id = ?', [usuarioId], (error, usuarioResult) => {
-    if (error) {
-      console.error("Error al obtener el usuario:", error);
-      return res.status(500).json({ mensaje: 'Error al obtener el usuario' });
-    }
+	// Primero, obtén la información del usuario
+	db.query(
+		"SELECT id, nombre, correo, telefono, rol FROM usuarios WHERE id = ?",
+		[usuarioId],
+		(error, usuarioResult) => {
+			if (error) {
+				console.error("Error al obtener el usuario:", error);
+				return res.status(500).json({ mensaje: "Error al obtener el usuario" });
+			}
 
-    if (usuarioResult.length === 0) {
-      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
-    }
+			if (usuarioResult.length === 0) {
+				return res.status(404).json({ mensaje: "Usuario no encontrado" });
+			}
 
-    const usuario = usuarioResult[0];
+			const usuario = usuarioResult[0];
 
-    // Luego, obtén las producciones asociadas al usuario
-    db.query('SELECT id, nombre FROM producciones WHERE usuario_id = ?', [usuarioId], (error, produccionesResult) => {
-      if (error) {
-        console.error("Error al obtener las producciones:", error);
-        return res.status(500).json({ mensaje: 'Error al obtener las producciones' });
-      }
+			// Luego, obtén las producciones asociadas al usuario
+			db.query(
+				"SELECT id, nombre FROM producciones WHERE usuario_id = ?",
+				[usuarioId],
+				(error, produccionesResult) => {
+					if (error) {
+						console.error("Error al obtener las producciones:", error);
+						return res
+							.status(500)
+							.json({ mensaje: "Error al obtener las producciones" });
+					}
 
-      const producciones = produccionesResult;
+					const producciones = produccionesResult;
 
-      // Envía la respuesta con la información del usuario y sus producciones
-      res.status(200).json({
-        usuario: {
-          id: usuario.id,
-          nombre: usuario.nombre,
-          correo: usuario.correo,
-          telefono: usuario.telefono,
-          rol: usuario.rol
-        },
-        producciones: producciones
-      });
-    });
-  });
+					// Envía la respuesta con la información del usuario y sus producciones
+					res.status(200).json({
+						usuario: {
+							id: usuario.id,
+							nombre: usuario.nombre,
+							correo: usuario.correo,
+							telefono: usuario.telefono,
+							rol: usuario.rol,
+						},
+						producciones: producciones,
+					});
+				}
+			);
+		}
+	);
 }
 export function obtenerProduccionesPorCultivo(req, res) {
-  const cultivoId = req.params.id;
+	const cultivoId = req.params.id;
 
-  // Primero, obtén la información del cultivo
-  db.query('SELECT id, nombre, descripcion FROM cultivos WHERE id = ?', [cultivoId], (error, cultivoResult) => {
-    if (error) {
-      console.error("Error al obtener el cultivo:", error);
-      return res.status(500).json({ mensaje: 'Error al obtener el cultivo' });
-    }
+	// Primero, obtén la información del cultivo
+	db.query(
+		"SELECT id, nombre, descripcion FROM cultivos WHERE id = ?",
+		[cultivoId],
+		(error, cultivoResult) => {
+			if (error) {
+				console.error("Error al obtener el cultivo:", error);
+				return res.status(500).json({ mensaje: "Error al obtener el cultivo" });
+			}
 
-    if (cultivoResult.length === 0) {
-      return res.status(404).json({ mensaje: 'Cultivo no encontrado' });
-    }
+			if (cultivoResult.length === 0) {
+				return res.status(404).json({ mensaje: "Cultivo no encontrado" });
+			}
 
-    const cultivo = cultivoResult[0];
+			const cultivo = cultivoResult[0];
 
-    // Luego, obtén las producciones asociadas al cultivo
-    db.query('SELECT id, nombre FROM producciones WHERE cultivo_id = ?', [cultivoId], (error, produccionesResult) => {
-      if (error) {
-        console.error("Error al obtener las producciones:", error);
-        return res.status(500).json({ mensaje: 'Error al obtener las producciones' });
-      }
+			// Luego, obtén las producciones asociadas al cultivo
+			db.query(
+				"SELECT id, nombre FROM producciones WHERE cultivo_id = ?",
+				[cultivoId],
+				(error, produccionesResult) => {
+					if (error) {
+						console.error("Error al obtener las producciones:", error);
+						return res
+							.status(500)
+							.json({ mensaje: "Error al obtener las producciones" });
+					}
 
-      const producciones = produccionesResult;
+					const producciones = produccionesResult;
 
-      // Envía la respuesta con la información del cultivo y sus producciones
-      res.status(200).json({
-        cultivo: {
-          id: cultivo.id,
-          nombre: cultivo.nombre,
-          descripcion: cultivo.descripcion
-        },
-        producciones: producciones
-      });
-    });
-  });
+					// Envía la respuesta con la información del cultivo y sus producciones
+					res.status(200).json({
+						cultivo: {
+							id: cultivo.id,
+							nombre: cultivo.nombre,
+							descripcion: cultivo.descripcion,
+						},
+						producciones: producciones,
+					});
+				}
+			);
+		}
+	);
 }
 
 export function obtenerProduccionesPorInsumo(req, res) {
-  const insumoId = parseInt(req.params.id);
+	const insumoId = parseInt(req.params.id);
 
-  if (isNaN(insumoId)) {
-    return res.status(400).json({ mensaje: 'ID de insumo no válido' });
-  }
+	if (isNaN(insumoId)) {
+		return res.status(400).json({ mensaje: "ID de insumo no válido" });
+	}
 
-  // Primero obtenemos la información del insumo
-  db.query('SELECT id, nombre, descripcion, cantidad, unidad_medida, tipo FROM insumos WHERE id = ?', 
-  [insumoId], 
-  (error, insumoResult) => {
-    if (error) {
-      console.error("Error al obtener el insumo:", error);
-      return res.status(500).json({ 
-        mensaje: 'Error al obtener el insumo',
-        error: error.message 
-      });
-    }
+	// Primero obtenemos la información del insumo
+	db.query(
+		"SELECT id, nombre, descripcion, cantidad, unidad_medida, tipo FROM insumos WHERE id = ?",
+		[insumoId],
+		(error, insumoResult) => {
+			if (error) {
+				console.error("Error al obtener el insumo:", error);
+				return res.status(500).json({
+					mensaje: "Error al obtener el insumo",
+					error: error.message,
+				});
+			}
 
-    if (insumoResult.length === 0) {
-      return res.status(404).json({ mensaje: 'Insumo no encontrado' });
-    }
+			if (insumoResult.length === 0) {
+				return res.status(404).json({ mensaje: "Insumo no encontrado" });
+			}
 
-    const insumo = insumoResult[0];
+			const insumo = insumoResult[0];
 
-    // Obtenemos las producciones que usan este insumo a través de la tabla uso_insumo
-    db.query(`
+			// Obtenemos las producciones que usan este insumo a través de la tabla uso_insumo
+			db.query(
+				`
       SELECT DISTINCT p.id, p.nombre, p.descripcion, p.ubicacion, p.tipo, p.fecha_creacion
       FROM producciones p
       INNER JOIN uso_insumo ui ON p.id = ui.produccion_id
       WHERE ui.insumo_id = ?
       ORDER BY p.fecha_creacion DESC`,
-      [insumoId],
-      (error, produccionesResult) => {
-        if (error) {
-          console.error("Error al obtener las producciones:", error);
-          return res.status(500).json({ 
-            mensaje: 'Error al obtener las producciones',
-            error: error.message 
-          });
-        }
+				[insumoId],
+				(error, produccionesResult) => {
+					if (error) {
+						console.error("Error al obtener las producciones:", error);
+						return res.status(500).json({
+							mensaje: "Error al obtener las producciones",
+							error: error.message,
+						});
+					}
 
-        res.status(200).json({
-          insumo: {
-            id: insumo.id,
-            nombre: insumo.nombre,
-            descripcion: insumo.descripcion,
-            cantidad: insumo.cantidad,
-            unidad_medida: insumo.unidad_medida,
-            tipo: insumo.tipo
-          },
-          producciones: produccionesResult || []
-        });
-      }
-    );
-  });
+					res.status(200).json({
+						insumo: {
+							id: insumo.id,
+							nombre: insumo.nombre,
+							descripcion: insumo.descripcion,
+							cantidad: insumo.cantidad,
+							unidad_medida: insumo.unidad_medida,
+							tipo: insumo.tipo,
+						},
+						producciones: produccionesResult || [],
+					});
+				}
+			);
+		}
+	);
 }
 
 export function obtenerProduccionesPorSensor(req, res) {
-  const sensorId = parseInt(req.params.id);
+	const sensorId = parseInt(req.params.id);
 
-  if (isNaN(sensorId)) {
-    return res.status(400).json({ mensaje: 'ID de sensor no válido' });
-  }
+	if (isNaN(sensorId)) {
+		return res.status(400).json({ mensaje: "ID de sensor no válido" });
+	}
 
-  // Primero obtenemos la información del sensor
-  db.query('SELECT id, tipo_sensor, nombre_sensor, unidad_medida FROM sensores WHERE id = ?', 
-  [sensorId], 
-  (error, sensorResult) => {
-    if (error) {
-      console.error("Error al obtener el sensor:", error);
-      return res.status(500).json({ 
-        mensaje: 'Error al obtener el sensor',
-        error: error.message 
-      });
-    }
+	// Primero obtenemos la información del sensor
+	db.query(
+		"SELECT id, tipo_sensor, nombre_sensor, unidad_medida FROM sensores WHERE id = ?",
+		[sensorId],
+		(error, sensorResult) => {
+			if (error) {
+				console.error("Error al obtener el sensor:", error);
+				return res.status(500).json({
+					mensaje: "Error al obtener el sensor",
+					error: error.message,
+				});
+			}
 
-    if (sensorResult.length === 0) {
-      return res.status(404).json({ mensaje: 'Sensor no encontrado' });
-    }
+			if (sensorResult.length === 0) {
+				return res.status(404).json({ mensaje: "Sensor no encontrado" });
+			}
 
-    const sensor = sensorResult[0];
+			const sensor = sensorResult[0];
 
-    // Obtenemos las producciones que usan este sensor a través de la tabla uso_sensor
-    db.query(`
+			// Obtenemos las producciones que usan este sensor a través de la tabla uso_sensor
+			db.query(
+				`
       SELECT DISTINCT p.id, p.nombre, p.descripcion, p.ubicacion, p.tipo, p.fecha_creacion
       FROM producciones p
       INNER JOIN uso_sensor us ON p.id = us.produccion_id
       WHERE us.sensor_id = ?
       ORDER BY p.fecha_creacion DESC`,
-      [sensorId],
-      (error, produccionesResult) => {
-        if (error) {
-          console.error("Error al obtener las producciones:", error);
-          return res.status(500).json({ 
-            mensaje: 'Error al obtener las producciones',
-            error: error.message 
-          });
-        }
+				[sensorId],
+				(error, produccionesResult) => {
+					if (error) {
+						console.error("Error al obtener las producciones:", error);
+						return res.status(500).json({
+							mensaje: "Error al obtener las producciones",
+							error: error.message,
+						});
+					}
 
-        res.status(200).json({
-          sensor: sensor,
-          producciones: produccionesResult || []
-        });
-      }
-    );
-  });
+					res.status(200).json({
+						sensor: sensor,
+						producciones: produccionesResult || [],
+					});
+				}
+			);
+		}
+	);
 }
 
 // Exportar todas las funciones
 export default {
-  verProducciones,
-  crearProduccion,
-  obtenerProduccionPorId,
-  actualizarProduccion,
-  actualizarEstadoProduccion,
-  eliminarProduccion,
+	verProducciones,
+	crearProduccion,
+	obtenerProduccionPorId,
+	actualizarProduccion,
+	actualizarEstadoProduccion,
+	eliminarProduccion,
 };
-
-

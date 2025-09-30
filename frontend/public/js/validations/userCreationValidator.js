@@ -1,26 +1,30 @@
-document.querySelector(".form__input--user-name").addEventListener("keydown", function (e) {
-	if (e.key >= "0" && e.key <= "9") {
-		e.preventDefault();
-		console.log("Número bloqueado");
-	}
-});
-document.querySelector(".form__input--user-id").addEventListener("keydown", function (e) {
-	if (
-		e.key === "Backspace" ||
-		e.key === "Tab" ||
-		e.key === "Enter" ||
-		e.key === "ArrowLeft" ||
-		e.key === "ArrowRight"
-	) {
-		return; //No bloquear estas teclas
-	}
+document
+	.querySelector(".form__input--user-name")
+	.addEventListener("keydown", function (e) {
+		if (e.key >= "0" && e.key <= "9") {
+			e.preventDefault();
+			console.log("Número bloqueado");
+		}
+	});
+document
+	.querySelector(".form__input--user-id")
+	.addEventListener("keydown", function (e) {
+		if (
+			e.key === "Backspace" ||
+			e.key === "Tab" ||
+			e.key === "Enter" ||
+			e.key === "ArrowLeft" ||
+			e.key === "ArrowRight"
+		) {
+			return; //No bloquear estas teclas
+		}
 
-	//Bloquear cualquier tecla que NO sea un número
-	if (e.key < "0" || e.key > "9") {
-		e.preventDefault();
-		console.log("Solo se permite números");
-	}
-});
+		//Bloquear cualquier tecla que NO sea un número
+		if (e.key < "0" || e.key > "9") {
+			e.preventDefault();
+			console.log("Solo se permite números");
+		}
+	});
 
 document.querySelector(".button").addEventListener("keydown", function (e) {
 	if (e.key === "Enter") {
@@ -30,23 +34,25 @@ document.querySelector(".button").addEventListener("keydown", function (e) {
 });
 
 //Solo permita números y bloquee la letra
-document.querySelector(".form__input--user-tel").addEventListener("keydown", function (e) {
-	if (
-		e.key === "Backspace" ||
-		e.key === "Tab" ||
-		e.key === "Enter" ||
-		e.key === "ArrowLeft" ||
-		e.key === "ArrowRight"
-	) {
-		return; //No bloquear estas teclas
-	}
+document
+	.querySelector(".form__input--user-tel")
+	.addEventListener("keydown", function (e) {
+		if (
+			e.key === "Backspace" ||
+			e.key === "Tab" ||
+			e.key === "Enter" ||
+			e.key === "ArrowLeft" ||
+			e.key === "ArrowRight"
+		) {
+			return; //No bloquear estas teclas
+		}
 
-	//Bloquear cualquier tecla que NO sea un número
-	if (e.key < "0" || e.key > "9") {
-		e.preventDefault();
-		console.log("Solo se permite números");
-	}
-});
+		//Bloquear cualquier tecla que NO sea un número
+		if (e.key < "0" || e.key > "9") {
+			e.preventDefault();
+			console.log("Solo se permite números");
+		}
+	});
 
 // Objeto para almacenar datos del usuario
 const userData = {
@@ -58,7 +64,7 @@ const userData = {
 	userConfirmEmail: "",
 	userRol: "",
 	estado: "habilitado", // Valor predeterminado para el estado
-	password: ""
+	password: "",
 };
 
 const userForm = document.querySelector(".form__container");
@@ -69,7 +75,9 @@ const userName = document.querySelector(".form__input--user-name");
 const userId = document.querySelector(".form__input--user-id");
 const userTel = document.querySelector(".form__input--user-tel");
 const userEmail = document.querySelector(".form__input--user-email");
-const userConfirmEmail = document.querySelector(".form__input--user-confirm-email");
+const userConfirmEmail = document.querySelector(
+	".form__input--user-confirm-email"
+);
 const userRol = document.querySelector(".form__select--user-rol");
 const userPassword = document.querySelector(".form__input--user-password");
 const estadoRadios = document.querySelectorAll(
@@ -107,7 +115,7 @@ userForm.addEventListener("submit", function (e) {
 		userConfirmEmail,
 		userRol,
 		estado,
-		password
+		password,
 	} = userData;
 	if (
 		userTypeId === "" ||
@@ -117,9 +125,13 @@ userForm.addEventListener("submit", function (e) {
 		userEmail === "" ||
 		userConfirmEmail === "" ||
 		password === "" ||
-		userRol === "" 
+		userRol === ""
 	) {
-		showToast("Campos requeridos", "Todos los campos son obligatorios", "error");
+		showToast(
+			"Campos requeridos",
+			"Todos los campos son obligatorios",
+			"error"
+		);
 		return;
 	}
 	// Validación de los campos
@@ -158,12 +170,16 @@ function validateUserData() {
 
 	// Validar longitud de la contraseña
 	if (userData.password.length < 8 || userData.password.length > 18) {
-		showToast("Error", "La contraseña debe tener entre 8 y 18 caracteres", "error");
+		showToast(
+			"Error",
+			"La contraseña debe tener entre 8 y 18 caracteres",
+			"error"
+		);
 		return false;
 	}
 
 	// Validar que el tipo de documento sea válido
-	const validDocumentTypes = ["ti", "cc", "ce","ppt", "pep"];
+	const validDocumentTypes = ["ti", "cc", "ce", "ppt", "pep"];
 	if (!validDocumentTypes.includes(userData.userTypeId)) {
 		showToast("Error", "Tipo de documento no válido", "error");
 		return false;
@@ -188,21 +204,29 @@ submitButton.addEventListener("click", async () => {
 		// Deshabilitar el botón durante el envío
 		submitButton.disabled = true;
 		submitButton.textContent = "Creando...";
-		const token = localStorage.getItem('token');
+		const token = localStorage.getItem("token");
 		const response = await fetch("http://localhost:5000/users", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
-				"Authorization": `Bearer ${token}`
+				Authorization: `Bearer ${token}`,
 			},
 			body: JSON.stringify(userData),
 		});
 		const data = await response.json();
 
 		if (response.status === 409) {
-			showToast("Error", "El usuario ya existe con ese correo electrónico", "error");
+			showToast(
+				"Error",
+				"El usuario ya existe con ese correo electrónico",
+				"error"
+			);
 		} else if (response.ok) {
-			showToast("Usuario creado", "El usuario ha sido creado correctamente", "success");
+			showToast(
+				"Usuario creado",
+				"El usuario ha sido creado correctamente",
+				"success"
+			);
 			// Redirigir a listar-usuarios.html
 			setTimeout(() => {
 				window.location.href = "listar-usuarios.html";
@@ -241,36 +265,36 @@ function readText(e) {
 }
 
 // Función general para mostrar toasts
-function showToast(title, message, type = 'success') {
-	const toast = document.getElementById('toast');
-	const toastTitle = document.getElementById('toastTitle');
-	const toastDescription = document.getElementById('toastDescription');
-	const toastIcon = document.getElementById('toastIcon');
-	const toastProgress = document.querySelector('.toast-progress');
+function showToast(title, message, type = "success") {
+	const toast = document.getElementById("toast");
+	const toastTitle = document.getElementById("toastTitle");
+	const toastDescription = document.getElementById("toastDescription");
+	const toastIcon = document.getElementById("toastIcon");
+	const toastProgress = document.querySelector(".toast-progress");
 
 	// Establecer el contenido del toast
 	toastTitle.textContent = title;
 	toastDescription.textContent = message;
-	
+
 	// Establecer el icono según el tipo
-	switch(type) {
-		case 'success':
-			toastIcon.className = 'fas fa-check-circle';
+	switch (type) {
+		case "success":
+			toastIcon.className = "fas fa-check-circle";
 			break;
-		case 'error':
-			toastIcon.className = 'fas fa-exclamation-circle';
+		case "error":
+			toastIcon.className = "fas fa-exclamation-circle";
 			break;
-		case 'warning':
-			toastIcon.className = 'fas fa-exclamation-triangle';
+		case "warning":
+			toastIcon.className = "fas fa-exclamation-triangle";
 			break;
-		case 'info':
-			toastIcon.className = 'fas fa-info-circle';
+		case "info":
+			toastIcon.className = "fas fa-info-circle";
 			break;
 	}
 
 	// Mostrar el toast
-	toast.classList.remove('hidden');
-	
+	toast.classList.remove("hidden");
+
 	// Animación de la barra de progreso
 	let progress = 0;
 	const progressInterval = setInterval(() => {
@@ -280,22 +304,22 @@ function showToast(title, message, type = 'success') {
 			clearInterval(progressInterval);
 			// Ocultar el toast después de 5 segundos
 			setTimeout(() => {
-				toast.classList.add('hidden');
-				toastProgress.style.width = '0%';
+				toast.classList.add("hidden");
+				toastProgress.style.width = "0%";
 			}, 3400);
 		}
 	}, 30);
 }
 
-
 // FUncion para mostrar u ocultar la contraseña
-const togglePasswordBtn = document.querySelector('.toggle-password');
-const passwordInput = document.getElementById('password');
+const togglePasswordBtn = document.querySelector(".toggle-password");
+const passwordInput = document.getElementById("password");
 
-togglePasswordBtn.addEventListener('click', function() {
-	const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-	passwordInput.setAttribute('type', type);
+togglePasswordBtn.addEventListener("click", function () {
+	const type =
+		passwordInput.getAttribute("type") === "password" ? "text" : "password";
+	passwordInput.setAttribute("type", type);
 	// Cambiar el icono (ocultar/mostrar contraseña)
-	this.querySelector('i').classList.toggle('fa-eye');
-	this.querySelector('i').classList.toggle('fa-eye-slash');
+	this.querySelector("i").classList.toggle("fa-eye");
+	this.querySelector("i").classList.toggle("fa-eye-slash");
 });
