@@ -440,12 +440,6 @@ Una vez iniciado el servidor, accede a la aplicación en:
 
 Este proyecto está bajo la Licencia ISC - ver el archivo [LICENSE](LICENSE) para más detalles.
 
-## 📞 Soporte
-
-Para soporte técnico o consultas:
-- Crear un [issue](https://github.com/BoTeoGr/Lembo_Sgl/issues) en GitHub
-- Contactar al equipo de desarrollo
-
 ## 🔄 Versiones
 
 ### v2.5.0 (Actual)
