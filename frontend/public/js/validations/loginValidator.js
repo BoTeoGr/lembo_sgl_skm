@@ -13,7 +13,7 @@ form.addEventListener("input", readText);
 email.addEventListener("input", readText);
 password.addEventListener("input", readText);
 
-import { loginUser } from '../services/loginService.js';
+import { loginUser } from "../services/loginService.js";
 
 //Evento submit
 form.addEventListener("submit", async function (e) {
@@ -35,38 +35,55 @@ form.addEventListener("submit", async function (e) {
 	try {
 		// Enviar el email como userEmail para el backend
 		const data = await loginUser(emailValue, passwordValue);
-		
+
 		// Mostrar mensaje de éxito
 		showAlert("Inicio de sesión exitoso");
-		
+
 		// Redirigir según la URL guardada o según el rol por defecto
 		setTimeout(() => {
 			// Verificar si hay una URL guardada para redirección
-			const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
+			const redirectUrl = sessionStorage.getItem("redirectAfterLogin");
 			if (redirectUrl) {
-				sessionStorage.removeItem('redirectAfterLogin');
+				sessionStorage.removeItem("redirectAfterLogin");
 				window.location.href = redirectUrl;
 			} else {
 				// Redirigir según el rol si no hay URL guardada
-				if (data.usuario.rol === 'superadmin' || data.usuario.rol === 'Super administrador') {
-					window.location.href = 'home.html';
-				} else if (data.usuario.rol === 'admin' || data.usuario.rol === 'Administrador') {
-					window.location.href = 'home.html';
-				} else if (data.usuario.rol === 'apoyo' || data.usuario.rol === 'Personal de Apoyo') {
-					window.location.href = 'listar-sensores.html';
-				} else if (data.usuario.rol === 'visitante' || data.usuario.rol === 'Visitante') {
-					window.location.href = 'home.html';
+				if (
+					data.usuario.rol === "superadmin" ||
+					data.usuario.rol === "Super administrador"
+				) {
+					window.location.href = "home.html";
+				} else if (
+					data.usuario.rol === "admin" ||
+					data.usuario.rol === "Administrador"
+				) {
+					window.location.href = "home.html";
+				} else if (
+					data.usuario.rol === "apoyo" ||
+					data.usuario.rol === "Personal de Apoyo"
+				) {
+					window.location.href = "listar-sensores.html";
+				} else if (
+					data.usuario.rol === "visitante" ||
+					data.usuario.rol === "Visitante"
+				) {
+					window.location.href = "home.html";
 				} else {
-					error.message = "Rol de usuario no reconocido. Contacta al administrador.";
+					error.message =
+						"Rol de usuario no reconocido. Contacta al administrador.";
 				}
 			}
 		}, 1000);
 	} catch (error) {
 		// Mostrar mensaje de error específico para usuarios deshabilitados
-		if (error.message && error.message.includes('deshabilitado')) {
+		if (error.message && error.message.includes("deshabilitado")) {
 			showAlert(error.message, true);
 		} else {
-			showAlert(error.message || "Error en el inicio de sesión. Verifica tus credenciales e intenta nuevamente.", true);
+			showAlert(
+				error.message ||
+					"Error en el inicio de sesión. Verifica tus credenciales e intenta nuevamente.",
+				true
+			);
 		}
 	}
 });
@@ -103,15 +120,16 @@ function readText(e) {
 }
 
 // FUncion para mostrar u ocultar la contraseña
-document.addEventListener('DOMContentLoaded', function() {
-    const togglePasswordBtn = document.querySelector('.toggle-password-login');
-    const passwordInput = document.getElementById('password');
-    if (togglePasswordBtn && passwordInput) {
-        togglePasswordBtn.addEventListener('click', function() {
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-            this.querySelector('i').classList.toggle('fa-eye');
-            this.querySelector('i').classList.toggle('fa-eye-slash');
-        });
-    }
+document.addEventListener("DOMContentLoaded", function () {
+	const togglePasswordBtn = document.querySelector(".toggle-password-login");
+	const passwordInput = document.getElementById("password");
+	if (togglePasswordBtn && passwordInput) {
+		togglePasswordBtn.addEventListener("click", function () {
+			const type =
+				passwordInput.getAttribute("type") === "password" ? "text" : "password";
+			passwordInput.setAttribute("type", type);
+			this.querySelector("i").classList.toggle("fa-eye");
+			this.querySelector("i").classList.toggle("fa-eye-slash");
+		});
+	}
 });

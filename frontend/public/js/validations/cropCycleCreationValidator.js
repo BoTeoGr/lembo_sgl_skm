@@ -1,10 +1,12 @@
 // Bloquear números en los campos 'cycleName'
-document.querySelector(".form__input--cycle-name").addEventListener("keydown", function (e) {
-    if (e.key >= "0" && e.key <= "9") {
-        e.preventDefault();
-        console.log("Número bloqueado en el campo");
-    }
-});
+document
+	.querySelector(".form__input--cycle-name")
+	.addEventListener("keydown", function (e) {
+		if (e.key >= "0" && e.key <= "9") {
+			e.preventDefault();
+			console.log("Número bloqueado en el campo");
+		}
+	});
 
 // Bloquear Enter en el botón para evitar recargas accidentales
 document
@@ -24,7 +26,7 @@ const cycleData = {
 	cycleEndDate: "", // Corresponde a 'periodo_final'
 	cycleUpdates: "", // Corresponde a 'novedades'
 	estado: "habilitado", // Valor predeterminado para el estado
-	usuario_id : 1, // Corresponde a el id del usuario
+	usuario_id: 1, // Corresponde a el id del usuario
 };
 
 // Selección del formulario
@@ -32,12 +34,14 @@ const cultivationCycleForm = document.querySelector(".form__container");
 
 // Definir variables para los campos del formulario
 const cycleName = document.querySelector(".form__input--cycle-name");
-const cycleDescription = document.querySelector(".form__textarea--cycle-description");
+const cycleDescription = document.querySelector(
+	".form__textarea--cycle-description"
+);
 const cycleStartDate = document.querySelector(".form__input--cycle-start-date");
 const cycleEndDate = document.querySelector(".form__input--cycle-end-date");
 const cycleUpdates = document.querySelector(".form__textarea--cycle-updates");
 const estadoRadios = document.querySelectorAll(
-    'input[name="estado-habilitado"]'
+	'input[name="estado-habilitado"]'
 );
 const submitButton = document.querySelector(".button--submit");
 
@@ -50,10 +54,10 @@ cycleUpdates.addEventListener("input", readText);
 
 // Capturar el estado seleccionado en tiempo real
 estadoRadios.forEach((radio) => {
-    radio.addEventListener("change", (e) => {
-        cycleData.estado = e.target.value;
-        console.log(cycleData); // Mostrar en consola cuando cambia el estado
-    });
+	radio.addEventListener("change", (e) => {
+		cycleData.estado = e.target.value;
+		console.log(cycleData); // Mostrar en consola cuando cambia el estado
+	});
 });
 
 // Función para capturar los valores de los inputs
@@ -146,13 +150,13 @@ submitButton.addEventListener("click", async () => {
 		submitButton.disabled = true;
 		submitButton.textContent = "Creando...";
 
-		const token = localStorage.getItem('token');
+		const token = localStorage.getItem("token");
 		// Se envian los datos a la url
-        const response = await fetch("http://localhost:5000/ciclo_cultivo", {
+		const response = await fetch("http://localhost:5000/ciclo_cultivo", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
-				"Authorization": `Bearer ${token}`
+				Authorization: `Bearer ${token}`,
 			},
 			body: JSON.stringify(cycleData),
 		});
@@ -160,15 +164,23 @@ submitButton.addEventListener("click", async () => {
 		const data = await response.json();
 
 		if (response.ok) {
-			showToast("Ciclo de cultivo creado", "El ciclo de cultivo ha sido creado correctamente", "success");
+			showToast(
+				"Ciclo de cultivo creado",
+				"El ciclo de cultivo ha sido creado correctamente",
+				"success"
+			);
 			// Limpiar el formulario
 			resetForm();
 			// Redirigir a la lista de ciclos de cultivo
-            setTimeout(() => {
-                window.location.href = "listar-ciclos-cultivos.html";
-            }, 2000); // Espera 2 segundos para mostrar el toast antes de redirigir
+			setTimeout(() => {
+				window.location.href = "listar-ciclos-cultivos.html";
+			}, 2000); // Espera 2 segundos para mostrar el toast antes de redirigir
 		} else {
-			showToast("Error", data.error || "Error al crear el ciclo de cultivo", "error");
+			showToast(
+				"Error",
+				data.error || "Error al crear el ciclo de cultivo",
+				"error"
+			);
 		}
 	} catch (error) {
 		console.log(error);
@@ -182,29 +194,31 @@ submitButton.addEventListener("click", async () => {
 
 // Función para limpiar el formulario
 function resetForm() {
-    // Limpiar los valores del objeto cycleData
-    Object.keys(cycleData).forEach(key => {
-        if (key !== 'usuario_id' && key !== 'estado') {
-            cycleData[key] = '';
-        }
-    });
-    
-    // Restablecer el estado a 'habilitado'
-    cycleData.estado = 'habilitado';
-    
-    // Limpiar los campos del formulario
-    const formElements = document.querySelectorAll('input[type="text"], input[type="date"], textarea');
-    formElements.forEach(input => {
-        input.value = '';
-    });
-    
-    // Marcar el radio button de habilitado como seleccionado
-    const enabledRadio = document.querySelector('input[value="habilitado"]');
-    if (enabledRadio) {
-        enabledRadio.checked = true;
-    }
-    
-    console.log('Formulario de ciclo de cultivo limpiado');
+	// Limpiar los valores del objeto cycleData
+	Object.keys(cycleData).forEach((key) => {
+		if (key !== "usuario_id" && key !== "estado") {
+			cycleData[key] = "";
+		}
+	});
+
+	// Restablecer el estado a 'habilitado'
+	cycleData.estado = "habilitado";
+
+	// Limpiar los campos del formulario
+	const formElements = document.querySelectorAll(
+		'input[type="text"], input[type="date"], textarea'
+	);
+	formElements.forEach((input) => {
+		input.value = "";
+	});
+
+	// Marcar el radio button de habilitado como seleccionado
+	const enabledRadio = document.querySelector('input[value="habilitado"]');
+	if (enabledRadio) {
+		enabledRadio.checked = true;
+	}
+
+	console.log("Formulario de ciclo de cultivo limpiado");
 }
 
 // Función general para mostrar toasts

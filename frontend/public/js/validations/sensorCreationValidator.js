@@ -1,10 +1,12 @@
 // Código que impide que el usuario ingrese números en un input de texto
-document.querySelector(".form__input--sensor-name").addEventListener("keydown", function (e) {
-	if (e.key >= "0" && e.key <= "9") {
-		e.preventDefault();
-		console.log("Número bloqueado");
-	}
-});
+document
+	.querySelector(".form__input--sensor-name")
+	.addEventListener("keydown", function (e) {
+		if (e.key >= "0" && e.key <= "9") {
+			e.preventDefault();
+			console.log("Número bloqueado");
+		}
+	});
 
 document.querySelector(".button").addEventListener("keydown", function (e) {
 	if (e.key === "Enter") {
@@ -31,10 +33,12 @@ const sensorType = document.querySelector(".form__select--sensor-type");
 const sensorName = document.querySelector(".form__input--sensor-name");
 const sensorUnit = document.querySelector(".form__select--sensor-unit");
 const sensorImage = document.querySelector(".form__file--sensor-image");
-const sensorDescription = document.querySelector(".form__textarea--sensor-description");
+const sensorDescription = document.querySelector(
+	".form__textarea--sensor-description"
+);
 const sensorScan = document.querySelector(".form__select--sensor-scan");
 const estadoRadios = document.querySelectorAll(
-    'input[name="estado-habilitado"]'
+	'input[name="estado-habilitado"]'
 );
 const submitButton = document.querySelector(".button--submit");
 
@@ -48,10 +52,10 @@ sensorScan.addEventListener("change", readText);
 
 // Capturar el estado seleccionado en tiempo real
 estadoRadios.forEach((radio) => {
-    radio.addEventListener("change", (e) => {
-        sensorData.estado = e.target.value;
-        console.log(sensorData); // Mostrar en consola cuando cambia el estado
-    });
+	radio.addEventListener("change", (e) => {
+		sensorData.estado = e.target.value;
+		console.log(sensorData); // Mostrar en consola cuando cambia el estado
+	});
 });
 
 // Función para capturar los valores de los inputs
@@ -64,7 +68,9 @@ function readText(e) {
 		sensorData.sensorUnit = e.target.value;
 	} else if (e.target.classList.contains("form__file--sensor-image")) {
 		sensorData.sensorImage = e.target.value;
-	} else if (e.target.classList.contains("form__textarea--sensor-description")) {
+	} else if (
+		e.target.classList.contains("form__textarea--sensor-description")
+	) {
 		sensorData.sensorDescription = e.target.value;
 	} else if (e.target.classList.contains("form__select--sensor-scan")) {
 		sensorData.sensorScan = e.target.value;
@@ -173,24 +179,28 @@ submitButton.addEventListener("click", async () => {
 		// Deshabilitar el botón durante el envío
 		submitButton.disabled = true;
 		submitButton.textContent = "Creando...";
-		const token = localStorage.getItem('token');
+		const token = localStorage.getItem("token");
 		const response = await fetch("http://localhost:5000/sensor", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
-				"Authorization": `Bearer ${token}`
+				Authorization: `Bearer ${token}`,
 			},
 			body: JSON.stringify(sensorData),
 		});
 		const data = await response.json();
 
 		if (response.ok) {
-			showToast("Sensor creado", "El sensor ha sido creado correctamente", "success");
+			showToast(
+				"Sensor creado",
+				"El sensor ha sido creado correctamente",
+				"success"
+			);
 			// Limpiar el formulario
 			sensorForm.reset();
 			// Limpiar también el objeto sensorData
-			Object.keys(sensorData).forEach(key => {
-				sensorData[key] = '';
+			Object.keys(sensorData).forEach((key) => {
+				sensorData[key] = "";
 			});
 			// Redirigir después de 2 segundos
 			setTimeout(() => {
@@ -210,48 +220,48 @@ submitButton.addEventListener("click", async () => {
 });
 
 // Función general para mostrar toasts
-function showToast(title, message, type = 'success') {
-    const toast = document.getElementById('toast');
-    const toastTitle = document.getElementById('toastTitle');
-    const toastDescription = document.getElementById('toastDescription');
-    const toastIcon = document.getElementById('toastIcon');
-    const toastProgress = document.querySelector('.toast-progress');
+function showToast(title, message, type = "success") {
+	const toast = document.getElementById("toast");
+	const toastTitle = document.getElementById("toastTitle");
+	const toastDescription = document.getElementById("toastDescription");
+	const toastIcon = document.getElementById("toastIcon");
+	const toastProgress = document.querySelector(".toast-progress");
 
-    // Establecer el contenido del toast
-    toastTitle.textContent = title;
-    toastDescription.textContent = message;
-    
-    // Establecer el icono según el tipo
-    switch(type) {
-        case 'success':
-            toastIcon.className = 'fas fa-check-circle';
-            break;
-        case 'error':
-            toastIcon.className = 'fas fa-exclamation-circle';
-            break;
-        case 'warning':
-            toastIcon.className = 'fas fa-exclamation-triangle';
-            break;
-        case 'info':
-            toastIcon.className = 'fas fa-info-circle';
-            break;
-    }
+	// Establecer el contenido del toast
+	toastTitle.textContent = title;
+	toastDescription.textContent = message;
 
-    // Mostrar el toast
-    toast.classList.remove('hidden');
-    
-    // Animación de la barra de progreso
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-        progress += 2;
-        toastProgress.style.width = `${progress}%`;
-        if (progress >= 100) {
-            clearInterval(progressInterval);
-            // Ocultar el toast después de 5 segundos
-            setTimeout(() => {
-                toast.classList.add('hidden');
-                toastProgress.style.width = '0%';
-            }, 3400);
-        }
-    }, 30);
+	// Establecer el icono según el tipo
+	switch (type) {
+		case "success":
+			toastIcon.className = "fas fa-check-circle";
+			break;
+		case "error":
+			toastIcon.className = "fas fa-exclamation-circle";
+			break;
+		case "warning":
+			toastIcon.className = "fas fa-exclamation-triangle";
+			break;
+		case "info":
+			toastIcon.className = "fas fa-info-circle";
+			break;
+	}
+
+	// Mostrar el toast
+	toast.classList.remove("hidden");
+
+	// Animación de la barra de progreso
+	let progress = 0;
+	const progressInterval = setInterval(() => {
+		progress += 2;
+		toastProgress.style.width = `${progress}%`;
+		if (progress >= 100) {
+			clearInterval(progressInterval);
+			// Ocultar el toast después de 5 segundos
+			setTimeout(() => {
+				toast.classList.add("hidden");
+				toastProgress.style.width = "0%";
+			}, 3400);
+		}
+	}, 30);
 }

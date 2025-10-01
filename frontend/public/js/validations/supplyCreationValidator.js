@@ -1,10 +1,12 @@
 // Código que impide que el usuario ingrese números en un input de texto
-document.querySelector(".form__input--insume-name").addEventListener("keydown", function (e) {
-	if (e.key >= "0" && e.key <= "9") {
-		e.preventDefault();
-		console.log("Número bloqueado");
-	}
-});
+document
+	.querySelector(".form__input--insume-name")
+	.addEventListener("keydown", function (e) {
+		if (e.key >= "0" && e.key <= "9") {
+			e.preventDefault();
+			console.log("Número bloqueado");
+		}
+	});
 
 document.querySelector(".button").addEventListener("keydown", function (e) {
 	if (e.key === "Enter") {
@@ -33,12 +35,14 @@ const insumeName = document.querySelector(".form__input--insume-name");
 const insumeType = document.querySelector(".form__input--insume-type");
 const insumeImage = document.querySelector(".form__file--insume-image");
 const insumeExtent = document.querySelector(".form__select--insume-extent");
-const insumeDescription = document.querySelector(".form__textarea--insume-description");
+const insumeDescription = document.querySelector(
+	".form__textarea--insume-description"
+);
 const insumePrice = document.querySelector(".form__input--insume-price");
 const insumeAmount = document.querySelector(".form__input--insume-amount");
 const totalValue = document.querySelector(".form__input--total-value");
 const estadoRadios = document.querySelectorAll(
-    'input[name="estado-habilitado"]'
+	'input[name="estado-habilitado"]'
 );
 const submitButton = document.querySelector(".button--submit");
 
@@ -53,10 +57,10 @@ insumeAmount.addEventListener("input", readText);
 
 // Capturar el estado seleccionado en tiempo real
 estadoRadios.forEach((radio) => {
-    radio.addEventListener("change", (e) => {
-        insumoData.estado = e.target.value;
-        console.log(insumoData); // Mostrar en consola cuando cambia el estado
-    });
+	radio.addEventListener("change", (e) => {
+		insumoData.estado = e.target.value;
+		console.log(insumoData); // Mostrar en consola cuando cambia el estado
+	});
 });
 
 // Función para calcular el valor total automáticamente
@@ -91,7 +95,9 @@ function readText(e) {
 		insumoData.insumeImage = e.target.value;
 	} else if (e.target.classList.contains("form__select--insume-extent")) {
 		insumoData.insumeExtent = e.target.value;
-	} else if (e.target.classList.contains("form__textarea--insume-description")) {
+	} else if (
+		e.target.classList.contains("form__textarea--insume-description")
+	) {
 		insumoData.insumeDescription = e.target.value;
 	} else if (e.target.classList.contains("form__input--insume-price")) {
 		insumoData.insumePrice = e.target.value;
@@ -188,11 +194,11 @@ insumeForm.addEventListener("submit", function (e) {
 	}
 
 	// Validar que el estado no sea "deshabilitado"
-    if (estado === "deshabilitado") {
-        showAlert("Habilita el sensor para guardarlo", true);
-        return;
-    }
-	
+	if (estado === "deshabilitado") {
+		showAlert("Habilita el sensor para guardarlo", true);
+		return;
+	}
+
 	// Validar que la unidad de medida sea válida
 	const validUnits = ["peso", "volumen", "superficie", "Concentración"];
 	if (!validUnits.includes(insumeExtent)) {
@@ -211,25 +217,29 @@ submitButton.addEventListener("click", async () => {
 		// Deshabilitar el botón durante el envío
 		submitButton.disabled = true;
 		submitButton.textContent = "Creando...";
-		const token = localStorage.getItem('token');
+		const token = localStorage.getItem("token");
 		const response = await fetch("http://localhost:5000/insumos", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
-				"Authorization": `Bearer ${token}`
+				Authorization: `Bearer ${token}`,
 			},
 			body: JSON.stringify(insumoData),
 		});
 		const data = await response.json();
 
 		if (response.ok) {
-			showToast("Insumo creado", "El insumo ha sido creado correctamente", "success");
+			showToast(
+				"Insumo creado",
+				"El insumo ha sido creado correctamente",
+				"success"
+			);
 			// Limpiar el formulario
 			resetForm();
 			// Redirigir a la lista de insumos
-            setTimeout(() => {
-                window.location.href = "listar-insumos.html";
-            }, 2000); // Espera 2 segundos para mostrar el toast antes de redirigir
+			setTimeout(() => {
+				window.location.href = "listar-insumos.html";
+			}, 2000); // Espera 2 segundos para mostrar el toast antes de redirigir
 		} else {
 			showToast("Error", data.error || "Error al crear el insumo", "error");
 		}
@@ -243,82 +253,83 @@ submitButton.addEventListener("click", async () => {
 	}
 });
 
-
 // Función para limpiar el formulario
 function resetForm() {
-    // Limpiar los valores del objeto insumoData
-    Object.keys(insumoData).forEach(key => {
-        if (key !== 'insumeId' && key !== 'estado') {
-            insumoData[key] = '';
-        }
-    });
-    
-    // Restablecer el estado a 'habilitado'
-    insumoData.estado = 'habilitado';
-    
-    // Limpiar los campos del formulario
-    const formElements = document.querySelectorAll('input[type="text"], input[type="file"], textarea, select');
-    formElements.forEach(input => {
-        input.value = '';
-    });
-    
-    // Marcar el radio button de habilitado como seleccionado
-    const enabledRadio = document.querySelector('input[value="habilitado"]');
-    if (enabledRadio) {
-        enabledRadio.checked = true;
-    }
-    
-    // Restablecer el select de unidad de medida
-    if (insumeExtent) {
-        insumeExtent.selectedIndex = 0;
-    }
-    
-    console.log('Formulario de insumo limpiado');
+	// Limpiar los valores del objeto insumoData
+	Object.keys(insumoData).forEach((key) => {
+		if (key !== "insumeId" && key !== "estado") {
+			insumoData[key] = "";
+		}
+	});
+
+	// Restablecer el estado a 'habilitado'
+	insumoData.estado = "habilitado";
+
+	// Limpiar los campos del formulario
+	const formElements = document.querySelectorAll(
+		'input[type="text"], input[type="file"], textarea, select'
+	);
+	formElements.forEach((input) => {
+		input.value = "";
+	});
+
+	// Marcar el radio button de habilitado como seleccionado
+	const enabledRadio = document.querySelector('input[value="habilitado"]');
+	if (enabledRadio) {
+		enabledRadio.checked = true;
+	}
+
+	// Restablecer el select de unidad de medida
+	if (insumeExtent) {
+		insumeExtent.selectedIndex = 0;
+	}
+
+	console.log("Formulario de insumo limpiado");
 }
 
 // Función general para mostrar toasts
-function showToast(title, message, type = 'success') {
-    const toast = document.getElementById('toast');
-    const toastTitle = document.getElementById('toastTitle');
-    const toastDescription = document.getElementById('toastDescription');
-    const toastIcon = document.getElementById('toastIcon');
-    const toastProgress = document.querySelector('.toast-progress');
+function showToast(title, message, type = "success") {
+	const toast = document.getElementById("toast");
+	const toastTitle = document.getElementById("toastTitle");
+	const toastDescription = document.getElementById("toastDescription");
+	const toastIcon = document.getElementById("toastIcon");
+	const toastProgress = document.querySelector(".toast-progress");
 
-    // Establecer el contenido del toast
-    toastTitle.textContent = title;
-    toastDescription.textContent = message;
-    
-    // Establecer el icono según el tipo
-    switch(type) {
-        case 'success':
-            toastIcon.className = 'fas fa-check-circle';
-            break;
-        case 'error':
-            toastIcon.className = 'fas fa-exclamation-circle';
-            break;
-        case 'warning':
-            toastIcon.className = 'fas fa-exclamation-triangle';
-            break;
-        case 'info':
-            toastIcon.className = 'fas fa-info-circle';
-            break;
-    }
+	// Establecer el contenido del toast
+	toastTitle.textContent = title;
+	toastDescription.textContent = message;
 
-    // Mostrar el toast
-    toast.classList.remove('hidden');
-    
-    // Animación de la barra de progreso
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-        progress += 2;
-        toastProgress.style.width = `${progress}%`;
-        if (progress >= 100) {
-            clearInterval(progressInterval);
-            // Ocultar el toast después de 5 segundos
-            setTimeout(() => {
-                toast.classList.add('hidden');
-                toastProgress.style.width = '0%';
-            }, 3400);
-        }
-    }, 30);
+	// Establecer el icono según el tipo
+	switch (type) {
+		case "success":
+			toastIcon.className = "fas fa-check-circle";
+			break;
+		case "error":
+			toastIcon.className = "fas fa-exclamation-circle";
+			break;
+		case "warning":
+			toastIcon.className = "fas fa-exclamation-triangle";
+			break;
+		case "info":
+			toastIcon.className = "fas fa-info-circle";
+			break;
+	}
+
+	// Mostrar el toast
+	toast.classList.remove("hidden");
+
+	// Animación de la barra de progreso
+	let progress = 0;
+	const progressInterval = setInterval(() => {
+		progress += 2;
+		toastProgress.style.width = `${progress}%`;
+		if (progress >= 100) {
+			clearInterval(progressInterval);
+			// Ocultar el toast después de 5 segundos
+			setTimeout(() => {
+				toast.classList.add("hidden");
+				toastProgress.style.width = "0%";
+			}, 3400);
+		}
+	}, 30);
 }

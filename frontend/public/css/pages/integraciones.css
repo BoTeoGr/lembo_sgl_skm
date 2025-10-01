@@ -55,10 +55,14 @@
 	--radius-full: 9999px;
 
 	/* Dimensiones */
-	--button-height: 2.5rem; /* 40px */
-	--button-border-radius: 1.25rem; /* 20px */
-	--button-padding-between-elements: 0.5rem; /* 8px */
-	--button-icon-size: 1.125rem; /* 18px */
+	--button-height: 2.5rem;
+	/* 40px */
+	--button-border-radius: 1.25rem;
+	/* 20px */
+	--button-padding-between-elements: 0.5rem;
+	/* 8px */
+	--button-icon-size: 1.125rem;
+	/* 18px */
 
 	/* Transiciones */
 	--transition-fast: 150ms ease;
@@ -66,11 +70,16 @@
 	--transition-slow: 350ms ease;
 
 	/* Espaciado */
-	--spacing-xs: 0.25rem; /* 4px */
-	--spacing-sm: 0.5rem; /* 8px */
-	--spacing-md: 1rem; /* 16px */
-	--spacing-lg: 1.5rem; /* 24px */
-	--spacing-xl: 2rem; /* 32px */
+	--spacing-xs: 0.25rem;
+	/* 4px */
+	--spacing-sm: 0.5rem;
+	/* 8px */
+	--spacing-md: 1rem;
+	/* 16px */
+	--spacing-lg: 1.5rem;
+	/* 24px */
+	--spacing-xl: 2rem;
+	/* 32px */
 }
 
 /* Reset y estilos base */
@@ -304,6 +313,7 @@ textarea {
 	0% {
 		transform: translateX(-100%);
 	}
+
 	100% {
 		transform: translateX(100%);
 	}
@@ -553,6 +563,7 @@ textarea {
 		opacity: 0;
 		transform: translateY(5px);
 	}
+
 	to {
 		opacity: 1;
 		transform: translateY(0);
@@ -768,6 +779,7 @@ textarea {
 		opacity: 0;
 		transform: translateY(-20px) scale(0.95);
 	}
+
 	to {
 		opacity: 1;
 		transform: translateY(0) scale(1);
@@ -1069,6 +1081,7 @@ textarea {
 		opacity: 0;
 		transform: translateY(20px);
 	}
+
 	to {
 		opacity: 1;
 		transform: translateY(0);
@@ -1124,6 +1137,7 @@ textarea {
 	from {
 		width: 100%;
 	}
+
 	to {
 		width: 0%;
 	}
@@ -1214,7 +1228,7 @@ textarea {
 	}
 }
 
-/* Added styles for sensor and insumo cards */
+/* Estilos añadidos para tarjetas de sensor e insumo */
 .sensor__card,
 .insumo__card {
 	display: flex;
@@ -1314,7 +1328,7 @@ textarea {
 	color: var(--white);
 }
 
-/* Added styles for reading cards */
+/* Estilos añadidos para tarjetas de lectura */
 .reading-card {
 	border: 0.0625rem solid var(--border-color);
 	border-radius: var(--radius);
@@ -1374,7 +1388,7 @@ textarea {
 	color: var(--text-muted);
 }
 
-/* Added styles for selection items */
+/* Estilos añadidos para elementos de selección */
 .selection-item {
 	display: flex;
 	align-items: center;
@@ -1463,7 +1477,7 @@ textarea {
 	margin-top: var(--spacing-xs);
 }
 
-/* Added styles for form actions */
+/* Estilos añadidos para acciones del formulario */
 .form-actions {
 	display: flex;
 	justify-content: flex-end;
@@ -1471,7 +1485,7 @@ textarea {
 	margin-top: var(--spacing-md);
 }
 
-/* Added styles for the delete button */
+/* Estilos añadidos para el botón eliminar */
 .delete-integration {
 	opacity: 0;
 	transition: opacity var(--transition-fast);
@@ -1487,7 +1501,7 @@ textarea {
 	transform: scale(1.05);
 }
 
-/* Added styles for no results */
+/* Estilos añadidos para sin resultados */
 .no-results {
 	padding: var(--spacing-md);
 	text-align: center;
@@ -1495,7 +1509,7 @@ textarea {
 	font-style: italic;
 }
 
-/* Added styles for integration item empty state */
+/* Estilos añadidos para estado vacío de item de integración */
 .integration__item--empty {
 	justify-content: center;
 	color: var(--text-muted);
@@ -1505,7 +1519,7 @@ textarea {
 	border-radius: var(--radius);
 }
 
-/* Added styles for cycle selection */
+/* Estilos añadidos para selección de ciclo */
 .cycle-selection-list {
 	border: 0.0625rem solid var(--border-color);
 	border-radius: var(--radius);
@@ -1536,7 +1550,7 @@ textarea {
 	background-color: var(--green-600);
 }
 
-/* Responsive improvements */
+/* Mejoras responsivas */
 @media (max-width: 480px) {
 	.btn {
 		width: 100%;
@@ -1561,7 +1575,7 @@ textarea {
 	}
 }
 
-/* Accessibility improvements */
+/* Mejoras de accesibilidad */
 .sr-only {
 	position: absolute;
 	width: 1px;
@@ -1588,7 +1602,7 @@ textarea {
 	outline-offset: 0.125rem;
 }
 
-/* Print styles */
+/* Estilos de impresión */
 @media print {
 	.btn,
 	.modal,

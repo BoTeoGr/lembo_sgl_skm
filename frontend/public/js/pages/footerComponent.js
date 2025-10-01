@@ -1,6 +1,6 @@
 export default function Footer() {
-    const currentYear = new Date().getFullYear(); // Obtener el año actual dinámicamente
-    return `
+	const currentYear = new Date().getFullYear(); // Obtener el año actual dinámicamente
+	return `
 	<div class="footer__info">
 		<h2 class="footer__title">Sobre Nosotros</h2>
 		<p class="footer__description">

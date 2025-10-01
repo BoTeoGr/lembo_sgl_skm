@@ -7,7 +7,7 @@
 	justify-content: space-around;
 	align-items: center;
 }
-.footer__info{
+.footer__info {
 	width: 50%;
 	display: flex;
 	flex-direction: column;
@@ -41,7 +41,7 @@
 }
 
 .logo_sgal {
-	height: 16rem; 
+	height: 16rem;
 	width: 16rem;
 	align-items: center;
 	object-fit: contain;
@@ -54,13 +54,13 @@
 		padding: 2rem;
 		text-align: center;
 	}
-	.footer__info{
+	.footer__info {
 		width: 100%;
 		margin: 1rem 0;
 		align-items: center;
 	}
 	.logo_sgal {
-		height: 12rem; 
+		height: 12rem;
 		width: 12rem;
 		margin-top: 1rem;
 	}

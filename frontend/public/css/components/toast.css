@@ -1,4 +1,4 @@
-/* Modern Glassmorph Toast Notifications */
+/* Toast de notificaciones */
 :root {
   --toast-bg: rgba(255, 255, 255, 0.15);
   --toast-blur: 12px;
@@ -7,7 +7,7 @@
   --toast-transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
 }
 
-/* Dark mode support */
+/* Modo oscuro */
 @media (prefers-color-scheme: dark) {
   :root {
     --toast-bg: rgba(30, 30, 30, 0.8);
@@ -93,7 +93,7 @@
   text-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
-/* Toast Status Icons */
+/* Iconos de estado del toast */
 .toast::after {
   content: '';
   position: absolute;
@@ -105,7 +105,7 @@
   opacity: 0.8;
 }
 
-/* Toast Types with Gradient Accents */
+/* Tipos de toast con gradientes */
 .toast.success {
   background: linear-gradient(135deg, rgba(40, 167, 69, 0.9), rgba(40, 167, 69, 0.7));
 }
@@ -123,7 +123,7 @@
   color: #212529;
 }
 
-/* Close Button */
+/* Botón de cerrar */
 .toast-close {
   margin-left: 1rem;
   background: rgba(255, 255, 255, 0.25);
@@ -154,7 +154,7 @@
   background: rgba(255, 255, 255, 0.4);
 }
 
-/* Progress Bar */
+/* Barra de progreso */
 .toast-progress {
   position: absolute;
   bottom: 0;
@@ -167,7 +167,7 @@
   transition: transform 0.1s linear;
 }
 
-/* Animations */
+/* Animaciones */
 @keyframes slideIn {
   from {
     transform: translateX(120%) rotateY(90deg);
@@ -193,7 +193,7 @@
   animation: slideOut 0.3s ease forwards;
 }
 
-/* Estilos específicos para el toast de usuarios */
+/* Toast de usuarios */
 .user-toast {
   position: fixed;
   top: 20px;
@@ -263,7 +263,7 @@
   transition: transform 5s linear;
 }
 
-/* Colores para diferentes tipos de mensaje */
+/* Colores para diferentes tipos de mensaje del toast de usuarios */
 .user-toast.success {
   border-left-color: #4caf50;
 }

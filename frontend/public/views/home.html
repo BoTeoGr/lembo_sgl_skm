@@ -258,7 +258,6 @@
 					<div class="card__footer">
 						<div class="footer-actions">
 							<span class="badge badge--success">+10 nuevos esta semana</span>
-							<span class="badge">1,200 usuarios</span>
 						</div>
 					</div>
 				</div>
@@ -307,7 +306,7 @@
 					<div class="card__header">
 						<div>
 							<h2 class="card__title">Tareas pendientes</h2>
-							<div class="card__subtitle">5 tareas para hoy</div>
+							<div class="card__subtitle" id="tasksSubtitle">5 tareas para hoy</div>
 						</div>
 						<button class="button button--icon" id="addTaskBtn">
 							<i class="fas fa-plus"></i>
@@ -403,5 +402,78 @@
 		<script src="../js/pages/userWidget.js"></script>
 		<!-- Script para verificar autenticación antes demostrar la vista -->
 		<script src="../js/utils/auth-check.js"></script>
+		<script>
+			document.addEventListener('DOMContentLoaded', () => {
+				const tasksContainer = document.getElementById('tasksList');
+				const subtitleEl = document.getElementById('tasksSubtitle');
+				if (!tasksContainer || !subtitleEl) return;
+				
+				const addTaskBtn = document.getElementById('addTaskBtn');
+				const addTaskModal = document.getElementById('addTaskModal');
+				const closeTaskModal = document.getElementById('closeTaskModal');
+				const cancelTaskBtn = document.getElementById('cancelTaskBtn');
+				const saveTaskBtn = document.getElementById('saveTaskBtn');
+				const taskNameInput = document.getElementById('taskName');
+				const taskPrioritySelect = document.getElementById('taskPriority');
+
+				function updateSubtitle() {
+					const pendingCount = tasksContainer.querySelectorAll('.tasks__item input[type="checkbox"]:not(:checked)').length;
+					subtitleEl.textContent = `${pendingCount} ${pendingCount === 1 ? 'tarea' : 'tareas'} para hoy`;
+				}
+
+				function attachItemHandlers(itemEl) {
+					const checkbox = itemEl.querySelector('.tasks__checkbox');
+					const deleteBtn = itemEl.querySelector('.tasks__delete');
+					if (checkbox) checkbox.addEventListener('change', updateSubtitle);
+					if (deleteBtn) deleteBtn.addEventListener('click', () => {
+						itemEl.remove();
+						updateSubtitle();
+					});
+				}
+
+				// Inicializar manejadores para tareas existentes
+				tasksContainer.querySelectorAll('.tasks__item').forEach(attachItemHandlers);
+
+				// Manejadores del modal (si existe estilo para mostrar/ocultar)
+				function openModal() { addTaskModal?.classList.add('open'); }
+				function closeModal() { addTaskModal?.classList.remove('open'); }
+
+				addTaskBtn?.addEventListener('click', openModal);
+				closeTaskModal?.addEventListener('click', closeModal);
+				cancelTaskBtn?.addEventListener('click', (e) => { e.preventDefault(); closeModal(); });
+
+				saveTaskBtn?.addEventListener('click', (e) => {
+					e.preventDefault();
+					const name = (taskNameInput?.value || '').trim();
+					const priority = taskPrioritySelect?.value || 'media';
+					if (!name) return;
+
+					const itemEl = document.createElement('div');
+					itemEl.className = 'tasks__item';
+					const priorityBadgeClass =
+						priority === 'alta' ? 'badge--danger' :
+						priority === 'media' ? 'badge--warning' : 'badge';
+
+					itemEl.innerHTML = `
+						<input type="checkbox" class="tasks__checkbox" />
+						<label class="tasks__label">${name}</label>
+						<div class="tasks__meta">
+							<span class="badge ${priorityBadgeClass}">${priority.charAt(0).toUpperCase() + priority.slice(1)}</span>
+						</div>
+						<button class="tasks__delete" title="Eliminar tarea">
+							<i class="fas fa-trash-alt"></i>
+						</button>
+					`;
+					tasksContainer.appendChild(itemEl);
+					attachItemHandlers(itemEl);
+					updateSubtitle();
+					if (taskNameInput) taskNameInput.value = '';
+					if (taskPrioritySelect) taskPrioritySelect.value = 'media';
+					closeModal();
+				});
+
+				updateSubtitle();
+			});
+		</script>
 	</body>
 </html>

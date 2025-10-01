@@ -1,20 +1,39 @@
 export default function Navbar() {
-    const currentPath = window.location.pathname.split("/").pop();
+	const currentPath = window.location.pathname.split("/").pop();
 
-    // Obtener el rol del usuario desde localStorage
-    const userRole = localStorage.getItem('userRol') || '';  // Note: 'userRol' is the correct key used in the app
-    console.log('User role from localStorage:', userRole);
-    const normalizedRole = String(userRole).toLowerCase().trim();
-    const isAdmin = ['administrador', 'super administrador', 'admin', 'superadmin'].includes(normalizedRole);
-    const isVisitante = ['visitante', 'Visitante'].includes(normalizedRole);
-    const isPersonalApoyo = ['personal de apoyo', 'Personal de Apoyo', 'apoyo', 'Apoyo'].includes(normalizedRole);
-    console.log('User role:', `'${userRole}'`, 'Is admin?', isAdmin, 'Is visitante?', isVisitante, 'Is personal de apoyo?', isPersonalApoyo);
+	// Obtener el rol del usuario desde localStorage
+	const userRole = localStorage.getItem("userRol") || ""; // Note: 'userRol' is the correct key used in the app
+	console.log("User role from localStorage:", userRole);
+	const normalizedRole = String(userRole).toLowerCase().trim();
+	const isAdmin = [
+		"administrador",
+		"super administrador",
+		"admin",
+		"superadmin",
+	].includes(normalizedRole);
+	const isVisitante = ["visitante", "Visitante"].includes(normalizedRole);
+	const isPersonalApoyo = [
+		"personal de apoyo",
+		"Personal de Apoyo",
+		"apoyo",
+		"Apoyo",
+	].includes(normalizedRole);
+	console.log(
+		"User role:",
+		`'${userRole}'`,
+		"Is admin?",
+		isAdmin,
+		"Is visitante?",
+		isVisitante,
+		"Is personal de apoyo?",
+		isPersonalApoyo
+	);
 
-    const isSelected = (linkPath) => {
-        return currentPath === linkPath ? "nav__link--selected" : "";
-    };
+	const isSelected = (linkPath) => {
+		return currentPath === linkPath ? "nav__link--selected" : "";
+	};
 
-    return `
+	return `
         <div class="nav">
             <div class="nav__left">
                 <img src="../imgs/logoSena.svg" alt="Logo Sena" class="nav__logo" />
@@ -23,22 +42,33 @@ export default function Navbar() {
                     <ul class="nav__list">
                         <li class="nav__item">
                             <a href="home.html" class="nav__link ${isSelected(
-        "home.html"
-    )}">
+															"home.html"
+														)}">
                                 <span class="material-symbols-outlined">home</span>
                                 <span>Inicio</span>
                             </a>
                         </li>
                         
                         <!-- Menú de Sensores - Visible para todos los roles -->
-                        <li class="nav__item ${(isVisitante || isPersonalApoyo) ? '' : 'nav__item--dropdown'}">
-                            ${(isVisitante || isPersonalApoyo) ? `
-                                <a href="listar-sensores.html" class="nav__link ${isSelected('listar-sensores.html')}">
+                        <li class="nav__item ${
+													isVisitante || isPersonalApoyo
+														? ""
+														: "nav__item--dropdown"
+												}">
+                            ${
+															isVisitante || isPersonalApoyo
+																? `
+                                <a href="listar-sensores.html" class="nav__link ${isSelected(
+																	"listar-sensores.html"
+																)}">
                                     <span class="material-symbols-outlined">sensors</span>
                                     <span>Sensores</span>
                                 </a>
-                            ` : `
-                                <button class="nav__dropdown-btn ${isSelected('listar-sensores.html')}">
+                            `
+																: `
+                                <button class="nav__dropdown-btn ${isSelected(
+																	"listar-sensores.html"
+																)}">
                                     <span class="material-symbols-outlined">sensors</span>
                                     <span>Sensores</span>
                                     <span class="material-symbols-outlined nav__arrow">expand_more</span>
@@ -47,19 +77,31 @@ export default function Navbar() {
                                     <a href="listar-sensores.html" class="nav__dropdown-link">Lista de Sensores</a>
                                     <a href="crear-sensor.html" class="nav__dropdown-link">Agregar Sensor</a>
                                 </div>
-                            `}
+                            `
+														}
                         </li>
                         
                         <!-- Menú de Cultivos - Visible para todos excepto Personal de Apoyo -->
-                        ${!isPersonalApoyo ? `
-                        <li class="nav__item ${isVisitante ? '' : 'nav__item--dropdown'}">
-                            ${isVisitante ? `
-                                <a href="listar-cultivos.html" class="nav__link ${isSelected('listar-cultivos.html')}">
+                        ${
+													!isPersonalApoyo
+														? `
+                        <li class="nav__item ${
+													isVisitante ? "" : "nav__item--dropdown"
+												}">
+                            ${
+															isVisitante
+																? `
+                                <a href="listar-cultivos.html" class="nav__link ${isSelected(
+																	"listar-cultivos.html"
+																)}">
                                     <span class="material-symbols-outlined">agriculture</span>
                                     <span>Cultivos</span>
                                 </a>
-                            ` : `
-                                <button class="nav__dropdown-btn ${isSelected('listar-cultivos.html')}">
+                            `
+																: `
+                                <button class="nav__dropdown-btn ${isSelected(
+																	"listar-cultivos.html"
+																)}">
                                     <span class="material-symbols-outlined">agriculture</span>
                                     <span>Cultivos</span>
                                     <span class="material-symbols-outlined nav__arrow">expand_more</span>
@@ -70,25 +112,36 @@ export default function Navbar() {
                                     <a href="listar-ciclos-cultivos.html" class="nav__dropdown-link">Lista de Ciclos</a>
                                     <a href="crear-ciclo-cultivo.html" class="nav__dropdown-link">Agregar Ciclo</a>
                                 </div>
-                            `}
+                            `
+														}
                         </li>
                         
                         <!-- Menú de Ciclos de Cultivo (solo para visitantes) -->
-                        ${isVisitante ? `
+                        ${
+													isVisitante
+														? `
                         <li class="nav__item">
-                            <a href="listar-ciclos-cultivos.html" class="nav__link ${isSelected('listar-ciclos-cultivos.html')}">
+                            <a href="listar-ciclos-cultivos.html" class="nav__link ${isSelected(
+															"listar-ciclos-cultivos.html"
+														)}">
                                 <span class="material-symbols-outlined">cycle</span>
                                 <span>Ciclos de Cultivo</span>
                             </a>
                         </li>
-                        ` : ''}
-                        ` : ''}
+                        `
+														: ""
+												}
+                        `
+														: ""
+												}
                         
-                        ${isAdmin ? `
+                        ${
+													isAdmin
+														? `
                         <li class="nav__item nav__item--dropdown">
                             <button class="nav__dropdown-btn ${isSelected(
-        "listar-usuarios.html"
-    )}">
+															"listar-usuarios.html"
+														)}">
                                 <span class="material-symbols-outlined">group</span>
                                 <span>Usuarios</span>
                                 <span class="material-symbols-outlined nav__arrow">expand_more</span>
@@ -101,8 +154,8 @@ export default function Navbar() {
 
                         <li class="nav__item nav__item--dropdown">
                             <button class="nav__dropdown-btn ${isSelected(
-        "listar-insumos.html"
-    )}">
+															"listar-insumos.html"
+														)}">
                                 <span class="material-symbols-outlined">inventory</span>
                                 <span>Insumos</span>
                                 <span class="material-symbols-outlined nav__arrow">expand_more</span>
@@ -115,8 +168,8 @@ export default function Navbar() {
 
                         <li class="nav__item nav__item--dropdown">
                             <button class="nav__dropdown-btn ${isSelected(
-        "listar-producciones.html"
-    )}">
+															"listar-producciones.html"
+														)}">
                                 <span class="material-symbols-outlined">manufacturing</span>
                                 <span>Producciones</span>
                                 <span class="material-symbols-outlined nav__arrow">expand_more</span>
@@ -126,7 +179,9 @@ export default function Navbar() {
                                 <a href="crear-produccion.html" class="nav__dropdown-link">Agregar Producción</a>
                             </div>
                         </li>
-                        ` : ''}
+                        `
+														: ""
+												}
                     </ul>
                 </nav>
             </div>
@@ -158,8 +213,12 @@ export default function Navbar() {
                 <div class="nav__mobile-profile" id="mobileProfileSection">
                     <img src="../imgs/default-avatar.svg" alt="Usuario" class="nav__mobile-profile-image" id="mobileProfileImage" />
                     <div class="nav__mobile-profile-info">
-                        <h4 class="nav__mobile-profile-name">${localStorage.getItem('userName') || 'Usuario'}</h4>
-                        <p class="nav__mobile-profile-email">${localStorage.getItem('userEmail') || ''}</p>
+                        <h4 class="nav__mobile-profile-name">${
+													localStorage.getItem("userName") || "Usuario"
+												}</h4>
+                        <p class="nav__mobile-profile-email">${
+													localStorage.getItem("userEmail") || ""
+												}</p>
                     </div>
                     <span class="material-symbols-outlined nav__mobile-profile-icon">chevron_right</span>
                 </div>
@@ -175,21 +234,31 @@ export default function Navbar() {
                     <span>Lista de Sensores</span>
                 </a>
                 
-                ${!isVisitante && !isPersonalApoyo ? `
+                ${
+									!isVisitante && !isPersonalApoyo
+										? `
                 <!-- Opciones adicionales de sensores para roles que no son visitante ni personal de apoyo -->
                 <a href="crear-sensor.html" class="nav__mobile-link">
                     <span class="material-symbols-outlined">add_circle</span>
                     <span>Agregar Sensor</span>
-                </a>` : ''}
+                </a>`
+										: ""
+								}
                 
-                ${isVisitante ? `
+                ${
+									isVisitante
+										? `
                 <!-- Opciones para visitantes -->
                 <a href="listar-ciclos-cultivos.html" class="nav__mobile-link">
                     <span class="material-symbols-outlined">cycle</span>
                     <span>Lista de Ciclos</span>
-                </a>` : ''}
+                </a>`
+										: ""
+								}
                 
-                ${isAdmin ? `
+                ${
+									isAdmin
+										? `
                 <!-- Opciones para administradores -->
                 <a href="listar-usuarios.html" class="nav__mobile-link">
                     <span class="material-symbols-outlined">group</span>
@@ -206,15 +275,21 @@ export default function Navbar() {
                 <a href="crear-insumo.html" class="nav__mobile-link">
                     <span class="material-symbols-outlined">add_box</span>
                     <span>Agregar Insumo</span>
-                </a>` : ''}
+                </a>`
+										: ""
+								}
                 
-                ${!isPersonalApoyo ? `
+                ${
+									!isPersonalApoyo
+										? `
                 <!-- Sección de Cultivos - No visible para personal de apoyo -->
                 <a href="listar-cultivos.html" class="nav__mobile-link">
                     <span class="material-symbols-outlined">agriculture</span>
                     <span>Lista de Cultivos</span>
                 </a>
-                ${!isVisitante ? `
+                ${
+									!isVisitante
+										? `
                     <a href="crear-cultivo.html" class="nav__mobile-link">
                         <span class="material-symbols-outlined">add</span>
                         <span>Agregar Cultivo</span>
@@ -227,8 +302,12 @@ export default function Navbar() {
                         <span class="material-symbols-outlined">add_circle</span>
                         <span>Agregar Ciclo</span>
                     </a>
-                ` : ''}
-                ${isAdmin ? `
+                `
+										: ""
+								}
+                ${
+									isAdmin
+										? `
                 <a href="listar-producciones.html" class="nav__mobile-link">
                     <span class="material-symbols-outlined">manufacturing</span>
                     <span>Lista de Producciones</span>
@@ -236,8 +315,12 @@ export default function Navbar() {
                 <a href="crear-produccion.html" class="nav__mobile-link">
                     <span class="material-symbols-outlined">add_circle</span>
                     <span>Agregar Producción</span>
-                </a>` : ''}
-                ` : ''}
+                </a>`
+										: ""
+								}
+                `
+										: ""
+								}
 
                 <a href="#" class="nav__mobile-link" id="mobileProfileLink">
                     <span class="material-symbols-outlined">person</span>
