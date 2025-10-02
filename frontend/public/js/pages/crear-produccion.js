@@ -47,6 +47,23 @@ document.addEventListener("DOMContentLoaded", async function () {
 	// Inicializar
 	fetchSupplies();
 
+	// Función helper para resaltar una sección y hacer scroll hacia ella
+	function highlightAndScrollToSection(selector, duration = 2000) {
+		const section = document.querySelector(selector)?.closest('.form__section');
+		if (section) {
+			// Agregar un resaltado temporal para resaltar la sección
+			section.style.boxShadow = '0 0 0 3px rgba(22, 163, 74, 0.3)';
+			section.style.borderColor = 'var(--primary-green)';
+			section.scrollIntoView({ behavior: "smooth", block: "center" });
+
+			// Remover el resaltado después de la animación
+			setTimeout(() => {
+				section.style.boxShadow = '';
+				section.style.borderColor = '';
+			}, duration);
+		}
+	}
+
 	// Mostrar el formulario de uso de insumo cuando se selecciona un insumo
 	addSupplyBtn.addEventListener("click", function () {
 		const selectedOption = supplySelect.options[supplySelect.selectedIndex];
@@ -153,18 +170,22 @@ document.addEventListener("DOMContentLoaded", async function () {
 			updateUsedSuppliesList();
 			updateTotals();
 
-			// Resetear el formulario
-			supplyUsageForm.classList.add("hidden");
+			// Resetear el formulario pero mantenerlo visible para facilitar agregar más insumos
 			supplyUsageForm.classList.remove("form-exit");
 			supplySelect.value = "";
 			currentSupply = null;
+
+			// Hacer scroll hacia la sección de insumos para facilitar agregar más
+			setTimeout(() => {
+				highlightAndScrollToSection('.supply-selection');
+			}, 300);
 
 			// Mostrar el mensaje de éxito con animación
 			const successToast = document.createElement("div");
 			successToast.className = "toast-message success";
 			successToast.innerHTML = `
                 <i class="fas fa-check-circle"></i>
-                <span>Insumo agregado correctamente</span>
+                <span>Uso de insumo registrado correctamente</span>
             `;
 			document.body.appendChild(successToast);
 
@@ -193,6 +214,11 @@ document.addEventListener("DOMContentLoaded", async function () {
 	hideSupplyUsageFormBtn.addEventListener("click", function () {
 		supplyUsageForm.classList.add("hidden");
 		currentSupply = null;
+
+		// Hacer scroll hacia la sección de insumos después de ocultar el formulario
+		setTimeout(() => {
+			highlightAndScrollToSection('.supply-selection');
+		}, 300);
 	});
 
 	// Actualizar la lista de insumos usados en la UI
@@ -526,6 +552,11 @@ document.addEventListener("DOMContentLoaded", async function () {
 			supplyUsageForm.classList.add("hidden");
 			currentSupply = null;
 			supplySelect.selectedIndex = 0;
+
+			// Hacer scroll hacia la sección de insumos después de ocultar el formulario
+			setTimeout(() => {
+				highlightAndScrollToSection('.supply-selection');
+			}, 300);
 		});
 	}
 });
