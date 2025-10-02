@@ -236,7 +236,7 @@ class Sensors {
 		const openPreview = () => {
 			try {
 				this.renderReportPreview();
-			} catch (_) {}
+			} catch (_) { }
 		};
 		document
 			.querySelector(".button--report")
@@ -544,45 +544,36 @@ class Sensors {
                     <button class="table__action-button table__action-button--view">
                         <span class="material-symbols-outlined">visibility</span>
                     </button>
-                    <button class="table__action-button table__action-button--edit" onclick="window.location.href='../views/actualizar-sensor.html?id=${
-											sensor.id
-										}'">
+                    <button class="table__action-button table__action-button--edit" onclick="window.location.href='../views/actualizar-sensor.html?id=${sensor.id
+				}'">
                         <span class="material-symbols-outlined">edit</span>
                     </button>
-                    <button class="table__action-button table__action-button--${
-											sensor.estado === "habilitado" ? "disable" : "enable"
-										}">
+                    <button class="table__action-button table__action-button--${sensor.estado === "habilitado" ? "disable" : "enable"
+				}">
                         <span class="material-symbols-outlined">power_settings_new</span>
                     </button>
                 `;
 
 			row.innerHTML = `
                 <td class="table__cell table__cell--checkbox">
-                    ${
-											this.isVisitante
-												? ""
-												: `<input type="checkbox" class="table__checkbox" data-id="${
-														sensor.id
-												  }" ${
-														this.selectedSensors.has(sensor.id) ? "checked" : ""
-												  } />`
-										}
+                    ${this.isVisitante
+					? ""
+					: `<input type="checkbox" class="table__checkbox" data-id="${sensor.id
+					}" ${this.selectedSensors.has(sensor.id) ? "checked" : ""
+					} />`
+				}
                 </td>
                 <td class="table__cell table__cell--id">${sensor.id}</td>
                 <td class="table__cell table__cell--name">${sensor.nombre}</td>
                 <td class="table__cell table__cell--type">${sensor.tipo}</td>
-                <td class="table__cell table__cell--unit">${
-									sensor.unidad_medida || ""
-								}</td>
-                <td class="table__cell table__cell--scan-interval">${
-									sensor.tiempo_escaneo || ""
-								}</td>
+                <td class="table__cell table__cell--unit">${sensor.unidad_medida || ""
+				}</td>
+                <td class="table__cell table__cell--scan-interval">${sensor.tiempo_escaneo || ""
+				}</td>
                 <td class="table__cell table__cell--estado">
-                    <span class="badge badge--${
-											sensor.estado === "habilitado" ? "active" : "inactive"
-										}">${
-				sensor.estado === "habilitado" ? "Habilitado" : "Deshabilitado"
-			}</span>
+                    <span class="badge badge--${sensor.estado === "habilitado" ? "active" : "inactive"
+				}">${sensor.estado === "habilitado" ? "Habilitado" : "Deshabilitado"
+				}</span>
                 </td>
                 <td class="table__cell table__cell--actions">
                     ${actionsHtml}
@@ -626,25 +617,96 @@ class Sensors {
 
 	showSensorDetails(sensor) {
 		document.getElementById("modalSensorId").textContent = sensor.id || "";
-		document.getElementById("modalSensorNombre").textContent =
-			sensor.nombre || "";
+		document.getElementById("modalSensorNombre").textContent = sensor.nombre || "";
 		document.getElementById("modalSensorTipo").textContent = sensor.tipo || "";
-		document.getElementById("modalSensorDescripcion").textContent =
-			sensor.descripcion || "";
-		document.getElementById("modalSensorUnidadMedida").textContent =
-			sensor.unidad_medida || "";
-		document.getElementById("modalSensorTiempoEscaneo").textContent =
-			sensor.tiempo_escaneo || "";
-		document.getElementById("modalSensorFechaCreacion").textContent =
-			sensor.fecha_creacion || "";
-		document.getElementById("modalSensorEstado").textContent =
-			sensor.estado || "";
+		document.getElementById("modalSensorDescripcion").textContent = sensor.descripcion || "";
+		document.getElementById("modalSensorUnidadMedida").textContent = sensor.unidad_medida || "";
+		document.getElementById("modalSensorTiempoEscaneo").textContent = sensor.tiempo_escaneo || "";
+		document.getElementById("modalSensorFechaCreacion").textContent = sensor.fecha_creacion || "";
+		document.getElementById("modalSensorEstado").textContent = sensor.estado || "";
 		const imgElem = document.getElementById("modalSensorImagen");
 		if (imgElem) {
 			imgElem.src = sensor.imagen || "../imgs/default-sensor.jpg";
 			imgElem.alt = sensor.nombre || "Imagen de sensor";
 		}
+
+		// Simular lecturas aleatorias según el tipo de sensor
+		const readings = this.simulateSensorReadings(sensor.tipo);
+		this.renderSensorReadingsChart(readings, sensor);
 		document.getElementById("viewSensorModal").classList.add("modal--active");
+	}
+
+	// Simula lecturas aleatorias según el tipo de sensor
+	simulateSensorReadings(tipo) {
+		const now = new Date();
+		const readings = [];
+		let min = 0, max = 100, label = "Valor", chartType = "line";
+		tipo = String(tipo || "").toLowerCase();
+		if (tipo.includes("temperatura")) {
+			min = 15; max = 35; label = "°C"; chartType = "line";
+		} else if (tipo.includes("distancia")) {
+			min = 0; max = 200; label = "cm"; chartType = "line";
+		} else if (tipo.includes("presion")) {
+			min = 900; max = 1100; label = "hPa"; chartType = "line";
+		} else if (tipo.includes("luz")) {
+			min = 0; max = 1000; label = "lux"; chartType = "line";
+		} else if (tipo.includes("contacto")) {
+			min = 0; max = 1; label = "Estado"; chartType = "bar";
+		}
+		// Generar 20 lecturas simuladas (últimos 20 minutos)
+		for (let i = 19; i >= 0; i--) {
+			const t = new Date(now.getTime() - i * 60000);
+			let value = Math.random() * (max - min) + min;
+			if (tipo.includes("contacto")) value = Math.random() > 0.5 ? 1 : 0;
+			readings.push({
+				timestamp: t,
+				value: tipo.includes("contacto") ? value : Number(value.toFixed(2)),
+			});
+		}
+		return { readings, label, chartType };
+	}
+
+	// Renderiza el gráfico de lecturas en el modal
+	renderSensorReadingsChart(data, sensor) {
+		const canvas = document.getElementById("sensorReadingsChart");
+		if (!canvas) return; // Si el canvas no existe, no intentar dibujar
+		const ctx = canvas.getContext("2d");
+		// Destruir gráfico anterior si existe
+		if (window.sensorChartInstance) {
+			window.sensorChartInstance.destroy();
+		}
+		const labels = data.readings.map(r => r.timestamp.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" }));
+		const values = data.readings.map(r => r.value);
+		window.sensorChartInstance = new Chart(ctx, {
+			type: data.chartType || "line",
+			data: {
+				labels,
+				datasets: [{
+					label: `Lecturas (${data.label})`,
+					data: values,
+					fill: false,
+					borderColor: data.chartType === "bar" ? "#4caf50" : "#36a2eb",
+					backgroundColor: data.chartType === "bar" ? "#a5d6a7" : "#36a2eb",
+					tension: 0.2,
+				}],
+			},
+			options: {
+				responsive: false,
+				plugins: {
+					legend: { display: true },
+					title: {
+						display: true,
+						text: `Lecturas simuladas del sensor: ${sensor.nombre}`,
+					},
+				},
+				scales: {
+					y: {
+						beginAtZero: true,
+						ticks: data.chartType === "bar" ? { stepSize: 1, min: 0, max: 1 } : {},
+					},
+				},
+			},
+		});
 	}
 
 	editSensor(sensor) {
@@ -695,27 +757,24 @@ class Sensors {
 		// Actualizar botones de página
 		const paginationControls = document.querySelector(".pagination__controls");
 		paginationControls.innerHTML = `
-            <button class="pagination__button pagination__button--prev ${
-							this.currentPage === 1 ? "disabled" : ""
-						}">
+            <button class="pagination__button pagination__button--prev ${this.currentPage === 1 ? "disabled" : ""
+			}">
                 <span class="material-symbols-outlined">navigate_before</span>
             </button>
         `;
 
 		for (let i = 1; i <= totalPages; i++) {
 			paginationControls.innerHTML += `
-                <button class="pagination__button ${
-									i === this.currentPage ? "pagination__button--active" : ""
-								}">
+                <button class="pagination__button ${i === this.currentPage ? "pagination__button--active" : ""
+				}">
                     ${i}
                 </button>
             `;
 		}
 
 		paginationControls.innerHTML += `
-            <button class="pagination__button pagination__button--next ${
-							this.currentPage === totalPages ? "disabled" : ""
-						}">
+            <button class="pagination__button pagination__button--next ${this.currentPage === totalPages ? "disabled" : ""
+			}">
                 <span class="material-symbols-outlined">navigate_next</span>
             </button>
         `;
