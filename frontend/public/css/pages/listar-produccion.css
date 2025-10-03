@@ -3838,3 +3838,62 @@ header {
 .cultivo-section--full-width {
 	flex: 1 1 100%;
 }
+
+/* Meta details layout inside production details modal */
+.cultivo-details {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-md);
+}
+
+.meta-row {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: var(--spacing-md);
+}
+
+.meta-item {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.5rem;
+	background: var(--white);
+	border: 1px solid var(--gray-40);
+	border-radius: var(--border-radius);
+	padding: 0.75rem 1rem;
+	min-width: 0; /* allow flex children to shrink */
+}
+
+.meta-label {
+	font-size: 0.825rem;
+	font-weight: 600;
+	color: var(--gray-80);
+	flex: 0 0 auto;
+	min-width: 90px;
+}
+
+.meta-value {
+	font-size: 0.95rem;
+	font-weight: 600;
+	color: var(--gray-100);
+	flex: 1 1 auto;
+	word-break: break-word;
+	overflow-wrap: anywhere;
+}
+
+@media (max-width: 1024px) {
+	.meta-row {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 640px) {
+	.meta-row {
+		grid-template-columns: 1fr;
+	}
+	.meta-item {
+		flex-wrap: wrap;
+	}
+	.meta-label {
+		min-width: auto;
+	}
+}

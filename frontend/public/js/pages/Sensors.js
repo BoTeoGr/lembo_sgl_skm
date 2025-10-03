@@ -232,6 +232,10 @@ class Sensors {
 			this.hideReportModal();
 		});
 
+		document.getElementById("closeReportModal").addEventListener("click", () => {
+			this.hideReportModal();
+		});
+
 		// Actualizar preview al abrir y al cambiar opciones
 		const openPreview = () => {
 			try {
