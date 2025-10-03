@@ -27,7 +27,6 @@
 		<script src="../js/pages/cropsWidget.js"></script>
 		<script>
 			document.addEventListener('DOMContentLoaded', function() {
-<<<<<<< HEAD
 				// Verificar si hay una sesión activa
 				const token = localStorage.getItem('token');
 				if (!token) {
@@ -36,9 +35,6 @@
 				}
 
 				// Check if user is admin
-=======
-				// Verificar si el usuario es administrador
->>>>>>> 5dc9fd46d1a3820500c7760eac47464b8de3ac2d
 				const userRole = localStorage.getItem('userRol') || '';
 				const normalizedRole = String(userRole).toLowerCase().trim();
 				const isAdmin = ['administrador', 'super administrador', 'admin', 'superadmin'].includes(normalizedRole);
