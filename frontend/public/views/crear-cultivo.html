@@ -30,7 +30,6 @@
 						<div class="form__group">
 							<label for="nombre" class="form__label">Nombre</label>
 							<input
-								type="text"
 								class="form__input form__input--cultive-name"
 								placeholder="Ingrese nombre del cultivo"
 								required
@@ -38,12 +37,17 @@
 						</div>
 						<div class="form__group">
 							<label for="tipo" class="form__label">Tipo de cultivo</label>
-							<input
-								type="text"
-								class="form__input form__input--cultive-type"
-								placeholder="Tipo de cultivo"
-								required
-							/>
+							<select class="form__select form__input--cultive-type" required>
+								<option value="">Seleccionar tipo de cultivo</option>
+								<option value="Hortalizas">Hortalizas</option>
+								<option value="Tuberculos">Tubérculos</option>
+								<option value="Cereales">Cereales</option>
+								<option value="Leguminosas">Leguminosas</option>
+								<option value="Frutas">Frutas</option>
+								<option value="Oleaginosas">Oleaginosas</option>
+								<option value="Forrajeras">Forrajeras</option>
+								<option value="Otros">Otros</option>
+							</select>
 						</div>
 					</div>
 
@@ -61,12 +65,18 @@
 						
 						<div class="form__group">
 							<label for="ubicacion" class="form__label">Ubicación</label>
-							<input
-								type="text"
-								class="form__input form__input--cultive-location"
-								placeholder="Ingrese la ubicación del cultivo"
-								required
-							/>
+							<select class="form__select form__input--cultive-location" required>
+								<option value="">Seleccionar ubicación</option>
+								<option value="Invernadero Norte">Invernadero Norte</option>
+								<option value="Invernadero Sur">Invernadero Sur</option>
+								<option value="Campo Abierto A">Campo Abierto A</option>
+								<option value="Campo Abierto B">Campo Abierto B</option>
+								<option value="Hidroponico A">Hidropónico A</option>
+								<option value="Hidroponico B">Hidropónico B</option>
+								<option value="Terraza">Terraza</option>
+								<option value="Interior">Interior</option>
+								<option value="Otros">Otros</option>
+							</select>
 						</div>
 					</div>
 					<div class="form__group form__group--full-width">
@@ -79,12 +89,16 @@
 						/>
 					</div>
 					<div class="form__group form__group--full-width">
-						<label for="descripcion" class="form__label">Descripción</label>
+						<label class="form__label">Descripción</label>
 						<textarea
 							class="form__textarea form__textarea--cultive-description"
 							placeholder="Ingrese descripción del cultivo"
+							maxlength="500"
 							required
 						></textarea>
+						<div class="char-counter" style="text-align: right; font-size: 0.875rem; color: #666; margin-top: 0.25rem;">
+							<span class="char-count" style="font-weight: 600; color: #27ae60;">0</span>/500 caracteres
+						</div>
 					</div>
 
 					<div class="form__group--full-width">
@@ -132,5 +146,29 @@
 		<script src="../js/validations/cropCreationValidator.js"></script>
 		<!-- Script para verificar autenticación antes demostrar la vista -->
 		<script src="../js/utils/auth-check.js"></script>
+
+		<script>
+			// Contador de caracteres para la descripción
+			document.addEventListener('DOMContentLoaded', function() {
+				const textarea = document.querySelector('.form__textarea--cultive-description');
+				const charCount = document.querySelector('.char-count');
+
+				if (textarea && charCount) {
+					textarea.addEventListener('input', function() {
+						const currentLength = this.value.length;
+						charCount.textContent = currentLength;
+
+						// Cambiar color si se acerca al límite
+						if (currentLength > 450) {
+							charCount.style.color = '#e74c3c'; // Rojo
+						} else if (currentLength > 400) {
+							charCount.style.color = '#f39c12'; // Naranja
+						} else {
+							charCount.style.color = '#27ae60'; // Verde
+						}
+					});
+				}
+			});
+		</script>
 	</body>
 </html>

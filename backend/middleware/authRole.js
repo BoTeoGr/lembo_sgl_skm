@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { activeSessions } from "../controllers/user.controller.js";
 
 // Middleware generador para verificar roles permitidos
 // Permite acceso si es admin o el mismo usuario
@@ -89,4 +90,81 @@ export function verificarRol(rolesPermitidos = []) {
 			return res.status(401).json({ error: "Token inválido" });
 		}
 	};
+}
+
+// Middleware para verificar sesión activa
+export function verificarSesionActiva(req, res, next) {
+	const authHeader = req.headers["authorization"];
+	if (!authHeader) {
+		return res.status(401).json({ error: "Token no proporcionado" });
+	}
+	const token = authHeader.split(" ")[1];
+	if (!token) {
+		return res.status(401).json({ error: "Token no proporcionado" });
+	}
+
+	try {
+		const decoded = jwt.verify(
+			token,
+			process.env.JWT_SECRET || "tu_clave_secreta"
+		);
+
+		// Verificar si la sesión está activa
+		if (!activeSessions.has(decoded.id)) {
+			return res.status(401).json({ error: "Sesión expirada o inválida" });
+		}
+
+		const userSessions = activeSessions.get(decoded.id);
+		if (!userSessions.has(decoded.sessionId)) {
+			return res.status(401).json({ error: "Sesión no encontrada" });
+		}
+
+		// Verificar si la sesión ha expirado
+		const session = userSessions.get(decoded.sessionId);
+		if (session.expiresAt < Date.now()) {
+			userSessions.delete(decoded.sessionId);
+			if (userSessions.size === 0) {
+				activeSessions.delete(decoded.id);
+			}
+			return res.status(401).json({ error: "Sesión expirada" });
+		}
+
+		req.user = decoded;
+		next();
+	} catch (error) {
+		console.error("Error al verificar sesión:", error);
+		return res.status(401).json({ error: "Token inválido" });
+	}
+}
+
+// Función para cerrar sesión
+export function logoutUsuario(req, res) {
+	try {
+		const authHeader = req.headers["authorization"];
+		if (!authHeader) {
+			return res.status(401).json({ error: "Token no proporcionado" });
+		}
+		const token = authHeader.split(" ")[1];
+		if (!token) {
+			return res.status(401).json({ error: "Token no proporcionado" });
+		}
+
+		const decoded = jwt.verify(
+			token,
+			process.env.JWT_SECRET || "tu_clave_secreta"
+		);
+
+		// Remover sesión activa
+		if (activeSessions.has(decoded.id)) {
+			activeSessions.get(decoded.id).delete(decoded.sessionId);
+			if (activeSessions.get(decoded.id).size === 0) {
+				activeSessions.delete(decoded.id);
+			}
+		}
+
+		res.status(200).json({ message: "Sesión cerrada exitosamente" });
+	} catch (error) {
+		console.error("Error al cerrar sesión:", error);
+		res.status(500).json({ error: "Error interno del servidor" });
+	}
 }

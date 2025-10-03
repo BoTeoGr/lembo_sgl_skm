@@ -139,7 +139,33 @@ document.addEventListener("DOMContentLoaded", async () => {
 		element.addEventListener("input", updateUserData);
 	});
 
+	// Función para validar formato de correo electrónico
+	function isValidEmail(email) {
+		const emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+		return emailRegex.test(email);
+	}
+
 	function validateUserData() {
+		// Validar formato del correo electrónico
+		if (userData.correo && !isValidEmail(userData.correo)) {
+			showToast(
+				"Correo inválido",
+				"El formato del correo electrónico no es válido. Ejemplo: usuario@dominio.com",
+				"error"
+			);
+			return false;
+		}
+
+		// Validar formato del correo de confirmación
+		if (userData.confirmar_correo && !isValidEmail(userData.confirmar_correo)) {
+			showToast(
+				"Correo inválido",
+				"El formato del correo de confirmación no es válido. Ejemplo: usuario@dominio.com",
+				"error"
+			);
+			return false;
+		}
+
 		// Validación de correo
 		if (userData.correo !== userData.confirmar_correo) {
 			showToast(

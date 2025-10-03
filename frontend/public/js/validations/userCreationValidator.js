@@ -141,6 +141,12 @@ userForm.addEventListener("submit", function (e) {
 	showToast("Enviando datos", "Tus datos están siendo enviados", "info");
 });
 
+// Función para validar formato de correo electrónico
+function isValidEmail(email) {
+	const emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+	return emailRegex.test(email);
+}
+
 // Función para validar los datos del usuario
 function validateUserData() {
 	const requiredFields = [
@@ -160,6 +166,26 @@ function validateUserData() {
 			showToast(`Por favor, complete el campo ${field.label}`, "", "error");
 			return false;
 		}
+	}
+
+	// Validar formato del correo electrónico
+	if (!isValidEmail(userData.userEmail)) {
+		showToast(
+			"Correo inválido",
+			"El formato del correo electrónico no es válido. Ejemplo: usuario@dominio.com",
+			"error"
+		);
+		return false;
+	}
+
+	// Validar formato del correo de confirmación
+	if (!isValidEmail(userData.userConfirmEmail)) {
+		showToast(
+			"Correo inválido",
+			"El formato del correo de confirmación no es válido. Ejemplo: usuario@dominio.com",
+			"error"
+		);
+		return false;
 	}
 
 	// Validar que los correos coincidan

@@ -11,6 +11,8 @@ if (!document.querySelector('link[href*="font-awesome"]')) {
 	document.head.appendChild(link);
 }
 
+import { clearSession, authenticatedFetch } from "../utils/sessionUtils.js";
+
 // Toast notification function
 function showToast(title, message, type = "info") {
 	// Create toast container if it doesn't exist
@@ -348,25 +350,9 @@ export default function injectProfileModal() {
 			}
 
 			console.log("Solicitando datos del usuario al servidor...");
-			const res = await fetch(`http://localhost:5000/usuarios/${userId}`, {
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-			});
+			const response = await authenticatedFetch(`http://localhost:5000/usuarios/${userId}`);
 
-			if (!res.ok) {
-				console.error(
-					"Error en la respuesta del servidor:",
-					res.status,
-					res.statusText
-				);
-				const errorText = await res.text();
-				console.error("Detalles del error:", errorText);
-				return;
-			}
-
-			const data = await res.json();
+			const data = await response.json();
 
 			// Verificar diferentes formatos de respuesta
 			let userData = data;
@@ -759,20 +745,40 @@ export default function injectProfileModal() {
 		});
 
 	// Logout button
-	document.getElementById("logoutBtn").addEventListener("click", (e) => {
+	document.getElementById("logoutBtn").addEventListener("click", async (e) => {
 		e.preventDefault(); // Prevenir la redirección inmediata del enlace
 
 		console.log("Cerrando sesión...");
 
-		// Limpiar todos los datos de la sesión del localStorage
-		localStorage.removeItem("token");
-		localStorage.removeItem("userId");
-		localStorage.removeItem("userName");
-		localStorage.removeItem("userEmail");
-		localStorage.removeItem("userRol");
-		localStorage.removeItem("userRole"); // Por si se usa esta otra clave
+		try {
+			const token = localStorage.getItem("token");
 
-		showToast("Sesión cerrada", "Has cerrado sesión exitosamente.", "info");
+			if (token) {
+				// Llamar al endpoint de logout del backend
+				const response = await fetch("http://localhost:5000/logout", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"Authorization": `Bearer ${token}`
+					}
+				});
+
+				if (response.ok) {
+					showToast("Sesión cerrada", "Has cerrado sesión exitosamente.", "info");
+				} else {
+					console.warn("Error al cerrar sesión en el servidor:", response.statusText);
+					showToast("Advertencia", "Sesión cerrada localmente, pero hubo un problema en el servidor.", "warning");
+				}
+			} else {
+				showToast("Sesión cerrada", "No había una sesión activa.", "info");
+			}
+		} catch (error) {
+			console.error("Error al cerrar sesión:", error);
+			showToast("Error", "Error al cerrar sesión en el servidor.", "error");
+		}
+
+		// Limpiar todos los datos de la sesión del localStorage
+		clearSession();
 
 		// Redirigir al login después de un breve momento
 		setTimeout(() => {

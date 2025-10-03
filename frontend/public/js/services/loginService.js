@@ -1,5 +1,6 @@
 // loginService.js
 // Servicio para manejar el login y guardar el token JWT
+import { clearSession } from "../utils/sessionUtils.js";
 
 export async function loginUser(email, password) {
 	try {
@@ -12,6 +13,9 @@ export async function loginUser(email, password) {
 		});
 		const data = await response.json();
 		if (!response.ok) {
+			if (response.status === 409) {
+				throw new Error("Ya tienes una sesión activa en otra ventana. Por favor, cierra la sesión anterior antes de iniciar una nueva.");
+			}
 			throw new Error(data.error || "Error al iniciar sesión");
 		}
 
@@ -68,6 +72,27 @@ export async function loginUser(email, password) {
 			/* noop */
 		}
 		return data;
+	} catch (error) {
+		throw error;
+	}
+}
+
+// Función para forzar cierre de todas las sesiones
+export async function forceLogoutAllSessions(email) {
+	try {
+		const response = await fetch("http://localhost:5000/force-logout", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({ userEmail: email }),
+		});
+
+		if (!response.ok) {
+			throw new Error("Error al cerrar sesiones anteriores");
+		}
+
+		return await response.json();
 	} catch (error) {
 		throw error;
 	}

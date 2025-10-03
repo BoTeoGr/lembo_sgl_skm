@@ -13,7 +13,7 @@ form.addEventListener("input", readText);
 email.addEventListener("input", readText);
 password.addEventListener("input", readText);
 
-import { loginUser } from "../services/loginService.js";
+import { loginUser, forceLogoutAllSessions } from "../services/loginService.js";
 
 //Evento submit
 form.addEventListener("submit", async function (e) {
@@ -78,6 +78,30 @@ form.addEventListener("submit", async function (e) {
 		// Mostrar mensaje de error específico para usuarios deshabilitados
 		if (error.message && error.message.includes("deshabilitado")) {
 			showAlert(error.message, true);
+		} else if (error.message && error.message.includes("sesión activa en otra ventana")) {
+			// Ofrecer opción de forzar cierre de sesiones
+			if (confirm("Ya tienes una sesión activa en otra ventana. ¿Deseas cerrar todas las sesiones anteriores e iniciar una nueva?")) {
+				try {
+					await forceLogoutAllSessions(emailValue);
+					showAlert("Sesiones anteriores cerradas. Intentando iniciar sesión nuevamente...");
+					// Reintentar el login después de forzar cierre
+					setTimeout(async () => {
+						try {
+							const data = await loginUser(emailValue, passwordValue);
+							showAlert("Inicio de sesión exitoso");
+							setTimeout(() => {
+								window.location.href = "home.html";
+							}, 1000);
+						} catch (retryError) {
+							showAlert(retryError.message || "Error al iniciar sesión después de cerrar sesiones anteriores", true);
+						}
+					}, 1500);
+				} catch (forceError) {
+					showAlert("Error al cerrar sesiones anteriores. " + forceError.message, true);
+				}
+			} else {
+				showAlert("Inicio de sesión cancelado. Cierra la sesión en la otra ventana primero.", true);
+			}
 		} else {
 			showAlert(
 				error.message ||

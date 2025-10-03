@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
+import bcrypt from "bcryptjs";
+import db from "../db/config.db.js";
 
 // Configuración del transporte de correo
 console.log(
@@ -30,13 +32,33 @@ transporter.verify(function (error, success) {
 	}
 });
 
-// Generar código de recuperación
-function generateRecoveryCode() {
-	return Math.floor(100000 + Math.random() * 900000).toString();
+// Función para generar sessionId único
+function generateSessionId() {
+	return crypto.randomUUID();
 }
 
-// Almacenamiento temporal de códigos de recuperación (en producción, usa una base de datos)
-const recoveryCodes = new Map();
+// Función para limpiar sesiones expiradas
+function cleanupExpiredSessions() {
+	const now = Date.now();
+	for (const [userId, sessions] of activeSessions.entries()) {
+		for (const [sessionId, session] of sessions.entries()) {
+			if (session.expiresAt < now) {
+				sessions.delete(sessionId);
+			}
+		}
+		if (sessions.size === 0) {
+			activeSessions.delete(userId);
+		}
+	}
+}
+
+// Limpiar sesiones cada 5 minutos
+setInterval(cleanupExpiredSessions, 5 * 60 * 1000);
+
+// Almacenamiento temporal de sesiones activas (en producción, usa Redis o similar)
+const activeSessions = new Map();
+
+export { activeSessions };
 
 // Solicitar recuperación de contraseña
 export function solicitarRecuperacionContrasena(req, res) {
@@ -218,7 +240,7 @@ export function restablecerContrasena(req, res) {
 	}
 }
 
-// Login de usuario con JWT
+// Login de usuario con JWT y manejo de sesiones únicas
 export function loginUsuario(req, res) {
 	const { userEmail, password } = req.body;
 	if (!userEmail || !password) {
@@ -226,6 +248,7 @@ export function loginUsuario(req, res) {
 			.status(400)
 			.json({ error: "Correo y contraseña son requeridos" });
 	}
+
 	// Buscar usuario por correo
 	db.query(
 		"SELECT * FROM usuarios WHERE correo = ?",
@@ -262,12 +285,41 @@ export function loginUsuario(req, res) {
 						.status(401)
 						.json({ error: "Usuario o contraseña incorrectos" });
 				}
-				// Generar JWT
+
+				// Verificar si ya hay una sesión activa para este usuario
+				if (activeSessions.has(usuario.id)) {
+					const userSessions = activeSessions.get(usuario.id);
+					if (userSessions.size > 0) {
+						return res.status(409).json({
+							error: "Ya tienes una sesión activa en otra ventana. Por favor, cierra la sesión anterior antes de iniciar una nueva."
+						});
+					}
+				}
+
+				// Crear nueva sesión
+				const sessionId = generateSessionId();
+				const expiresAt = Date.now() + (2 * 60 * 60 * 1000); // 2 horas
+
+				// Inicializar sesiones para el usuario si no existe
+				if (!activeSessions.has(usuario.id)) {
+					activeSessions.set(usuario.id, new Map());
+				}
+
+				// Agregar nueva sesión
+				activeSessions.get(usuario.id).set(sessionId, { expiresAt });
+
+				// Generar JWT con sessionId
 				const token = jwt.sign(
-					{ id: usuario.id, correo: usuario.correo, rol: usuario.rol },
+					{
+						id: usuario.id,
+						correo: usuario.correo,
+						rol: usuario.rol,
+						sessionId: sessionId
+					},
 					process.env.JWT_SECRET,
 					{ expiresIn: "2h" }
 				);
+
 				res
 					.status(200)
 					.json({
@@ -283,9 +335,6 @@ export function loginUsuario(req, res) {
 		}
 	);
 }
-import db from "./../db/config.db.js";
-import bcrypt from "bcryptjs";
-
 // Función para obtener usuarios con paginación
 export function VerUsuarios(req, res) {
 	try {

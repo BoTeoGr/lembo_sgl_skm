@@ -57,12 +57,54 @@ import {
 import {
 	verificarRol,
 	verificarUsuarioPropioOAdmin,
+	verificarSesionActiva,
+	logoutUsuario,
 } from "../middleware/authRole.js";
+import db from "../db/config.db.js";
+import { activeSessions } from "../controllers/user.controller.js";
 
 const router = express.Router();
 
 // Ruta para iniciar sesión
 router.post("/login", loginUsuario);
+
+// Ruta para cerrar sesión
+router.post("/logout", logoutUsuario);
+
+// Ruta para cerrar todas las sesiones de un usuario (forzar logout)
+router.post("/force-logout", async (req, res) => {
+	const { userEmail } = req.body;
+
+	if (!userEmail) {
+		return res.status(400).json({ error: "Correo electrónico es requerido" });
+	}
+
+	// Buscar usuario por correo
+	db.query(
+		"SELECT id FROM usuarios WHERE correo = ?",
+		[userEmail],
+		(err, results) => {
+			if (err) {
+				console.error("Error al buscar usuario:", err);
+				return res.status(500).json({ error: "Error interno del servidor" });
+			}
+
+			if (results.length === 0) {
+				return res.status(404).json({ error: "Usuario no encontrado" });
+			}
+
+			const usuario = results[0];
+
+			// Cerrar todas las sesiones activas del usuario
+			if (activeSessions.has(usuario.id)) {
+				activeSessions.get(usuario.id).clear();
+				activeSessions.delete(usuario.id);
+			}
+
+			res.status(200).json({ message: "Todas las sesiones han sido cerradas exitosamente" });
+		}
+	);
+});
 
 // Rutas para recuperación de contraseña
 router.post("/solicitar-recuperacion", solicitarRecuperacionContrasena);
@@ -72,22 +114,26 @@ router.post("/restablecer-contrasena", restablecerContrasena);
 // Rutas para usuarios
 router.get(
 	"/usuarios",
+	verificarSesionActiva,
 	verificarRol(["admin", "Administrador", "superadmin", "Super Administrador"]),
 	VerUsuarios
 );
 router.post(
 	"/users",
+	verificarSesionActiva,
 	verificarRol(["admin", "Administrador", "superadmin", "Super Administrador"]),
 	crearUsuario
 );
 router.put(
 	"/usuarios/:id/estado",
+	verificarSesionActiva,
 	verificarRol(["superadmin", "Super Administrador"]),
 	actualizarEstadoUsuario
 );
 // Permite que el usuario actualice su perfil o un admin cualquier perfil
 router.put(
 	"/usuarios/:id",
+	verificarSesionActiva,
 	verificarUsuarioPropioOAdmin([
 		"admin",
 		"Administrador",
@@ -99,6 +145,7 @@ router.put(
 // Permite que el usuario vea su perfil o un admin cualquier perfil
 router.get(
 	"/usuarios/:id",
+	verificarSesionActiva,
 	verificarUsuarioPropioOAdmin([
 		"admin",
 		"Administrador",
@@ -110,6 +157,7 @@ router.get(
 // Rutas para sensores
 router.get(
 	"/sensor",
+	verificarSesionActiva,
 	verificarRol([
 		"admin",
 		"Administrador",
@@ -124,6 +172,7 @@ router.get(
 );
 router.post(
 	"/sensor",
+	verificarSesionActiva,
 	verificarRol([
 		"admin",
 		"Administrador",
@@ -136,6 +185,7 @@ router.post(
 );
 router.put(
 	"/sensor/:id/estado",
+	verificarSesionActiva,
 	verificarRol([
 		"admin",
 		"Administrador",
@@ -148,6 +198,7 @@ router.put(
 );
 router.put(
 	"/sensor/:id",
+	verificarSesionActiva,
 	verificarRol([
 		"admin",
 		"Administrador",
@@ -160,6 +211,7 @@ router.put(
 );
 router.get(
 	"/sensor/:id",
+	verificarSesionActiva,
 	verificarRol([
 		"admin",
 		"Administrador",
@@ -175,26 +227,31 @@ router.get(
 // Rutas para insumos
 router.get(
 	"/insumos",
+	verificarSesionActiva,
 	verificarRol(["admin", "Administrador", "superadmin", "Super Administrador"]),
 	VerInsumos
 );
 router.post(
 	"/insumos",
+	verificarSesionActiva,
 	verificarRol(["admin", "Administrador", "superadmin", "Super Administrador"]),
 	crearInsumo
 );
 router.put(
 	"/insumos/:id/estado",
+	verificarSesionActiva,
 	verificarRol(["admin", "Administrador", "superadmin", "Super Administrador"]),
 	actualizarEstadoInsumo
 );
 router.put(
 	"/insumos/:id",
+	verificarSesionActiva,
 	verificarRol(["admin", "Administrador", "superadmin", "Super Administrador"]),
 	actualizarInsumo
 );
 router.get(
 	"/insumos/:id",
+	verificarSesionActiva,
 	verificarRol(["admin", "Administrador", "superadmin", "Super Administrador"]),
 	obtenerInsumoPorId
 );
@@ -203,6 +260,7 @@ router.post("/insumos/reponer-stock", reponerStockInsumo);
 // Rutas para cultivos
 router.get(
 	"/cultivos",
+	verificarSesionActiva,
 	verificarRol([
 		"admin",
 		"Administrador",
@@ -215,21 +273,25 @@ router.get(
 );
 router.post(
 	"/cultivos",
+	verificarSesionActiva,
 	verificarRol(["admin", "Administrador", "superadmin", "Super Administrador"]),
 	crearCultivo
 );
 router.put(
 	"/cultivos/:id/estado",
+	verificarSesionActiva,
 	verificarRol(["admin", "Administrador", "superadmin", "Super Administrador"]),
 	actualizarEstadoCultivo
 );
 router.put(
 	"/cultivos/:id",
+	verificarSesionActiva,
 	verificarRol(["admin", "Administrador", "superadmin", "Super Administrador"]),
 	actualizarCultivo
 );
 router.get(
 	"/cultivos/:id",
+	verificarSesionActiva,
 	verificarRol([
 		"admin",
 		"Administrador",
@@ -243,6 +305,7 @@ router.get(
 // Rutas para ciclos de cultivo
 router.get(
 	"/ciclo_cultivo",
+	verificarSesionActiva,
 	verificarRol([
 		"admin",
 		"Administrador",
@@ -255,6 +318,7 @@ router.get(
 );
 router.get(
 	"/ciclo_cultivo/:id",
+	verificarSesionActiva,
 	verificarRol([
 		"admin",
 		"Administrador",
@@ -267,16 +331,19 @@ router.get(
 );
 router.post(
 	"/ciclo_cultivo",
+	verificarSesionActiva,
 	verificarRol(["admin", "Administrador", "superadmin", "Super Administrador"]),
 	crearCicloCultivo
 );
 router.put(
 	"/ciclo_cultivo/:id",
+	verificarSesionActiva,
 	verificarRol(["admin", "Administrador", "superadmin", "Super Administrador"]),
 	actualizarCicloCultivo
 );
 router.put(
 	"/ciclo_cultivo/:id/estado",
+	verificarSesionActiva,
 	verificarRol(["admin", "Administrador", "superadmin", "Super Administrador"]),
 	actualizarEstadoCicloCultivo
 );
@@ -287,11 +354,13 @@ router.get("/producciones/usuario/:id", obtenerProduccionesPorUsuario);
 router.get("/producciones/sensor/:id", obtenerProduccionesPorSensor);
 router.get(
 	"/producciones",
+	verificarSesionActiva,
 	verificarRol(["admin", "Administrador", "superadmin", "Super Administrador"]),
 	verProducciones
 );
 router.post(
 	"/producciones",
+	verificarSesionActiva,
 	verificarRol(["admin", "Administrador", "superadmin", "Super Administrador"]),
 	crearProduccion
 );
@@ -303,17 +372,20 @@ router.put(
 router.put("/producciones/deshabilitar", deshabilitarProducciones);
 router.get(
 	"/producciones/:id",
+	verificarSesionActiva,
 	verificarRol(["admin", "Administrador", "superadmin", "Super Administrador"]),
 	obtenerProduccionPorId
 );
 router.put(
 	"/producciones/:id",
+	verificarSesionActiva,
 	verificarRol(["admin", "Administrador", "superadmin", "Super Administrador"]),
 	actualizarProduccion
 );
 router.delete("/producciones/:id", eliminarProduccion);
 router.put(
 	"/producciones/:id/estado",
+	verificarSesionActiva,
 	verificarRol(["admin", "Administrador", "superadmin", "Super Administrador"]),
 	actualizarEstadoProduccion
 );

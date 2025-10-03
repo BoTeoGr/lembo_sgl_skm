@@ -27,6 +27,13 @@
 		<script src="../js/pages/cropsWidget.js"></script>
 		<script>
 			document.addEventListener('DOMContentLoaded', function() {
+				// Verificar si hay una sesión activa
+				const token = localStorage.getItem('token');
+				if (!token) {
+					window.location.href = 'index.html';
+					return;
+				}
+
 				// Check if user is admin
 				const userRole = localStorage.getItem('userRol') || '';
 				const normalizedRole = String(userRole).toLowerCase().trim();
