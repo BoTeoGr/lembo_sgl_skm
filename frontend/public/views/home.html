@@ -27,18 +27,18 @@
 		<script src="../js/pages/cropsWidget.js"></script>
 		<script>
 			document.addEventListener('DOMContentLoaded', function() {
-				// Check if user is admin
+				// Verificar si el usuario es administrador
 				const userRole = localStorage.getItem('userRol') || '';
 				const normalizedRole = String(userRole).toLowerCase().trim();
 				const isAdmin = ['administrador', 'super administrador', 'admin', 'superadmin'].includes(normalizedRole);
 
-				// Hide buttons if not admin
+				// Ocultar botones si no es administrador
 				if (!isAdmin) {
-					// Hide 'Ir a Insumos' button in the dashboard (more specific selector)
+					// Ocultar botón 'Ir a Insumos' en el dashboard (selector más específico)
 					const insumosButton = document.querySelector('.dashboard a[href="listar-insumos.html"]');
 					if (insumosButton) insumosButton.style.display = 'none';
 
-					// Hide 'Ir a Cultivos' button in the dashboard (more specific selector)
+					// Ocultar botón 'Ir a Cultivos' en el dashboard (selector más específico)
 					const cultivosButton = document.querySelector('.dashboard a[href*="listar-cultivos.html"]');
 					if (cultivosButton) cultivosButton.style.display = 'none';
 				}
@@ -51,9 +51,9 @@
 			<img src="../imgs/gov-logo.svg" alt="logo gov.co" class="government__logo" />
 		</header>
 		<nav class="nav-render"></nav>
-		<!-- Main Content -->
+		<!-- Contenido Principal -->
 		<main class="main">
-			<!-- Dashboard Cards -->
+			<!-- Tarjetas del Dashboard -->
 			<div class="dashboard">
 				<!-- Weather Card -->
 				<div class="card card--weather card-animated">
@@ -400,7 +400,7 @@
 		<script src="../js/validations/homeValidator.js"></script>
 		<script src="../js/pages/weatherWidget.js"></script>
 		<script src="../js/pages/userWidget.js"></script>
-		<!-- Script para verificar autenticación antes demostrar la vista -->
+		<!-- Script para verificar autenticación antes de mostrar la vista -->
 		<script src="../js/utils/auth-check.js"></script>
 		<script>
 			document.addEventListener('DOMContentLoaded', () => {
