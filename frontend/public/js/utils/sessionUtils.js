@@ -15,6 +15,43 @@ export function clearSession() {
 	localStorage.removeItem("userEmail");
 	localStorage.removeItem("userRol");
 	localStorage.removeItem("userRole");
+	localStorage.removeItem("userTelefono");
+	localStorage.removeItem("userTipoDoc");
+	localStorage.removeItem("userNumDoc");
+}
+
+// Función para limpiar tokens inválidos al inicio
+export function cleanupInvalidTokens() {
+	const token = localStorage.getItem("token");
+	if (token) {
+		try {
+			// Intentar decodificar el token para verificar si es válido
+			const parts = token.split('.');
+			if (parts.length !== 3) {
+				// Token JWT malformado
+				console.warn("Token JWT malformado detectado, limpiando...");
+				clearSession();
+				return false;
+			}
+			
+			const payload = JSON.parse(atob(parts[1]));
+			const now = Date.now() / 1000;
+			
+			// Verificar si el token ha expirado
+			if (payload.exp && payload.exp < now) {
+				console.warn("Token expirado detectado, limpiando...");
+				clearSession();
+				return false;
+			}
+			
+			return true;
+		} catch (error) {
+			console.warn("Error al verificar token, limpiando...", error);
+			clearSession();
+			return false;
+		}
+	}
+	return true;
 }
 
 // Función para manejar respuestas de error que indican sesión inválida
@@ -40,13 +77,22 @@ function setupFetchInterceptor() {
 	const originalFetch = window.fetch;
 
 	window.fetch = async function(url, options = {}) {
-		// Si la URL es relativa, añadir el token si existe
+		// Si la URL es relativa, añadir el token si existe PERO solo para rutas que no sean login
 		if (url.startsWith('http://localhost:5000') || url.startsWith('/')) {
 			const token = localStorage.getItem("token");
-			if (token) {
+			// NO añadir token para la ruta de login o logout
+			const isAuthRoute = url.includes('/login') || url.includes('/logout') || url.includes('/force-logout');
+			
+			if (token && !isAuthRoute) {
 				options.headers = {
 					...options.headers,
 					"Authorization": `Bearer ${token}`,
+					"Content-Type": "application/json"
+				};
+			} else if (!isAuthRoute) {
+				// Solo añadir Content-Type si no es ruta de auth
+				options.headers = {
+					...options.headers,
 					"Content-Type": "application/json"
 				};
 			}
@@ -54,8 +100,8 @@ function setupFetchInterceptor() {
 
 		const response = await originalFetch(url, options);
 
-		// Si la respuesta es 401 (Unauthorized), redirigir al login
-		if (response.status === 401) {
+		// Si la respuesta es 401 (Unauthorized), redirigir al login SOLO si no es una ruta de auth
+		if (response.status === 401 && !url.includes('/login') && !url.includes('/logout') && !url.includes('/force-logout')) {
 			clearSession();
 			showToast("Sesión expirada", "Tu sesión ha expirado. Redirigiendo al login...", "warning");
 			setTimeout(() => {
@@ -69,6 +115,8 @@ function setupFetchInterceptor() {
 }
 
 // Inicializar el interceptor cuando se cargue el módulo
+// Primero limpiar tokens inválidos
+cleanupInvalidTokens();
 setupFetchInterceptor();
 
 // Función para hacer fetch con manejo automático de autenticación (alternativa al interceptor global)

@@ -14,10 +14,15 @@ email.addEventListener("input", readText);
 password.addEventListener("input", readText);
 
 import { loginUser, forceLogoutAllSessions } from "../services/loginService.js";
+import { clearSession, cleanupInvalidTokens } from "../utils/sessionUtils.js";
 
 //Evento submit
 form.addEventListener("submit", async function (e) {
 	e.preventDefault();
+	
+	// Limpiar cualquier sesión inválida antes de intentar login
+	cleanupInvalidTokens();
+	
 	// Captura los valores actuales de los inputs
 	const emailValue = email.value.trim();
 	const passwordValue = password.value.trim();
@@ -145,6 +150,9 @@ function readText(e) {
 
 // FUncion para mostrar u ocultar la contraseña
 document.addEventListener("DOMContentLoaded", function () {
+	// Limpiar tokens inválidos al cargar la página de login
+	cleanupInvalidTokens();
+	
 	const togglePasswordBtn = document.querySelector(".toggle-password-login");
 	const passwordInput = document.getElementById("password");
 	if (togglePasswordBtn && passwordInput) {
