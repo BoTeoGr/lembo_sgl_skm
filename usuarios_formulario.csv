@@ -1,0 +1,10 @@
+Campo,Valor Esperado,Validado,Tipo de Campo,Requerido,Validaciones,Observaciones
+Tipo de documento,cc,Sí,Select,Sí,"Opciones: ti, cc, ce, ppt, pep",Campo obligatorio para identificación
+Nombre,Mateo,Sí,Text,Sí,"Solo letras, sin números",Nombre completo del usuario
+Número de documento,12345678,Sí,Number,Sí,Solo números,Documento de identidad único
+Teléfono,3001234567,Sí,Number,Sí,"Solo números, 7-15 dígitos",Número de contacto
+Correo electrónico,mateo@email.com,Sí,Email,Sí,Formato email válido,Email único en el sistema
+Confirmar correo,mateo@email.com,Sí,Email,Sí,Debe coincidir con correo,Verificación de email
+Rol,Administrador,Sí,Select,Sí,"Super Administrador, Administrador, Personal de Apoyo, Visitante",Nivel de acceso en el sistema
+Contraseña,********,Sí,Password,Sí,8-18 caracteres,Contraseña segura
+Estado,habilitado,Sí,Radio,Sí,habilitado/deshabilitado,Estado del usuario en el sistema

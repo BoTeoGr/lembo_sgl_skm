@@ -1,0 +1,5 @@
+Campo,Valor Esperado,Validado,Tipo de Campo,Requerido,Validaciones,Observaciones
+Correo electrónico,usuario@email.com,Sí,Email,Sí,"Formato email válido, debe existir",Email registrado en el sistema
+Código de recuperación,123456,Sí,Number,Sí,Código de 6 dígitos,Código enviado por email
+Nueva contraseña,********,Sí,Password,Sí,8-18 caracteres,Nueva contraseña segura
+Confirmar contraseña,********,Sí,Password,Sí,Debe coincidir con nueva contraseña,Verificación de contraseña

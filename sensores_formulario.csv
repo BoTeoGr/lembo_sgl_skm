@@ -1,0 +1,8 @@
+Campo,Valor Esperado,Validado,Tipo de Campo,Requerido,Validaciones,Observaciones
+Tipo de sensor,Sensor de contacto,Sí,Select,Sí,"Sensor de contacto, Sensor de distancia, Sensores de luz",Clasificación del sensor
+Nombre del sensor,Sensor Temperatura A1,Sí,Text,Sí,"Solo letras, sin números",Identificación del sensor
+Unidad de medida,Temperatura,Sí,Select,Sí,"Temperatura, Distancia, Presión",Tipo de medición
+Imagen,sensor.jpg,Sí,File,Sí,Archivos de imagen,Foto del sensor
+Descripción,Sensor para medir temperatura ambiente,Sí,Textarea,Sí,Texto descriptivo,Detalles del sensor
+Tiempo de escaneo,Sensores lentos,Sí,Select,Sí,"Sensores lentos, Sensores de velocidad media, Sensores rápidos",Velocidad de lectura
+Estado,habilitado,Sí,Radio,Sí,habilitado/deshabilitado,Estado operativo del sensor

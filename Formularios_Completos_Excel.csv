@@ -1,0 +1,60 @@
+FORMULARIO,CAMPO,VALOR ESPERADO,VALIDADO,TIPO DE CAMPO,REQUERIDO,VALIDACIONES,OBSERVACIONES
+REGISTRO USUARIOS,Tipo de documento,cc,Sí,Select,Sí,"Opciones: ti, cc, ce, ppt, pep",Campo obligatorio para identificación
+REGISTRO USUARIOS,Nombre,Mateo,Sí,Text,Sí,"Solo letras, sin números",Nombre completo del usuario
+REGISTRO USUARIOS,Número de documento,12345678,Sí,Number,Sí,Solo números,Documento de identidad único
+REGISTRO USUARIOS,Teléfono,3001234567,Sí,Number,Sí,"Solo números, 7-15 dígitos",Número de contacto
+REGISTRO USUARIOS,Correo electrónico,mateo@email.com,Sí,Email,Sí,Formato email válido,Email único en el sistema
+REGISTRO USUARIOS,Confirmar correo,mateo@email.com,Sí,Email,Sí,Debe coincidir con correo,Verificación de email
+REGISTRO USUARIOS,Rol,Administrador,Sí,Select,Sí,"Super Administrador, Administrador, Personal de Apoyo, Visitante",Nivel de acceso en el sistema
+REGISTRO USUARIOS,Contraseña,********,Sí,Password,Sí,8-18 caracteres,Contraseña segura
+REGISTRO USUARIOS,Estado,habilitado,Sí,Radio,Sí,habilitado/deshabilitado,Estado del usuario en el sistema
+LOGIN,Correo electrónico,admin@sistema.com,Sí,Email,Sí,Formato email válido,Credencial de acceso
+LOGIN,Contraseña,********,Sí,Password,Sí,Mínimo 1 carácter,Contraseña del usuario
+SENSORES,Tipo de sensor,Sensor de contacto,Sí,Select,Sí,"Sensor de contacto, Sensor de distancia, Sensores de luz",Clasificación del sensor
+SENSORES,Nombre del sensor,Sensor Temperatura A1,Sí,Text,Sí,"Solo letras, sin números",Identificación del sensor
+SENSORES,Unidad de medida,Temperatura,Sí,Select,Sí,"Temperatura, Distancia, Presión",Tipo de medición
+SENSORES,Imagen,sensor.jpg,Sí,File,Sí,Archivos de imagen,Foto del sensor
+SENSORES,Descripción,Sensor para medir temperatura ambiente,Sí,Textarea,Sí,Texto descriptivo,Detalles del sensor
+SENSORES,Tiempo de escaneo,Sensores lentos,Sí,Select,Sí,"Sensores lentos, Sensores de velocidad media, Sensores rápidos",Velocidad de lectura
+SENSORES,Estado,habilitado,Sí,Radio,Sí,habilitado/deshabilitado,Estado operativo del sensor
+CULTIVOS,Nombre,Tomate Cherry,Sí,Text,Sí,"Solo letras, sin números",Nombre del cultivo
+CULTIVOS,Tipo,Fruta,Sí,Text,Sí,"Solo letras, sin números",Categoría del cultivo
+CULTIVOS,Imagen,tomate.jpg,Sí,File,Sí,Archivos de imagen,Foto del cultivo
+CULTIVOS,Ubicación,Invernadero 1,Sí,Text,Sí,Texto libre,Localización del cultivo
+CULTIVOS,Descripción,Cultivo de tomates cherry orgánicos,Sí,Textarea,Sí,Texto descriptivo,Detalles del cultivo
+CULTIVOS,Tamaño,150.5,Sí,Number,Sí,"Número decimal, 10-10000 m²",Área del cultivo en metros cuadrados
+CULTIVOS,Estado,habilitado,Sí,Radio,Sí,habilitado/deshabilitado,Estado del cultivo
+INSUMOS,Nombre,Fertilizante NPK,Sí,Text,Sí,"Solo letras, sin números",Nombre del insumo
+INSUMOS,Tipo,Químico,Sí,Text,Sí,Texto libre,Categoría del insumo
+INSUMOS,Imagen,fertilizante.jpg,Sí,File,Sí,Archivos de imagen,Foto del insumo
+INSUMOS,Unidad de medida,kilo,Sí,Select,Sí,"peso, volumen, superficie, concentración, litro, kilo",Unidad de medición
+INSUMOS,Valor unitario,15.50,Sí,Number,Sí,Número decimal > 0,Precio por unidad
+INSUMOS,Cantidad,100,Sí,Number,Sí,Número entero > 0,Stock disponible
+INSUMOS,Valor total,1550.00,Sí,Number,Sí,Calculado automáticamente,Valor unitario × cantidad
+INSUMOS,Descripción,Fertilizante balanceado para cultivos,Sí,Textarea,Sí,Texto descriptivo,Detalles del insumo
+INSUMOS,Estado,habilitado,Sí,Radio,Sí,habilitado/deshabilitado,Estado del insumo
+CICLOS CULTIVO,Nombre,Ciclo Primavera 2025,Sí,Text,Sí,"Solo letras, sin números",Nombre del ciclo
+CICLOS CULTIVO,Descripción,Ciclo de cultivo para temporada primaveral,Sí,Textarea,Sí,Texto descriptivo,Detalles del ciclo
+CICLOS CULTIVO,Periodo de inicio,2025-03-01,Sí,Date,Sí,Formato YYYY-MM-DD,Fecha de inicio del ciclo
+CICLOS CULTIVO,Periodo final,2025-06-30,Sí,Date,Sí,"Formato YYYY-MM-DD, posterior al inicio",Fecha de finalización
+CICLOS CULTIVO,Novedades,Implementación de riego por goteo,Sí,Textarea,Sí,Texto descriptivo,Observaciones del ciclo
+CICLOS CULTIVO,Estado,habilitado,Sí,Radio,Sí,habilitado/deshabilitado,Estado del ciclo
+PRODUCCIONES,Nombre,Producción Tomates Q1-2025,Sí,Text,Sí,Mínimo 3 caracteres,Identificación de la producción
+PRODUCCIONES,Tipo,Orgánica,Sí,Text,Sí,Texto libre,Tipo de producción
+PRODUCCIONES,Ubicación,Invernadero Principal,Sí,Text,Sí,Texto libre,Localización de la producción
+PRODUCCIONES,Descripción,Producción de tomates orgánicos certificados,Sí,Textarea,Sí,Texto descriptivo,Detalles de la producción
+PRODUCCIONES,Cultivo,Tomate Cherry,Sí,Select,Sí,Lista de cultivos habilitados,Cultivo asociado
+PRODUCCIONES,Ciclo de cultivo,Ciclo Primavera 2025,Sí,Select,Sí,Lista de ciclos habilitados,Ciclo asociado
+PRODUCCIONES,Responsable,Juan Pérez,Sí,Select,Sí,Usuarios con rol Admin/SuperAdmin,Usuario responsable
+PRODUCCIONES,Fecha de inicio,2025-03-01,Sí,Date,Sí,Formato YYYY-MM-DD,Inicio de la producción
+PRODUCCIONES,Fecha de fin,2025-06-30,Sí,Date,Sí,"Posterior a fecha inicio, máximo 2 años",Fin de la producción
+PRODUCCIONES,Cantidad,50.5,Sí,Number,Sí,Número decimal > 0,Cantidad esperada de producción
+PRODUCCIONES,Inversión total,15000.00,Sí,Number,Sí,Calculado automáticamente,Suma del costo de insumos
+PRODUCCIONES,Meta de ganancia,22500.00,Sí,Number,Sí,Debe ser >= inversión,Ganancia esperada
+PRODUCCIONES,Sensores,Sensor Temperatura A1,Sí,Multi-Select,No,Máximo 3 sensores,Sensores asignados
+PRODUCCIONES,Insumos,Fertilizante NPK (15 kg),Sí,Multi-Select,Sí,Mínimo 1 insumo con cantidad,Insumos utilizados con cantidades
+PRODUCCIONES,Estado,habilitado,Sí,Radio,Sí,habilitado/deshabilitado,Estado de la producción
+RECUPERAR CONTRASEÑA,Correo electrónico,usuario@email.com,Sí,Email,Sí,"Formato email válido, debe existir",Email registrado en el sistema
+RECUPERAR CONTRASEÑA,Código de recuperación,123456,Sí,Number,Sí,Código de 6 dígitos,Código enviado por email
+RECUPERAR CONTRASEÑA,Nueva contraseña,********,Sí,Password,Sí,8-18 caracteres,Nueva contraseña segura
+RECUPERAR CONTRASEÑA,Confirmar contraseña,********,Sí,Password,Sí,Debe coincidir con nueva contraseña,Verificación de contraseña

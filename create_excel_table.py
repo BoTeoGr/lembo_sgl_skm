@@ -1,0 +1,795 @@
+#!/usr/bin/env python3
+"""
+Script para crear tabla HTML que puede ser copiada a Excel
+"""
+
+def create_html_table():
+    """Crear tabla HTML completa con todos los formularios"""
+    
+    html_content = """
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campos de Formularios - Sistema Gestión Agrícola</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            background-color: #ecf0f1;
+            padding: 10px;
+            border-left: 5px solid #3498db;
+            margin-top: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+        }
+        td {
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        tr:hover {
+            background-color: #e8f4f8;
+        }
+        .required-yes {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .required-no {
+            color: #e74c3c;
+        }
+        .validated-yes {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .field-type {
+            background-color: #f39c12;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .summary {
+            background-color: #d5dbdb;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .example-value {
+            font-style: italic;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <h1>📋 CAMPOS DE FORMULARIOS - SISTEMA GESTIÓN AGRÍCOLA</h1>
+    
+    <div class="summary">
+        <h3>📊 Resumen General</h3>
+        <ul>
+            <li><strong>Total de formularios:</strong> 8</li>
+            <li><strong>Total de campos de formularios:</strong> 59</li>
+            <li><strong>Total de campos en base de datos:</strong> 73</li>
+            <li><strong>Tablas en base de datos:</strong> 8</li>
+        </ul>
+    </div>
+
+    <h2>👤 1. REGISTRO DE USUARIOS</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Campo</th>
+                <th>Valor Esperado</th>
+                <th>Validado</th>
+                <th>Tipo de Campo</th>
+                <th>Requerido</th>
+                <th>Validaciones</th>
+                <th>Observaciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Tipo de documento</strong></td>
+                <td><span class="example-value">cc</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Select</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Opciones: ti, cc, ce, ppt, pep</td>
+                <td>Campo obligatorio para identificación</td>
+            </tr>
+            <tr>
+                <td><strong>Nombre</strong></td>
+                <td><span class="example-value">Mateo</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Text</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Solo letras, sin números</td>
+                <td>Nombre completo del usuario</td>
+            </tr>
+            <tr>
+                <td><strong>Número de documento</strong></td>
+                <td><span class="example-value">12345678</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Number</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Solo números</td>
+                <td>Documento de identidad único</td>
+            </tr>
+            <tr>
+                <td><strong>Teléfono</strong></td>
+                <td><span class="example-value">3001234567</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Number</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Solo números, 7-15 dígitos</td>
+                <td>Número de contacto</td>
+            </tr>
+            <tr>
+                <td><strong>Correo electrónico</strong></td>
+                <td><span class="example-value">mateo@email.com</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Email</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Formato email válido</td>
+                <td>Email único en el sistema</td>
+            </tr>
+            <tr>
+                <td><strong>Confirmar correo</strong></td>
+                <td><span class="example-value">mateo@email.com</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Email</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Debe coincidir con correo</td>
+                <td>Verificación de email</td>
+            </tr>
+            <tr>
+                <td><strong>Rol</strong></td>
+                <td><span class="example-value">Administrador</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Select</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Super Administrador, Administrador, Personal de Apoyo, Visitante</td>
+                <td>Nivel de acceso en el sistema</td>
+            </tr>
+            <tr>
+                <td><strong>Contraseña</strong></td>
+                <td><span class="example-value">********</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Password</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>8-18 caracteres</td>
+                <td>Contraseña segura</td>
+            </tr>
+            <tr>
+                <td><strong>Estado</strong></td>
+                <td><span class="example-value">habilitado</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Radio</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>habilitado/deshabilitado</td>
+                <td>Estado del usuario en el sistema</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>🔐 2. LOGIN</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Campo</th>
+                <th>Valor Esperado</th>
+                <th>Validado</th>
+                <th>Tipo de Campo</th>
+                <th>Requerido</th>
+                <th>Validaciones</th>
+                <th>Observaciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Correo electrónico</strong></td>
+                <td><span class="example-value">admin@sistema.com</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Email</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Formato email válido</td>
+                <td>Credencial de acceso</td>
+            </tr>
+            <tr>
+                <td><strong>Contraseña</strong></td>
+                <td><span class="example-value">********</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Password</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Mínimo 1 carácter</td>
+                <td>Contraseña del usuario</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>📡 3. SENSORES</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Campo</th>
+                <th>Valor Esperado</th>
+                <th>Validado</th>
+                <th>Tipo de Campo</th>
+                <th>Requerido</th>
+                <th>Validaciones</th>
+                <th>Observaciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Tipo de sensor</strong></td>
+                <td><span class="example-value">Sensor de contacto</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Select</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Sensor de contacto, Sensor de distancia, Sensores de luz</td>
+                <td>Clasificación del sensor</td>
+            </tr>
+            <tr>
+                <td><strong>Nombre del sensor</strong></td>
+                <td><span class="example-value">Sensor Temperatura A1</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Text</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Solo letras, sin números</td>
+                <td>Identificación del sensor</td>
+            </tr>
+            <tr>
+                <td><strong>Unidad de medida</strong></td>
+                <td><span class="example-value">Temperatura</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Select</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Temperatura, Distancia, Presión</td>
+                <td>Tipo de medición</td>
+            </tr>
+            <tr>
+                <td><strong>Imagen</strong></td>
+                <td><span class="example-value">sensor.jpg</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">File</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Archivos de imagen</td>
+                <td>Foto del sensor</td>
+            </tr>
+            <tr>
+                <td><strong>Descripción</strong></td>
+                <td><span class="example-value">Sensor para medir temperatura ambiente</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Textarea</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Texto descriptivo</td>
+                <td>Detalles del sensor</td>
+            </tr>
+            <tr>
+                <td><strong>Tiempo de escaneo</strong></td>
+                <td><span class="example-value">Sensores lentos</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Select</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Sensores lentos, Sensores de velocidad media, Sensores rápidos</td>
+                <td>Velocidad de lectura</td>
+            </tr>
+            <tr>
+                <td><strong>Estado</strong></td>
+                <td><span class="example-value">habilitado</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Radio</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>habilitado/deshabilitado</td>
+                <td>Estado operativo del sensor</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>🌱 4. CULTIVOS</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Campo</th>
+                <th>Valor Esperado</th>
+                <th>Validado</th>
+                <th>Tipo de Campo</th>
+                <th>Requerido</th>
+                <th>Validaciones</th>
+                <th>Observaciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Nombre</strong></td>
+                <td><span class="example-value">Tomate Cherry</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Text</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Solo letras, sin números</td>
+                <td>Nombre del cultivo</td>
+            </tr>
+            <tr>
+                <td><strong>Tipo</strong></td>
+                <td><span class="example-value">Fruta</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Text</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Solo letras, sin números</td>
+                <td>Categoría del cultivo</td>
+            </tr>
+            <tr>
+                <td><strong>Imagen</strong></td>
+                <td><span class="example-value">tomate.jpg</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">File</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Archivos de imagen</td>
+                <td>Foto del cultivo</td>
+            </tr>
+            <tr>
+                <td><strong>Ubicación</strong></td>
+                <td><span class="example-value">Invernadero 1</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Text</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Texto libre</td>
+                <td>Localización del cultivo</td>
+            </tr>
+            <tr>
+                <td><strong>Descripción</strong></td>
+                <td><span class="example-value">Cultivo de tomates cherry orgánicos</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Textarea</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Texto descriptivo</td>
+                <td>Detalles del cultivo</td>
+            </tr>
+            <tr>
+                <td><strong>Tamaño</strong></td>
+                <td><span class="example-value">150.5</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Number</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Número decimal, 10-10000 m²</td>
+                <td>Área del cultivo en metros cuadrados</td>
+            </tr>
+            <tr>
+                <td><strong>Estado</strong></td>
+                <td><span class="example-value">habilitado</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Radio</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>habilitado/deshabilitado</td>
+                <td>Estado del cultivo</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>📦 5. INSUMOS</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Campo</th>
+                <th>Valor Esperado</th>
+                <th>Validado</th>
+                <th>Tipo de Campo</th>
+                <th>Requerido</th>
+                <th>Validaciones</th>
+                <th>Observaciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Nombre</strong></td>
+                <td><span class="example-value">Fertilizante NPK</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Text</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Solo letras, sin números</td>
+                <td>Nombre del insumo</td>
+            </tr>
+            <tr>
+                <td><strong>Tipo</strong></td>
+                <td><span class="example-value">Químico</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Text</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Texto libre</td>
+                <td>Categoría del insumo</td>
+            </tr>
+            <tr>
+                <td><strong>Imagen</strong></td>
+                <td><span class="example-value">fertilizante.jpg</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">File</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Archivos de imagen</td>
+                <td>Foto del insumo</td>
+            </tr>
+            <tr>
+                <td><strong>Unidad de medida</strong></td>
+                <td><span class="example-value">kilo</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Select</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>peso, volumen, superficie, concentración, litro, kilo</td>
+                <td>Unidad de medición</td>
+            </tr>
+            <tr>
+                <td><strong>Valor unitario</strong></td>
+                <td><span class="example-value">15.50</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Number</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Número decimal > 0</td>
+                <td>Precio por unidad</td>
+            </tr>
+            <tr>
+                <td><strong>Cantidad</strong></td>
+                <td><span class="example-value">100</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Number</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Número entero > 0</td>
+                <td>Stock disponible</td>
+            </tr>
+            <tr>
+                <td><strong>Valor total</strong></td>
+                <td><span class="example-value">1550.00</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Number</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Calculado automáticamente</td>
+                <td>Valor unitario × cantidad</td>
+            </tr>
+            <tr>
+                <td><strong>Descripción</strong></td>
+                <td><span class="example-value">Fertilizante balanceado para cultivos</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Textarea</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Texto descriptivo</td>
+                <td>Detalles del insumo</td>
+            </tr>
+            <tr>
+                <td><strong>Estado</strong></td>
+                <td><span class="example-value">habilitado</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Radio</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>habilitado/deshabilitado</td>
+                <td>Estado del insumo</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>🔄 6. CICLOS DE CULTIVO</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Campo</th>
+                <th>Valor Esperado</th>
+                <th>Validado</th>
+                <th>Tipo de Campo</th>
+                <th>Requerido</th>
+                <th>Validaciones</th>
+                <th>Observaciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Nombre</strong></td>
+                <td><span class="example-value">Ciclo Primavera 2025</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Text</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Solo letras, sin números</td>
+                <td>Nombre del ciclo</td>
+            </tr>
+            <tr>
+                <td><strong>Descripción</strong></td>
+                <td><span class="example-value">Ciclo de cultivo para temporada primaveral</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Textarea</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Texto descriptivo</td>
+                <td>Detalles del ciclo</td>
+            </tr>
+            <tr>
+                <td><strong>Periodo de inicio</strong></td>
+                <td><span class="example-value">2025-03-01</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Date</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Formato YYYY-MM-DD</td>
+                <td>Fecha de inicio del ciclo</td>
+            </tr>
+            <tr>
+                <td><strong>Periodo final</strong></td>
+                <td><span class="example-value">2025-06-30</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Date</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Formato YYYY-MM-DD, posterior al inicio</td>
+                <td>Fecha de finalización</td>
+            </tr>
+            <tr>
+                <td><strong>Novedades</strong></td>
+                <td><span class="example-value">Implementación de riego por goteo</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Textarea</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Texto descriptivo</td>
+                <td>Observaciones del ciclo</td>
+            </tr>
+            <tr>
+                <td><strong>Estado</strong></td>
+                <td><span class="example-value">habilitado</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Radio</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>habilitado/deshabilitado</td>
+                <td>Estado del ciclo</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>🏭 7. PRODUCCIONES</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Campo</th>
+                <th>Valor Esperado</th>
+                <th>Validado</th>
+                <th>Tipo de Campo</th>
+                <th>Requerido</th>
+                <th>Validaciones</th>
+                <th>Observaciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Nombre</strong></td>
+                <td><span class="example-value">Producción Tomates Q1-2025</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Text</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Mínimo 3 caracteres</td>
+                <td>Identificación de la producción</td>
+            </tr>
+            <tr>
+                <td><strong>Tipo</strong></td>
+                <td><span class="example-value">Orgánica</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Text</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Texto libre</td>
+                <td>Tipo de producción</td>
+            </tr>
+            <tr>
+                <td><strong>Ubicación</strong></td>
+                <td><span class="example-value">Invernadero Principal</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Text</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Texto libre</td>
+                <td>Localización de la producción</td>
+            </tr>
+            <tr>
+                <td><strong>Descripción</strong></td>
+                <td><span class="example-value">Producción de tomates orgánicos certificados</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Textarea</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Texto descriptivo</td>
+                <td>Detalles de la producción</td>
+            </tr>
+            <tr>
+                <td><strong>Cultivo</strong></td>
+                <td><span class="example-value">Tomate Cherry</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Select</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Lista de cultivos habilitados</td>
+                <td>Cultivo asociado</td>
+            </tr>
+            <tr>
+                <td><strong>Ciclo de cultivo</strong></td>
+                <td><span class="example-value">Ciclo Primavera 2025</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Select</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Lista de ciclos habilitados</td>
+                <td>Ciclo asociado</td>
+            </tr>
+            <tr>
+                <td><strong>Responsable</strong></td>
+                <td><span class="example-value">Juan Pérez</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Select</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Usuarios con rol Admin/SuperAdmin</td>
+                <td>Usuario responsable</td>
+            </tr>
+            <tr>
+                <td><strong>Fecha de inicio</strong></td>
+                <td><span class="example-value">2025-03-01</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Date</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Formato YYYY-MM-DD</td>
+                <td>Inicio de la producción</td>
+            </tr>
+            <tr>
+                <td><strong>Fecha de fin</strong></td>
+                <td><span class="example-value">2025-06-30</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Date</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Posterior a fecha inicio, máximo 2 años</td>
+                <td>Fin de la producción</td>
+            </tr>
+            <tr>
+                <td><strong>Cantidad</strong></td>
+                <td><span class="example-value">50.5</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Number</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Número decimal > 0</td>
+                <td>Cantidad esperada de producción</td>
+            </tr>
+            <tr>
+                <td><strong>Inversión total</strong></td>
+                <td><span class="example-value">15000.00</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Number</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Calculado automáticamente</td>
+                <td>Suma del costo de insumos</td>
+            </tr>
+            <tr>
+                <td><strong>Meta de ganancia</strong></td>
+                <td><span class="example-value">22500.00</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Number</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Debe ser >= inversión</td>
+                <td>Ganancia esperada</td>
+            </tr>
+            <tr>
+                <td><strong>Sensores</strong></td>
+                <td><span class="example-value">Sensor Temperatura A1</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Multi-Select</span></td>
+                <td><span class="required-no">No</span></td>
+                <td>Máximo 3 sensores</td>
+                <td>Sensores asignados</td>
+            </tr>
+            <tr>
+                <td><strong>Insumos</strong></td>
+                <td><span class="example-value">Fertilizante NPK (15 kg)</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Multi-Select</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Mínimo 1 insumo con cantidad</td>
+                <td>Insumos utilizados con cantidades</td>
+            </tr>
+            <tr>
+                <td><strong>Estado</strong></td>
+                <td><span class="example-value">habilitado</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Radio</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>habilitado/deshabilitado</td>
+                <td>Estado de la producción</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>🔑 8. RECUPERACIÓN DE CONTRASEÑA</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Campo</th>
+                <th>Valor Esperado</th>
+                <th>Validado</th>
+                <th>Tipo de Campo</th>
+                <th>Requerido</th>
+                <th>Validaciones</th>
+                <th>Observaciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Correo electrónico</strong></td>
+                <td><span class="example-value">usuario@email.com</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Email</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Formato email válido, debe existir</td>
+                <td>Email registrado en el sistema</td>
+            </tr>
+            <tr>
+                <td><strong>Código de recuperación</strong></td>
+                <td><span class="example-value">123456</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Number</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Código de 6 dígitos</td>
+                <td>Código enviado por email</td>
+            </tr>
+            <tr>
+                <td><strong>Nueva contraseña</strong></td>
+                <td><span class="example-value">********</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Password</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>8-18 caracteres</td>
+                <td>Nueva contraseña segura</td>
+            </tr>
+            <tr>
+                <td><strong>Confirmar contraseña</strong></td>
+                <td><span class="example-value">********</span></td>
+                <td><span class="validated-yes">Sí</span></td>
+                <td><span class="field-type">Password</span></td>
+                <td><span class="required-yes">Sí</span></td>
+                <td>Debe coincidir con nueva contraseña</td>
+                <td>Verificación de contraseña</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div style="margin-top: 50px; padding: 20px; background-color: #ecf0f1; border-radius: 5px;">
+        <h3>📝 Notas importantes:</h3>
+        <ul>
+            <li><strong>Validado:</strong> Indica si el campo tiene validaciones implementadas en el frontend</li>
+            <li><strong>Requerido:</strong> Campo obligatorio para el envío del formulario</li>
+            <li><strong>Tipos de campo:</strong> Text, Number, Email, Password, Select, Multi-Select, Textarea, File, Date, Radio</li>
+            <li><strong>Base de datos:</strong> Todos los campos están respaldados por el esquema de BD correspondiente</li>
+            <li><strong>Seguridad:</strong> Las contraseñas se almacenan encriptadas usando SHA2</li>
+        </ul>
+    </div>
+
+</body>
+</html>
+"""
+    
+    return html_content
+
+if __name__ == "__main__":
+    print("Creando tabla HTML completa...")
+    
+    html_content = create_html_table()
+    
+    with open('/workspace/Formularios_Sistema_Agricola.html', 'w', encoding='utf-8') as f:
+        f.write(html_content)
+    
+    print("✅ Archivo HTML creado: /workspace/Formularios_Sistema_Agricola.html")
+    print("📋 Este archivo contiene todas las tablas con los campos de formularios")
+    print("💡 Puedes abrir el archivo HTML en tu navegador y copiar las tablas a Excel")
